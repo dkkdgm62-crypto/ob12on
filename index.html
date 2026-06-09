@@ -571,7 +571,7 @@
     <!-- Trainer-Tab: Freischaltungen & Reset -->
     <div id="staff-frei" class="card hidden">
       <p class="eyebrow">Verwalten</p>
-      <h3 style="margin:8px 0 16px; color:#fff;">Modul für Spieler oder ganzes Team freischalten</h3>
+      <h3 style="margin:8px 0 16px; color:#fff;">Modul für einzelne Spieler/innen oder ganzes Team freischalten</h3>
       
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:14px;">
         <div>
@@ -586,7 +586,7 @@
       
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:20px; align-items:end;">
         <div>
-          <label>Dauer (nur für Spieler)</label>
+          <label>Dauer (nur bei Einzel-Freigabe)</label>
           <select id="frei-duration">
             <option value="">Unbegrenzt</option>
             <option value="2">2 Wochen freigeschaltet</option>
@@ -609,11 +609,11 @@
       <!-- RESET FUNKTIONEN -->
       <h3 style="color:#fff; margin-bottom:12px;">Fortschritt &amp; Antwort-Logs zurücksetzen</h3>
       <p class="muted" style="font-size:13px; margin-bottom:16px;">
-        Setzt die korrekten Antworten im Log für den gewählten Umfang zurück. Der Spieler kann die Fragen danach neu beantworten.
+        Setzt die korrekten Antworten im Log für den gewählten Umfang zurück. Spielerinnen und Spieler können die Fragen danach neu beantworten.
       </p>
       <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:18px;">
         <div>
-          <label>Spieler</label>
+          <label>Spieler/in</label>
           <select id="reset-player"></select>
         </div>
         <div>
@@ -645,7 +645,7 @@
       <h3 style="margin:8px 0 16px; color:#fff;">Status der Lernakademie festlegen</h3>
       
       <div style="margin-bottom:20px; background: rgba(255,255,255,0.02); padding: 20px; border-radius: 12px; border: 1px solid var(--line);">
-        <p class="muted" style="margin-bottom:18px; font-size:14px;">Bestimme, ob die Lernakademie für Spieler geöffnet ist. Standardmäßig ist die Akademie immer geöffnet.</p>
+        <p class="muted" style="margin-bottom:18px; font-size:14px;">Bestimme, ob die Lernakademie für Spieler und Spielerinnen geöffnet ist. Standardmäßig ist die Akademie immer geöffnet.</p>
         
         <label style="display:flex; align-items:center; gap:12px; cursor:pointer; margin-bottom:14px; background: rgba(47, 181, 106, 0.08); padding: 14px 16px; border-radius: 10px; border: 1px solid rgba(47, 181, 106, 0.2);">
           <input type="radio" id="zeit-status-open" name="zeit-status" value="open" style="width:20px; height:20px; cursor:pointer;" />
@@ -654,7 +654,7 @@
         
         <label style="display:flex; align-items:center; gap:12px; cursor:pointer; background: rgba(224, 86, 59, 0.08); padding: 14px 16px; border-radius: 10px; border: 1px solid rgba(224, 86, 59, 0.2);">
           <input type="radio" id="zeit-status-closed" name="zeit-status" value="closed" style="width:20px; height:20px; cursor:pointer;" />
-          <span style="font-size:15px; color:#fff; font-weight:700; font-family:'Sora',sans-serif;">🔴 Geschlossen (Zugriff für alle Spieler gesperrt)</span>
+          <span style="font-size:15px; color:#fff; font-weight:700; font-family:'Sora',sans-serif;">🔴 Geschlossen (Zugriff für alle Spieler/innen gesperrt)</span>
         </label>
       </div>
       
@@ -793,8 +793,8 @@ function doLogout(){
 function afterLogin(){
   sb.from("profiles").select("display_name,role,team_id").eq("id",ME.id).single().then(function(r){
     PROFILE = r.data || {display_name:ME.email, role:"spieler"};
-    el("head-name").textContent = PROFILE.display_name || "Spieler";
-    el("head-role").textContent = PROFILE.role==="spieler" ? "Spieler" : (PROFILE.role==="leiter"?"Leiter-Trainer":"Trainer");
+    el("head-name").textContent = PROFILE.display_name || "Spieler/in";
+    el("head-role").textContent = PROFILE.role==="spieler" ? "Spieler/in" : (PROFILE.role==="leiter"?"Leiter-Trainer":"Trainer");
     refreshAccess(true);
     if(!syncTimer) syncTimer = setInterval(function(){refreshAccess(false);}, 60000);
   });
@@ -1103,7 +1103,7 @@ function loadLeaderboard(targetId, roundNr){
     if(!rows.length){ el(targetId).innerHTML='<p class="muted center">Noch keine Punkte eingetragen in diesem Bereich.</p>'; return; }
     
     var h='<div style="font-size:12px; color:var(--gold); font-weight:700; margin-bottom:10px;">Auswertung für: '+esc(roundName)+'</div>';
-    h+='<table id="leaderboard-table"><thead><tr><th class="rank">#</th><th>Spieler</th><th>Gesamtpunkte</th><th>Meister-Module</th><th>⭐</th></tr></thead><tbody>';
+    h+='<table id="leaderboard-table"><thead><tr><th class="rank">#</th><th>Spieler / Spielerinnen</th><th>Gesamtpunkte</th><th>Meister-Module</th><th>⭐</th></tr></thead><tbody>';
     rows.forEach(function(x){
       var me = ME && x.player_id===ME.id;
       var rc = x.rang===1?"r1":(x.rang===2?"r2":(x.rang===3?"r3":""));
@@ -1158,7 +1158,7 @@ function exportLeaderboardPDF() {
     
     doc.autoTable({
       startY: 40,
-      head: [['#', 'Spieler', 'Punkte', 'Module bestanden', 'Meister-Sterne (⭐)']],
+      head: [['#', 'Spieler / Spielerinnen', 'Punkte', 'Module bestanden', 'Meister-Sterne (⭐)']],
       body: body,
       theme: 'striped',
       headStyles: { fillColor: [212, 175, 55], textColor: [12, 13, 16], fontStyle: 'bold' },
@@ -1240,7 +1240,7 @@ function doToggleAlwaysOpen() {
       el("frei-msg").textContent = "Fehler beim Umschalten: " + r.error.message;
     } else {
       el("frei-msg").style.color = "var(--good)";
-      el("frei-msg").textContent = alwaysOpen ? "✓ Modul ist nun permanent für alle Spieler freigegeben." : "✓ Modul-Progression ist wieder aktiv.";
+      el("frei-msg").textContent = alwaysOpen ? "✓ Modul ist nun permanent für alle Spieler/innen freigegeben." : "✓ Modul-Progression ist wieder aktiv.";
       loadUnlockForm();
     }
   });
@@ -1262,7 +1262,7 @@ function doUnlock(){
     } else {
       el("frei-msg").style.color = "var(--good)";
       var text = "✓ Freigeschaltet";
-      if (pid) text += " für den ausgewählten Spieler";
+      if (pid) text += " für den/die ausgewählte Spieler/in";
       else text += " für das gesamte Team";
       if (durationWeeks) text += " (zeitlich begrenzt auf " + durationWeeks + " Wochen).";
       else text += " (unbegrenzt).";
@@ -1294,7 +1294,7 @@ function loadActiveUnlocksList() {
         
         var h = "";
         unlocks.forEach(function(u) {
-          var targetName = u.player_id ? (profileMap[u.player_id] || "Unbekannter Spieler") : "Ganzes Team";
+          var targetName = u.player_id ? (profileMap[u.player_id] || "Spieler/in") : "Ganzes Team";
           var modName = moduleMap[u.module_id] || "Unbekanntes Modul";
           var expiryText = u.expires_at ? ("Ablauf: " + formatExpiry(u.expires_at)) : "Dauerhaft freigeschaltet";
           
@@ -1337,7 +1337,7 @@ function doResetProgress() {
       el("reset-msg").textContent = "Fehler beim Zurücksetzen: " + r.error.message;
     } else {
       el("reset-msg").style.color = "var(--good)";
-      el("reset-msg").textContent = "✓ Fortschritt wurde erfolgreich gelöscht. Der Spieler kann die Fragen nun erneut beantworten.";
+      el("reset-msg").textContent = "✓ Fortschritt wurde erfolgreich gelöscht. Spieler/innen können die Fragen nun erneut beantworten.";
       loadUnlockForm();
     }
   });
@@ -1373,7 +1373,7 @@ function saveLernzeiten() {
       el("zeit-msg").textContent = "Fehler beim Speichern: " + r.error.message;
     } else {
       el("zeit-msg").style.color = "var(--good)";
-      el("zeit-msg").textContent = alwaysOpen ? "✓ Die Akademie ist nun dauerhaft geöffnet (24/7)." : "✓ Die Akademie ist nun für Spieler geschlossen.";
+      el("zeit-msg").textContent = alwaysOpen ? "✓ Die Akademie ist nun dauerhaft geöffnet (24/7)." : "✓ Die Akademie ist nun für Spieler/innen geschlossen.";
       refreshAccess(false);
     }
   });
@@ -1432,7 +1432,7 @@ function loadLoginLog(){
       var rows=r.data||[];
       var h='<p class="eyebrow">Aktivität</p><h3 style="margin:8px 0 16px; color:#fff;">Letzte Logins / Logouts</h3>';
       if(!rows.length){h+='<p class="muted">Noch keine Einträge.</p>';}
-      else{ h+='<table><thead><tr><th>Spieler</th><th>Ereignis</th><th>Zeit</th></tr></thead><tbody>';
+      else{ h+='<table><thead><tr><th>Spieler/in</th><th>Ereignis</th><th>Zeit</th></tr></thead><tbody>';
         rows.forEach(function(x){
           var dt=new Date(x.occurred_at);
           var typeLabel = x.event_type==="login" ? '<span class="tag" style="color:var(--good); border-color:var(--good);">Login</span>' : '<span class="tag" style="color:var(--muted);">Logout</span>';
