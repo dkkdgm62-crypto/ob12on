@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FOOTECO Lern-Akademie · FE12</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy:#0d1520; --navy2:#13202f; --card:#16263a; --line:#23364c;
+    --orange:#e07b39; --orange-d:#c4682c; --blue:#3a86f5; --blue-d:#2a6fd6;
+    --text:#eaf1f8; --muted:#9fb2c6; --good:#2fb56a; --bad:#e0563b;
+    --gold:#f2c14e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,sans-serif;background:var(--navy);color:var(--text);
+    min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{font-family:'Sora',sans-serif;letter-spacing:-.01em}
+  .wrap{max-width:860px;margin:0 auto;padding:18px 16px 80px}
+  .hidden{display:none!important}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:12px;font-weight:600}
+  .btn{background:var(--orange);color:#fff;padding:13px 18px;font-size:15px;transition:.15s}
+  .btn:hover{background:var(--orange-d)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+  .btn-ghost:hover{color:var(--text);border-color:var(--blue)}
+  .btn-blue{background:var(--blue)} .btn-blue:hover{background:var(--blue-d)}
+  input,select{
+    width:100%;background:var(--navy2);border:1px solid var(--line);color:var(--text);
+    padding:13px 14px;border-radius:12px;font-size:15px;font-family:inherit
+  }
+  input:focus,select:focus{outline:none;border-color:var(--blue)}
+  label{display:block;font-size:13px;color:var(--muted);margin:0 0 6px 2px;font-weight:600}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px}
+  .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);font-weight:700}
+  .muted{color:var(--muted)} .center{text-align:center}
+  /* top bar */
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+  .brand{display:flex;align-items:center;gap:11px}
+  .logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--orange),var(--blue));
+    display:flex;align-items:center;justify-content:center;font-family:'Sora';font-weight:800;color:#fff;font-size:20px}
+  .brand b{font-family:'Sora';font-weight:700;font-size:16px;display:block}
+  .brand span{font-size:12px;color:var(--muted)}
+  /* countdown */
+  .clock{font-family:'Sora';font-weight:700;font-size:14px;background:var(--navy2);
+    border:1px solid var(--line);padding:8px 12px;border-radius:10px;white-space:nowrap}
+  .clock .dot{color:var(--good)} .clock.warn{border-color:var(--orange);color:var(--orange)}
+  .banner{background:rgba(224,123,57,.14);border:1px solid var(--orange);color:#f6c69b;
+    padding:12px 14px;border-radius:12px;margin-bottom:16px;font-size:14px;font-weight:600}
+  /* module map */
+  .quartal{margin-bottom:26px}
+  .qhead{display:flex;align-items:baseline;gap:10px;margin:0 2px 12px}
+  .qnum{font-family:'Sora';font-weight:800;font-size:13px;color:var(--blue);
+    border:1px solid var(--line);border-radius:8px;padding:3px 8px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:560px){.grid{grid-template-columns:1fr}}
+  .mod{position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:16px;display:flex;flex-direction:column;gap:10px;transition:.15s}
+  .mod.open{border-color:var(--blue)}
+  .mod.passed{border-color:var(--good)}
+  .mod.locked{opacity:.55}
+  .mod .mtop{display:flex;align-items:center;justify-content:space-between}
+  .mod .mnr{font-family:'Sora';font-weight:800;font-size:12px;color:var(--muted)}
+  .mod h3{font-size:15px;line-height:1.3}
+  .pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.03em}
+  .pill.open{background:rgba(58,134,245,.16);color:#9cc2ff}
+  .pill.passed{background:rgba(47,181,106,.16);color:#86e0ad}
+  .pill.locked{background:var(--navy2);color:var(--muted)}
+  .bar{height:7px;background:var(--navy2);border-radius:6px;overflow:hidden}
+  .bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--orange),var(--blue));border-radius:6px;transition:.4s}
+  .mod .mfoot{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
+  .mod .mfoot small{color:var(--muted);font-size:12px}
+  .mod button{padding:9px 14px;font-size:13px;border-radius:10px}
+  /* quiz */
+  .qmeta{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .qprog{height:6px;background:var(--navy2);border-radius:6px;overflow:hidden;margin-bottom:22px}
+  .qprog>i{display:block;height:100%;background:var(--blue);transition:.3s}
+  .qtext{font-family:'Sora';font-weight:600;font-size:20px;line-height:1.35;margin-bottom:20px}
+  .opt{width:100%;text-align:left;background:var(--navy2);border:1.5px solid var(--line);color:var(--text);
+    padding:15px 16px;border-radius:13px;margin-bottom:11px;font-size:15px;display:flex;gap:12px;align-items:flex-start;transition:.12s}
+  .opt:hover:not(:disabled){border-color:var(--blue)}
+  .opt .key{font-family:'Sora';font-weight:800;color:var(--muted);flex-shrink:0}
+  .opt.correct{border-color:var(--good);background:rgba(47,181,106,.12)} .opt.correct .key{color:var(--good)}
+  .opt.wrong{border-color:var(--bad);background:rgba(224,86,59,.12)} .opt.wrong .key{color:var(--bad)}
+  .fb{border-radius:13px;padding:16px;margin:6px 0 18px;font-size:14px;line-height:1.5}
+  .fb.ok{background:rgba(47,181,106,.12);border:1px solid var(--good)}
+  .fb.no{background:rgba(58,134,245,.10);border:1px solid var(--blue)}
+  .fb b{font-family:'Sora'}
+  /* result */
+  .trophy{font-size:54px;text-align:center;margin-bottom:6px}
+  /* leaderboard */
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--line);font-size:14px}
+  th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+  tr.me{background:rgba(224,123,57,.10)}
+  .rank{font-family:'Sora';font-weight:800;width:34px}
+  .rank.r1{color:var(--gold)} .rank.r2{color:#cfd8e3} .rank.r3{color:#d9925a}
+  .tag{font-size:11px;background:var(--navy2);border:1px solid var(--line);border-radius:6px;padding:2px 7px;color:var(--muted)}
+  .pts{font-family:'Sora';font-weight:700;color:var(--orange)}
+  /* misc */
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .nav{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+  .nav button{padding:9px 15px;font-size:14px}
+  .nav .active{background:var(--card);border:1px solid var(--blue);color:var(--text)}
+  footer{text-align:center;color:var(--muted);font-size:12px;margin-top:34px;padding-top:18px;border-top:1px solid var(--line)}
+  .spinner{width:26px;height:26px;border:3px solid var(--line);border-top-color:var(--orange);border-radius:50%;
+    animation:spin .8s linear infinite;margin:30px auto}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- SETUP-HINWEIS (falls Keys fehlen) -->
+  <div id="view-setup" class="hidden">
+    <div class="card">
+      <p class="eyebrow">Einrichtung</p>
+      <h2 style="margin:8px 0 12px">Supabase-Zugang fehlt</h2>
+      <p class="muted">Trage oben im &lt;script&gt; deine <b>SUPABASE_URL</b> und deinen <b>SUPABASE_ANON_KEY</b> ein
+      (Supabase &rarr; Project Settings &rarr; API). Der anon-Key darf öffentlich sein – die Sicherheit liegt in der Datenbank (RLS).</p>
+    </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="view-login" class="hidden">
+    <div class="topbar"><div class="brand"><div class="logo">F</div>
+      <div><b>FOOTECO Lern-Akademie</b><span>FE12 · Team Basel-DNA</span></div></div></div>
+    <div class="card" style="max-width:420px;margin:6vh auto 0">
+      <p class="eyebrow">Anmelden</p>
+      <h2 style="margin:8px 0 18px">Willkommen zurück</h2>
+      <div style="margin-bottom:14px">
+        <label>Benutzername</label>
+        <input id="in-user" autocomplete="username" placeholder="z.B. noah" />
+      </div>
+      <div style="margin-bottom:18px">
+        <label>Passwort</label>
+        <input id="in-pass" type="password" autocomplete="current-password" placeholder="••••••••" />
+      </div>
+      <button class="btn" style="width:100%" onclick="doLogin()">Einloggen</button>
+      <p id="login-err" class="hidden" style="color:var(--bad);font-size:13px;margin-top:12px"></p>
+    </div>
+  </div>
+
+  <!-- GESCHLOSSEN -->
+  <div id="view-closed" class="hidden">
+    <div class="topbar"><div class="brand"><div class="logo">F</div>
+      <div><b>FOOTECO Lern-Akademie</b><span>FE12</span></div></div>
+      <button class="btn-ghost" style="padding:9px 14px" onclick="doLogout()">Abmelden</button></div>
+    <div class="card center" style="max-width:480px;margin:5vh auto 0">
+      <div class="trophy">🔒</div>
+      <h2 style="margin-bottom:10px">Die Akademie ist gerade zu</h2>
+      <p class="muted" id="closed-msg">Gelernt wird immer am <b>Dienstag von 18:30 bis 20:00 Uhr</b>.</p>
+      <div id="closed-count" class="clock" style="display:inline-block;margin-top:18px"></div>
+      <p class="muted" style="margin-top:18px;font-size:13px">Dein bisheriger Fortschritt ist gespeichert – es geht genau dort weiter.</p>
+    </div>
+  </div>
+
+  <!-- APP-KOPF (Spieler + Trainer) -->
+  <div id="app-head" class="hidden">
+    <div class="topbar">
+      <div class="brand"><div class="logo">F</div>
+        <div><b id="head-name">…</b><span id="head-role">…</span></div></div>
+      <div class="row" style="align-items:center">
+        <div id="clock" class="clock hidden"></div>
+        <button class="btn-ghost" style="padding:9px 14px" onclick="doLogout()">Abmelden</button>
+      </div>
+    </div>
+    <div id="warn-banner" class="banner hidden"></div>
+  </div>
+
+  <!-- SPIELER: NAV -->
+  <div id="player-nav" class="nav hidden">
+    <button id="tab-lernen" class="active" onclick="showPlayerTab('lernen')">Lernen</button>
+    <button id="tab-rang" class="btn-ghost" onclick="showPlayerTab('rang')">Rangliste</button>
+  </div>
+
+  <!-- SPIELER: MODULKARTE -->
+  <div id="view-modules" class="hidden"></div>
+
+  <!-- QUIZ -->
+  <div id="view-quiz" class="hidden">
+    <button class="btn-ghost" style="padding:8px 13px;font-size:13px;margin-bottom:14px" onclick="exitQuiz()">‹ Zurück zur Übersicht</button>
+    <div class="card">
+      <div class="qmeta"><span class="eyebrow" id="quiz-title">Modul</span>
+        <span class="muted" id="quiz-count" style="font-size:13px"></span></div>
+      <div class="qprog"><i id="quiz-prog"></i></div>
+      <div class="qtext" id="quiz-q"></div>
+      <div id="quiz-opts"></div>
+      <div id="quiz-fb"></div>
+      <button id="quiz-next" class="btn hidden" style="width:100%" onclick="nextQuestion()">Weiter</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="view-result" class="hidden">
+    <div class="card center" style="max-width:480px;margin:0 auto">
+      <div class="trophy" id="res-emoji">🎉</div>
+      <h2 id="res-title" style="margin-bottom:8px"></h2>
+      <p class="muted" id="res-msg" style="margin-bottom:20px"></p>
+      <div class="row" style="justify-content:center">
+        <button id="res-retry" class="btn-blue hidden" onclick="retryModule()">Nochmal versuchen</button>
+        <button class="btn" onclick="exitQuiz()">Zur Übersicht</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RANGLISTE -->
+  <div id="view-rang" class="hidden">
+    <div class="card">
+      <p class="eyebrow">Meisterschaft</p>
+      <h2 style="margin:8px 0 4px">Wer lernt am stärksten?</h2>
+      <p class="muted" style="font-size:13px;margin-bottom:16px">Punkte gibt es fürs Können – und sie gehen nur nach oben. ⭐ = Modul beim ersten Versuch perfekt.</p>
+      <div id="rang-body"></div>
+    </div>
+  </div>
+
+  <!-- TRAINER-DASHBOARD -->
+  <div id="view-staff" class="hidden">
+    <div class="nav">
+      <button id="stab-rang" class="active" onclick="showStaffTab('rang')">Rangliste</button>
+      <button id="stab-frei" class="btn-ghost" onclick="showStaffTab('frei')">Module freischalten</button>
+      <button id="stab-log" class="btn-ghost" onclick="showStaffTab('log')">Logins</button>
+      <button id="stab-vor" class="btn-ghost" onclick="showStaffTab('vor')">Module ansehen</button>
+    </div>
+    <div id="staff-rang" class="card"><div class="spinner"></div></div>
+    <div id="staff-frei" class="card hidden">
+      <p class="eyebrow">Freischalten</p>
+      <h3 style="margin:8px 0 16px">Modul für Team oder Spieler öffnen</h3>
+      <div style="margin-bottom:12px"><label>Modul</label><select id="frei-mod"></select></div>
+      <div style="margin-bottom:16px"><label>Für wen?</label><select id="frei-player"></select></div>
+      <button class="btn" onclick="doUnlock()">Freischalten</button>
+      <p id="frei-msg" class="muted" style="font-size:13px;margin-top:12px"></p>
+    </div>
+    <div id="staff-log" class="card hidden"><div class="spinner"></div></div>
+    <div id="staff-vor" class="card hidden"><div class="spinner"></div></div>
+  </div>
+
+  <footer>System &amp; Development by Dogus Kaplan</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ======================================================================
+   KONFIGURATION  -  hier deine Werte aus Supabase eintragen:
+   ====================================================================== */
+var SUPABASE_URL      = "https://trpqupcljwftsfvmimoa.supabase.co";       // z.B. https://xxxx.supabase.co
+var SUPABASE_ANON_KEY = "sb_publishable_YNgN4LVxrfM16d4liwlCGQ_Mk5XFT_G";            // anon public key (darf oeffentlich sein)
+var LOGIN_DOMAIN      = "@fe12.local";              // wird an Benutzernamen ohne @ angehaengt
+
+/* ---------------------- Status ---------------------- */
+var sb = null, ME = null, PROFILE = null, ACCESS = null;
+var MODULES = [];                 // Modulstatus des Spielers
+var QZ = null;                    // aktuelles Quiz {moduleId,title,questions,idx,answered}
+var clockTimer = null, secsLeft = null, syncTimer = null, closingShown = false;
+var playerTab = "lernen";
+
+/* ---------------------- Helper ---------------------- */
+function el(id){return document.getElementById(id);}
+function show(id){el(id).classList.remove("hidden");}
+function hide(id){el(id).classList.add("hidden");}
+function esc(s){var d=document.createElement("div");d.textContent=(s==null?"":s);return d.innerHTML;}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function only(id){ // nur eine Hauptansicht zeigen
+  var v=["view-setup","view-login","view-closed","view-modules","view-quiz","view-result","view-rang","view-staff"];
+  for(var i=0;i<v.length;i++) hide(v[i]);
+  show(id);
+}
+
+/* ---------------------- Start ---------------------- */
+window.addEventListener("load", function(){
+  if(SUPABASE_URL.indexOf("DEINE_")===0 || SUPABASE_ANON_KEY.indexOf("DEIN_")===0){
+    hideAllChrome(); only("view-setup"); return;
+  }
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  sb.auth.getSession().then(function(r){
+    if(r.data.session){ ME=r.data.session.user; afterLogin(); }
+    else { hideAllChrome(); only("view-login"); }
+  });
+});
+function hideAllChrome(){hide("app-head");hide("player-nav");}
+
+/* ---------------------- Login / Logout ---------------------- */
+function doLogin(){
+  var u=el("in-user").value.trim(), p=el("in-pass").value;
+  if(!u||!p){return loginErr("Bitte Benutzername und Passwort eingeben.");}
+  var email = u.indexOf("@")>-1 ? u : (u.toLowerCase()+LOGIN_DOMAIN);
+  hide("login-err");
+  sb.auth.signInWithPassword({email:email,password:p}).then(function(r){
+    if(r.error){return loginErr("Login fehlgeschlagen. Bitte Benutzername und Passwort prüfen.");}
+    ME=r.data.user; sb.rpc("log_login_event",{p_event:"login"}); afterLogin();
+  });
+}
+function loginErr(m){var e=el("login-err");e.textContent=m;e.classList.remove("hidden");}
+function doLogout(){
+  var done=function(){ME=null;PROFILE=null;stopClock();hideAllChrome();el("in-pass").value="";only("view-login");};
+  sb.rpc("log_login_event",{p_event:"logout"}).then(function(){sb.auth.signOut().then(done);}, function(){sb.auth.signOut().then(done);});
+}
+
+/* ---------------------- Routing nach Login ---------------------- */
+function afterLogin(){
+  sb.from("profiles").select("display_name,role,team_id").eq("id",ME.id).single().then(function(r){
+    PROFILE = r.data || {display_name:ME.email, role:"spieler"};
+    el("head-name").textContent = PROFILE.display_name || "Spieler";
+    el("head-role").textContent = PROFILE.role==="spieler" ? "Spieler" : (PROFILE.role==="leiter"?"Leiter":"Trainer");
+    refreshAccess(true);
+    if(!syncTimer) syncTimer = setInterval(function(){refreshAccess(false);}, 60000);
+  });
+}
+function isStaff(){return PROFILE && (PROFILE.role==="trainer"||PROFILE.role==="leiter");}
+
+function refreshAccess(initial){
+  sb.rpc("get_access_state").then(function(r){
+    ACCESS = r.data || {open:false};
+    if(isStaff()){ startClockMaybe(); if(initial) openStaff(); else if(!el("view-staff").classList.contains("hidden")){} }
+    else if(ACCESS.open){ if(closingShown){closingShown=false;} startClockMaybe(); if(initial||el("view-closed").classList.contains("hidden")===false) openPlayer(); }
+    else { showClosed(); }
+  });
+}
+
+/* ---------------------- Countdown ---------------------- */
+function startClockMaybe(){
+  if(ACCESS.window_open && typeof ACCESS.seconds_until_close==="number"){
+    secsLeft = ACCESS.seconds_until_close; show("app-head"); show("clock"); tick();
+    if(clockTimer) clearInterval(clockTimer);
+    clockTimer = setInterval(tick, 1000);
+  } else if(isStaff()){
+    show("app-head"); el("clock").classList.remove("hidden"); el("clock").innerHTML='<span class="dot">●</span> Trainer-Zugang';
+  }
+}
+function stopClock(){ if(clockTimer)clearInterval(clockTimer); if(syncTimer){clearInterval(syncTimer);syncTimer=null;} clockTimer=null; hide("clock"); hide("warn-banner"); }
+function tick(){
+  if(secsLeft==null){return;}
+  if(secsLeft<=0){ clearInterval(clockTimer); onWindowClosed(); return; }
+  var m=Math.floor(secsLeft/60), s=secsLeft%60;
+  var c=el("clock"); c.classList.remove("hidden");
+  c.innerHTML = '<span class="dot">●</span> noch '+m+":"+(s<10?"0":"")+s;
+  if(secsLeft<=600){ c.classList.add("warn");
+    el("warn-banner").classList.remove("hidden");
+    el("warn-banner").innerHTML="⏰ Die Akademie schliesst um 20:00 Uhr. Beende ruhig deine aktuelle Frage – alles ist gespeichert.";
+  }
+  secsLeft--;
+}
+function onWindowClosed(){
+  if(isStaff()){return;}
+  closingShown=true; stopClock();
+  only("view-closed"); show("app-head");
+  el("closed-msg").innerHTML="Stark gemacht für heute! 👏 Wir lernen weiter am <b>nächsten Dienstag, 18:30 Uhr</b>.";
+  el("closed-count").classList.add("hidden");
+}
+
+/* ---------------------- Geschlossen-Ansicht ---------------------- */
+function showClosed(){
+  stopClock(); hideAllChrome(); only("view-closed"); show("app-head"); hide("clock");
+  el("closed-msg").innerHTML="Gelernt wird immer am <b>Dienstag von 18:30 bis 20:00 Uhr</b>.";
+  var cc=el("closed-count");
+  if(ACCESS && ACCESS.server_time && ACCESS.weekday){
+    var secs=secondsUntilOpen(ACCESS);
+    if(secs!=null){ cc.classList.remove("hidden"); cc.textContent="Öffnet in "+humanDur(secs); }
+    else cc.classList.add("hidden");
+  } else cc.classList.add("hidden");
+}
+function secondsUntilOpen(a){
+  try{
+    var p=a.server_time.split(/[- :]/); // YYYY MM DD HH MM SS (Zuerich-lokal)
+    var now=new Date(+p[0],+p[1]-1,+p[2],+p[3],+p[4],+p[5]||0);
+    var hm=a.start_time.split(":"); var sh=+hm[0],sm=+hm[1];
+    for(var d=0;d<8;d++){
+      var cand=new Date(now.getFullYear(),now.getMonth(),now.getDate()+d,sh,sm,0);
+      var iso=cand.getDay()===0?7:cand.getDay();
+      if(iso===a.weekday && cand>now) return Math.floor((cand-now)/1000);
+    }
+  }catch(e){}
+  return null;
+}
+function humanDur(s){var d=Math.floor(s/86400);s-=d*86400;var h=Math.floor(s/3600);s-=h*3600;var m=Math.floor(s/60);
+  var out=[]; if(d)out.push(d+"T"); if(h||d)out.push(h+"h"); out.push(m+"min"); return out.join(" ");}
+
+/* ====================================================================
+   SPIELER
+   ==================================================================== */
+function openPlayer(){
+  hide("view-staff"); show("app-head"); show("player-nav"); showPlayerTab(playerTab||"lernen");
+}
+function showPlayerTab(t){
+  playerTab=t;
+  el("tab-lernen").className = t==="lernen"?"active":"btn-ghost";
+  el("tab-rang").className   = t==="rang"?"active":"btn-ghost";
+  if(t==="lernen"){ only("view-modules"); show("app-head"); show("player-nav"); loadModules(); }
+  else { only("view-rang"); show("app-head"); show("player-nav"); loadLeaderboard("rang-body"); }
+}
+function loadModules(){
+  el("view-modules").innerHTML='<div class="spinner"></div>';
+  sb.rpc("get_module_status").then(function(r){
+    MODULES = r.data || [];
+    renderModules();
+  });
+}
+function renderModules(){
+  var qnames={1:"Team Basel-DNA",2:"Mentalität",3:"Offensive & Umschalten",4:"Defensive & Umschalten"};
+  var passed=0; for(var i=0;i<MODULES.length;i++) if(MODULES[i].passed)passed++;
+  var html='<div class="card" style="margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;gap:16px">'+
+    '<div><p class="eyebrow">Dein Weg</p><h2 style="margin-top:6px">'+passed+' von '+MODULES.length+' Modulen gemeistert</h2></div>'+
+    '<div style="flex:1;max-width:200px"><div class="bar"><i style="width:'+(MODULES.length?Math.round(passed/MODULES.length*100):0)+'%"></i></div></div></div>';
+  var byQ={};
+  for(var j=0;j<MODULES.length;j++){var m=MODULES[j];(byQ[m.quartal]=byQ[m.quartal]||[]).push(m);}
+  [1,2,3,4].forEach(function(q){
+    if(!byQ[q])return;
+    html+='<div class="quartal"><div class="qhead"><span class="qnum">Q'+q+'</span><h3>'+esc(qnames[q])+'</h3></div><div class="grid">';
+    byQ[q].forEach(function(m){
+      var state = m.passed?"passed":(m.offen?"open":"locked");
+      var pill  = m.passed?'<span class="pill passed">✓ Gemeistert</span>':(m.offen?'<span class="pill open">Offen</span>':'<span class="pill locked">🔒 Gesperrt</span>');
+      var prog  = m.total_q? Math.round(m.mastered/m.total_q*100):0;
+      var btn   = m.offen
+        ? '<button class="'+(m.passed?"btn-ghost":"btn")+'" onclick="startModule(\''+m.module_id+'\')">'+(m.passed?"Wiederholen":(m.mastered>0?"Weiter":"Starten"))+'</button>'
+        : '<small>Vorheriges Modul abschliessen</small>';
+      html+='<div class="mod '+state+'"><div class="mtop"><span class="mnr">MODUL '+m.modul_nr+'</span>'+pill+'</div>'+
+        '<h3>'+esc(m.titel.replace(/^.*?- /,""))+'</h3>'+
+        '<div class="bar"><i style="width:'+prog+'%"></i></div>'+
+        '<div class="mfoot"><small>'+m.mastered+'/'+m.total_q+' richtig</small>'+(m.offen?btn:'')+'</div>'+
+        (m.offen?'':'<div class="mfoot"><small>Vorheriges Modul abschliessen</small></div>')+'</div>';
+    });
+    html+='</div></div>';
+  });
+  el("view-modules").innerHTML=html;
+}
+
+/* ---------------------- Quiz ---------------------- */
+function startModule(moduleId){
+  var mod=null; for(var i=0;i<MODULES.length;i++) if(MODULES[i].module_id===moduleId)mod=MODULES[i];
+  only("view-quiz"); show("app-head"); if(!isStaff())show("player-nav");
+  el("quiz-q").innerHTML='<div class="spinner"></div>'; el("quiz-opts").innerHTML=""; el("quiz-fb").innerHTML=""; hide("quiz-next");
+  el("quiz-title").textContent = mod? ("Modul "+mod.modul_nr) : "Modul";
+  sb.rpc("get_module_questions",{p_module_id:moduleId}).then(function(r){
+    if(r.error){ if((r.error.message||"").indexOf("LERNFENSTER")>-1){onWindowClosed();} else {el("quiz-q").textContent="Dieses Modul ist gerade nicht verfügbar.";} return; }
+    var rows=r.data||[], byQ={}, order=[];
+    rows.forEach(function(row){
+      if(!byQ[row.question_id]){byQ[row.question_id]={id:row.question_id,nr:row.frage_nr,text:row.frage_text,options:[]};order.push(row.question_id);}
+      byQ[row.question_id].options.push({id:row.option_id,key:row.option_key,text:row.option_text});
+    });
+    var qs=order.map(function(id){var q=byQ[id];shuffle(q.options);return q;});
+    QZ={moduleId:moduleId,title:el("quiz-title").textContent,questions:qs,idx:0,mod:mod};
+    renderQuestion();
+  });
+}
+function renderQuestion(){
+  var q=QZ.questions[QZ.idx], n=QZ.questions.length;
+  el("quiz-count").textContent="Frage "+(QZ.idx+1)+" / "+n;
+  el("quiz-prog").style.width=Math.round(QZ.idx/n*100)+"%";
+  el("quiz-q").textContent=q.text;
+  el("quiz-fb").innerHTML=""; hide("quiz-next");
+  var h="";
+  q.options.forEach(function(o){
+    h+='<button class="opt" id="opt-'+o.id+'" onclick="answer(\''+q.id+'\',\''+o.id+'\')">'+
+       '<span class="key">'+esc(o.key)+'</span><span>'+esc(o.text)+'</span></button>';
+  });
+  el("quiz-opts").innerHTML=h;
+}
+function answer(qid, oid){
+  var btns=el("quiz-opts").querySelectorAll(".opt");
+  for(var i=0;i<btns.length;i++) btns[i].disabled=true;
+  sb.rpc("submit_answer",{p_question_id:qid,p_chosen_option_id:oid}).then(function(r){
+    if(r.error){
+      if((r.error.message||"").indexOf("LERNFENSTER")>-1){ onWindowClosed(); return; }
+      for(var i=0;i<btns.length;i++) btns[i].disabled=false;
+      el("quiz-fb").innerHTML='<div class="fb no">Da ist etwas schiefgelaufen – versuch es nochmal.</div>'; return;
+    }
+    var d=r.data, correctId=d.correct_option_id, ok=d.is_correct;
+    var chosen=el("opt-"+oid); if(chosen) chosen.classList.add(ok?"correct":"wrong");
+    if(!ok){var c=el("opt-"+correctId); if(c)c.classList.add("correct");}
+    QZ.lastPassed = d.modul_bestanden;
+    var fb = ok
+      ? '<div class="fb ok"><b>Stark! ✓</b> Richtig erkannt.</div>'
+      : '<div class="fb no"><b>Noch nicht ganz.</b> Die richtige Antwort ist grün markiert – schau sie dir kurz an, dann weiter. Fehler gehören zum Lernen.</div>';
+    el("quiz-fb").innerHTML=fb;
+    el("quiz-next").textContent = (QZ.idx+1<QZ.questions.length)?"Weiter":"Modul abschliessen";
+    show("quiz-next");
+  });
+}
+function nextQuestion(){
+  if(QZ.idx+1<QZ.questions.length){ QZ.idx++; renderQuestion(); }
+  else { finishModule(); }
+}
+function finishModule(){
+  sb.rpc("get_module_status").then(function(r){
+    MODULES=r.data||[]; var mod=null;
+    for(var i=0;i<MODULES.length;i++) if(MODULES[i].module_id===QZ.moduleId)mod=MODULES[i];
+    only("view-result"); show("app-head"); if(!isStaff())show("player-nav");
+    var passed = mod && mod.passed;
+    el("res-emoji").textContent = passed?"🏅":"💪";
+    if(passed){
+      el("res-title").textContent="Modul gemeistert!";
+      el("res-msg").innerHTML="Du hast "+mod.mastered+" von "+mod.total_q+" richtig. Das nächste Modul ist jetzt freigeschaltet – weiter so!";
+      hide("res-retry");
+    }else{
+      el("res-title").textContent="Fast geschafft!";
+      el("res-msg").innerHTML="Du hast "+(mod?mod.mastered:0)+" von "+(mod?mod.total_q:0)+" richtig. Für die 80% brauchst du alle. Lies den Lernstoff nochmal in Ruhe – dann packst du das sicher.";
+      show("res-retry");
+    }
+  });
+}
+function retryModule(){ startModule(QZ.moduleId); }
+function exitQuiz(){ QZ=null; if(isStaff())showStaffTab("vor"); else showPlayerTab("lernen"); }
+
+/* ---------------------- Rangliste (Spieler & Trainer) ---------------------- */
+function loadLeaderboard(targetId){
+  el(targetId).innerHTML='<div class="spinner"></div>';
+  sb.rpc("get_leaderboard").then(function(r){
+    var rows=r.data||[];
+    if(!rows.length){ el(targetId).innerHTML='<p class="muted center">Noch keine Punkte – sobald gelernt wird, füllt sich die Rangliste.</p>'; return; }
+    var h='<table><thead><tr><th class="rank">#</th><th>Spieler</th><th>Punkte</th><th>Module</th><th>⭐</th></tr></thead><tbody>';
+    rows.forEach(function(x){
+      var me = ME && x.player_id===ME.id;
+      var rc = x.rang===1?"r1":(x.rang===2?"r2":(x.rang===3?"r3":""));
+      var medal = x.rang===1?"🥇":(x.rang===2?"🥈":(x.rang===3?"🥉":x.rang));
+      h+='<tr class="'+(me?"me":"")+'"><td class="rank '+rc+'">'+medal+'</td>'+
+         '<td>'+esc(x.display_name)+(me?' <span class="tag">du</span>':'')+'</td>'+
+         '<td class="pts">'+x.gesamt+'</td>'+
+         '<td>'+x.module_bestanden+'</td>'+
+         '<td>'+(x.meister>0?('⭐ '+x.meister):'–')+'</td></tr>';
+    });
+    h+='</tbody></table>';
+    el(targetId).innerHTML=h;
+  });
+}
+
+/* ====================================================================
+   TRAINER-DASHBOARD
+   ==================================================================== */
+function openStaff(){ hide("player-nav"); only("view-staff"); show("app-head"); showStaffTab("rang"); }
+function showStaffTab(t){
+  ["rang","frei","log","vor"].forEach(function(k){
+    el("stab-"+k).className = k===t?"active":"btn-ghost";
+    el("staff-"+k).classList.toggle("hidden", k!==t);
+  });
+  only("view-staff"); show("app-head");
+  if(t==="rang") loadLeaderboard("staff-rang");
+  if(t==="frei") loadUnlockForm();
+  if(t==="log")  loadLoginLog();
+  if(t==="vor")  loadStaffModules();
+}
+function loadUnlockForm(){
+  sb.rpc("get_module_status").then(function(r){
+    var mods=r.data||[]; var mh="";
+    mods.forEach(function(m){mh+='<option value="'+m.module_id+'">Modul '+m.modul_nr+' · '+esc(m.titel.replace(/^.*?- /,""))+'</option>';});
+    el("frei-mod").innerHTML=mh;
+  });
+  sb.from("profiles").select("id,display_name").eq("role","spieler").order("display_name").then(function(r){
+    var ph='<option value="">Ganzes Team</option>';
+    (r.data||[]).forEach(function(p){ph+='<option value="'+p.id+'">'+esc(p.display_name)+'</option>';});
+    el("frei-player").innerHTML=ph;
+  });
+  el("frei-msg").textContent="";
+}
+function doUnlock(){
+  var mid=el("frei-mod").value, pid=el("frei-player").value||null;
+  sb.rpc("unlock_module",{p_module_id:mid,p_player_id:pid}).then(function(r){
+    el("frei-msg").textContent = r.error ? ("Fehler: "+r.error.message) : "✓ Freigeschaltet"+(pid?" (für den gewählten Spieler).":" (fürs ganze Team).");
+  });
+}
+function loadLoginLog(){
+  el("staff-log").innerHTML='<div class="spinner"></div>';
+  sb.from("login_log").select("event_type,occurred_at,user_id").order("occurred_at",{ascending:false}).limit(40).then(function(r){
+    sb.from("profiles").select("id,display_name").then(function(p){
+      var names={}; (p.data||[]).forEach(function(x){names[x.id]=x.display_name;});
+      var rows=r.data||[];
+      var h='<p class="eyebrow">Aktivität</p><h3 style="margin:8px 0 16px">Letzte Logins / Logouts</h3>';
+      if(!rows.length){h+='<p class="muted">Noch keine Einträge.</p>';}
+      else{ h+='<table><thead><tr><th>Spieler</th><th>Ereignis</th><th>Zeit</th></tr></thead><tbody>';
+        rows.forEach(function(x){
+          var dt=new Date(x.occurred_at);
+          h+='<tr><td>'+esc(names[x.user_id]||"?")+'</td><td><span class="tag">'+(x.event_type==="login"?"Login":"Logout")+'</span></td>'+
+             '<td class="muted">'+dt.toLocaleString("de-CH")+'</td></tr>';
+        });
+        h+='</tbody></table>'; }
+      el("staff-log").innerHTML=h;
+    });
+  });
+}
+function loadStaffModules(){
+  el("staff-vor").innerHTML='<div class="spinner"></div>';
+  sb.rpc("get_module_status").then(function(r){
+    var mods=r.data||[];
+    var h='<p class="eyebrow">Vorschau</p><h3 style="margin:8px 0 16px">Alle Module ansehen / testen</h3><div class="grid">';
+    mods.forEach(function(m){
+      h+='<div class="mod open"><div class="mtop"><span class="mnr">MODUL '+m.modul_nr+'</span><span class="pill open">Q'+m.quartal+'</span></div>'+
+         '<h3>'+esc(m.titel.replace(/^.*?- /,""))+'</h3>'+
+         '<div class="mfoot"><small>'+m.total_q+' Fragen</small>'+
+         '<button class="btn" style="padding:9px 14px;font-size:13px" onclick="startModule(\''+m.module_id+'\')">Ansehen</button></div></div>';
+    });
+    h+='</div><p class="muted" style="font-size:13px;margin-top:14px">Deine Test-Antworten zählen nicht für die Rangliste.</p>';
+    el("staff-vor").innerHTML=h;
+  });
+}
+</script>
+</body>
+</html>
