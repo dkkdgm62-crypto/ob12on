@@ -641,45 +641,24 @@
     
     <!-- Trainer-Tab: Lernzeiten (Lernfenster) -->
     <div id="staff-zeit" class="card hidden">
-      <p class="eyebrow">Einstellungen</p>
-      <h3 style="margin:8px 0 16px; color:#fff;">Lernzeiten der Online-Plattform konfigurieren</h3>
+      <p class="eyebrow">Zugriffssteuerung</p>
+      <h3 style="margin:8px 0 16px; color:#fff;">Status der Lernakademie festlegen</h3>
       
-      <div style="margin-bottom:18px;">
-        <input type="checkbox" id="zeit-always-open" style="width:20px; height:20px; margin-right:10px; cursor:pointer;" onchange="toggleZeitInputs()"/>
-        <label for="zeit-always-open" style="display:inline-block; cursor:pointer; font-size:15px; color:#fff; font-weight:700;">24/7 dauerhaft geöffnet (Lernfenster deaktivieren)</label>
+      <div style="margin-bottom:20px; background: rgba(255,255,255,0.02); padding: 20px; border-radius: 12px; border: 1px solid var(--line);">
+        <p class="muted" style="margin-bottom:18px; font-size:14px;">Bestimme, ob die Lernakademie für Spieler geöffnet ist. Standardmäßig ist die Akademie immer geöffnet.</p>
+        
+        <label style="display:flex; align-items:center; gap:12px; cursor:pointer; margin-bottom:14px; background: rgba(47, 181, 106, 0.08); padding: 14px 16px; border-radius: 10px; border: 1px solid rgba(47, 181, 106, 0.2);">
+          <input type="radio" id="zeit-status-open" name="zeit-status" value="open" style="width:20px; height:20px; cursor:pointer;" />
+          <span style="font-size:15px; color:#fff; font-weight:700; font-family:'Sora',sans-serif;">🟢 Immer geöffnet (24/7 unbegrenzt lernen)</span>
+        </label>
+        
+        <label style="display:flex; align-items:center; gap:12px; cursor:pointer; background: rgba(224, 86, 59, 0.08); padding: 14px 16px; border-radius: 10px; border: 1px solid rgba(224, 86, 59, 0.2);">
+          <input type="radio" id="zeit-status-closed" name="zeit-status" value="closed" style="width:20px; height:20px; cursor:pointer;" />
+          <span style="font-size:15px; color:#fff; font-weight:700; font-family:'Sora',sans-serif;">🔴 Geschlossen (Zugriff für alle Spieler gesperrt)</span>
+        </label>
       </div>
       
-      <div id="zeit-window-inputs" style="margin-bottom:20px;">
-        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px;">
-          <div>
-            <label>Wochentag</label>
-            <select id="zeit-weekday">
-              <option value="1">Montag</option>
-              <option value="2">Dienstag</option>
-              <option value="3">Mittwoch</option>
-              <option value="4">Donnerstag</option>
-              <option value="5">Freitag</option>
-              <option value="6">Samstag</option>
-              <option value="7">Sonntag</option>
-            </select>
-          </div>
-          <div>
-            <label>Startzeit</label>
-            <input type="time" id="zeit-start" value="18:30" />
-          </div>
-          <div>
-            <label>Endzeit</label>
-            <input type="time" id="zeit-end" value="20:00" />
-          </div>
-        </div>
-      </div>
-      
-      <div style="margin-bottom:24px;">
-        <input type="checkbox" id="zeit-active" style="width:20px; height:20px; margin-right:10px; cursor:pointer;"/>
-        <label for="zeit-active" style="display:inline-block; cursor:pointer; font-size:15px; color:#fff; font-weight:700;">Lernfenster ist aktiv (falls aus, bleibt Akademie immer zu)</label>
-      </div>
-      
-      <button class="btn" onclick="saveLernzeiten()">Einstellungen speichern</button>
+      <button class="btn" onclick="saveLernzeiten()">Status speichern</button>
       <p id="zeit-msg" class="muted" style="font-size:13px; margin-top:14px; font-weight:600;"></p>
     </div>
     
@@ -860,14 +839,22 @@ function onWindowClosed(){
   if(isStaff()){return;}
   closingShown=true; stopClock();
   only("view-closed"); show("app-head");
-  el("closed-msg").innerHTML="Stark gelernt heute! 👏 Die Lernakademie schliesst wieder am nächsten Dienstag.";
+  var days = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+  var dayName = (ACCESS && ACCESS.weekday) ? (days[ACCESS.weekday - 1] || "Dienstag") : "Dienstag";
+  el("closed-msg").innerHTML="Stark gelernt heute! 👏 Die Lernakademie schliesst wieder und öffnet am nächsten " + dayName + ".";
   el("closed-count").classList.add("hidden");
 }
 
 /* ---------------------- Geschlossen-Ansicht ---------------------- */
 function showClosed(){
   stopClock(); hideAllChrome(); only("view-closed"); show("app-head"); hide("clock");
-  el("closed-msg").innerHTML="Die Akademie ist nur am <b>Dienstag von 18:30 bis 20:00 Uhr</b> geöffnet.";
+  if(ACCESS && ACCESS.configured && ACCESS.weekday && ACCESS.start_time && ACCESS.end_time){
+    var days = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+    var dayName = days[ACCESS.weekday - 1] || "Dienstag";
+    el("closed-msg").innerHTML="Die Akademie ist nur am <b>" + dayName + " von " + ACCESS.start_time + " bis " + ACCESS.end_time + " Uhr</b> geöffnet.";
+  } else {
+    el("closed-msg").innerHTML="Die Akademie ist nur am <b>Dienstag von 18:30 bis 20:00 Uhr</b> geöffnet.";
+  }
   var cc=el("closed-count");
   if(ACCESS && ACCESS.server_time && ACCESS.weekday){
     var secs=secondsUntilOpen(ACCESS);
@@ -1261,6 +1248,11 @@ function doToggleAlwaysOpen() {
 
 function doUnlock(){
   var mid=el("frei-mod").value, pid=el("frei-player").value||null;
+  if (!mid) {
+    el("frei-msg").style.color = "var(--bad)";
+    el("frei-msg").textContent = "Bitte wähle zuerst ein Modul aus.";
+    return;
+  }
   var durationWeeks = el("frei-duration").value ? parseInt(el("frei-duration").value) : null;
   
   sb.rpc("unlock_module",{p_module_id:mid, p_player_id:pid, p_duration_weeks:durationWeeks}).then(function(r){
@@ -1356,41 +1348,24 @@ function loadLernzeitenForm() {
   el("zeit-msg").textContent = "";
   sb.rpc("get_access_state").then(function(r) {
     var data = r.data || {};
-    el("zeit-always-open").checked = data.always_open || false;
-    el("zeit-weekday").value = data.weekday || 2;
-    el("zeit-start").value = data.start_time || "18:30";
-    el("zeit-end").value = data.end_time || "20:00";
-    el("zeit-active").checked = data.active !== false;
-    toggleZeitInputs();
+    var alwaysOpen = data.always_open || false;
+    el("zeit-status-open").checked = alwaysOpen;
+    el("zeit-status-closed").checked = !alwaysOpen;
   });
 }
 
 function toggleZeitInputs() {
-  var alwaysOpen = el("zeit-always-open").checked;
-  el("zeit-window-inputs").style.opacity = alwaysOpen ? "0.4" : "1";
-  el("zeit-weekday").disabled = alwaysOpen;
-  el("zeit-start").disabled = alwaysOpen;
-  el("zeit-end").disabled = alwaysOpen;
+  // Keine Deaktivierung mehr nötig
 }
 
 function saveLernzeiten() {
-  var alwaysOpen = el("zeit-always-open").checked;
-  var weekday = parseInt(el("zeit-weekday").value);
-  var startTime = el("zeit-start").value;
-  var endTime = el("zeit-end").value;
-  var active = el("zeit-active").checked;
-  
-  if (!startTime || !endTime) {
-    el("zeit-msg").style.color = "var(--bad)";
-    el("zeit-msg").textContent = "Bitte gib eine Start- und Endzeit an.";
-    return;
-  }
+  var alwaysOpen = el("zeit-status-open").checked;
   
   sb.rpc("update_lern_fenster", {
-    p_weekday: weekday,
-    p_start_time: startTime,
-    p_end_time: endTime,
-    p_active: active,
+    p_weekday: 2,
+    p_start_time: "18:30",
+    p_end_time: "20:00",
+    p_active: true,
     p_always_open: alwaysOpen
   }).then(function(r) {
     if (r.error) {
@@ -1398,7 +1373,7 @@ function saveLernzeiten() {
       el("zeit-msg").textContent = "Fehler beim Speichern: " + r.error.message;
     } else {
       el("zeit-msg").style.color = "var(--good)";
-      el("zeit-msg").textContent = "✓ Lernzeiten wurden erfolgreich in der Datenbank aktualisiert.";
+      el("zeit-msg").textContent = alwaysOpen ? "✓ Die Akademie ist nun dauerhaft geöffnet (24/7)." : "✓ Die Akademie ist nun für Spieler geschlossen.";
       refreshAccess(false);
     }
   });
