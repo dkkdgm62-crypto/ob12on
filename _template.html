@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FOOTECO Lern-Akademie · FE12</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+  :root {
+    --carbon-bg: #0c0d10;
+    --navy: #0c0d10;
+    --card: #15171e;
+    --card-gradient: linear-gradient(135deg, #1b1d25 0%, #101217 100%);
+    --line: #222630;
+    
+    /* Silber (Metallic Gray) */
+    --silver-light: #c9ced6;
+    --silver-dark: #8b929c;
+    --silver-grad: linear-gradient(135deg, #c9ced6 0%, #8b929c 100%);
+    
+    /* Gold (Aktionsfarbe) */
+    --gold: #d4af37;
+    --gold-hover: #e8c45a;
+    --gold-grad: linear-gradient(135deg, #d4af37 0%, #a38020 100%);
+    
+    --text: #eaf1f8;
+    --muted: #8892a0;
+    --good: #2fb56a;
+    --bad: #e0563b;
+  }
+  
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: var(--carbon-bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    /* Carbon-Faser-Textur */
+    background-image: 
+      linear-gradient(45deg, #111317 25%, transparent 25%), 
+      linear-gradient(-45deg, #111317 25%, transparent 25%), 
+      linear-gradient(45deg, transparent 75%, #111317 75%), 
+      linear-gradient(-45deg, transparent 75%, #111317 75%);
+    background-size: 10px 10px;
+    background-position: 0 0, 0 5px, 5px -5px, -5px 0;
+  }
+  
+  h1, h2, h3, h4, .display {
+    font-family: 'Sora', sans-serif;
+    letter-spacing: -.02em;
+  }
+  
+  .wrap { max-width: 900px; margin: 0 auto; padding: 20px 16px 80px; }
+  .hidden { display: none !important; }
+  
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    transition: all 0.2s ease;
+  }
+  
+  .btn {
+    background: var(--gold-grad);
+    color: #0c0d10;
+    padding: 13px 20px;
+    font-size: 15px;
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.15);
+  }
+  .btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--gold-hover) 0%, var(--gold) 100%);
+    box-shadow: 0 6px 16px rgba(212, 175, 55, 0.3);
+    transform: translateY(-1px);
+  }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  
+  .btn-ghost {
+    background: transparent;
+    color: var(--silver-light);
+    border: 1px solid rgba(139, 146, 156, 0.4);
+    padding: 12px 18px;
+  }
+  .btn-ghost:hover:not(:disabled) {
+    color: #fff;
+    border-color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  .btn-blue {
+    background: var(--silver-grad);
+    color: #0c0d10;
+    padding: 13px 20px;
+  }
+  .btn-blue:hover:not(:disabled) {
+    background: linear-gradient(135deg, #ffffff 0%, #c9ced6 100%);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15);
+  }
+  
+  input, select, textarea {
+    width: 100%;
+    background: rgba(21, 23, 30, 0.8);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 13px 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-family: inherit;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--gold);
+  }
+  
+  label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin: 0 0 6px 2px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  
+  .card {
+    background: var(--card-gradient);
+    border: 1px solid rgba(139, 146, 156, 0.15);
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+  
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 800;
+  }
+  
+  .muted { color: var(--muted); }
+  .center { text-align: center; }
+  
+  /* Top Bar */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    background: #000;
+  }
+  .brand b {
+    font-family: 'Sora';
+    font-weight: 800;
+    font-size: 17px;
+    display: block;
+    color: #fff;
+  }
+  .brand span {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  
+  /* Countdown & Clock */
+  .clock {
+    font-family: 'Sora';
+    font-weight: 700;
+    font-size: 14px;
+    background: rgba(21, 23, 30, 0.9);
+    border: 1px solid var(--line);
+    padding: 8px 14px;
+    border-radius: 10px;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .clock .dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--good);
+  }
+  .clock.warn {
+    border-color: var(--bad);
+    color: var(--bad);
+  }
+  .clock.warn .dot {
+    background: var(--bad);
+    animation: pulse 1s infinite alternate;
+  }
+  @keyframes pulse { to { opacity: 0.3; } }
+  
+  .banner {
+    background: rgba(224, 86, 59, 0.12);
+    border: 1px solid var(--bad);
+    color: #fca5a5;
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  
+  /* Module Map */
+  .quartal { margin-bottom: 30px; }
+  .qhead {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 2px 14px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 8px;
+  }
+  .qnum {
+    font-family: 'Sora';
+    font-weight: 800;
+    font-size: 12px;
+    color: var(--gold);
+    background: rgba(212, 175, 55, 0.12);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 8px;
+    padding: 4px 10px;
+  }
+  
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media(max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+  
+  .mod {
+    position: relative;
+    background: var(--card-gradient);
+    border: 1px solid rgba(139, 146, 156, 0.15);
+    border-radius: 18px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: all 0.2s ease;
+  }
+  .mod:hover {
+    transform: translateY(-2px);
+    border-color: rgba(212, 175, 55, 0.3);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  }
+  .mod.open { border-color: rgba(212, 175, 55, 0.25); }
+  .mod.passed { border-color: var(--good); }
+  .mod.locked { opacity: 0.5; }
+  .mod.inactive-round {
+    border-color: var(--line);
+    background: rgba(12, 13, 16, 0.6);
+  }
+  
+  .mod .mtop { display: flex; align-items: center; justify-content: space-between; }
+  .mod .mnr { font-family: 'Sora'; font-weight: 800; font-size: 12px; color: var(--muted); }
+  .mod h3 { font-size: 16px; line-height: 1.3; font-weight: 700; color: #fff; }
+  
+  .pill {
+    font-size: 11px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+  }
+  .pill.open { background: rgba(212, 175, 55, 0.12); color: #f3d47a; }
+  .pill.passed { background: rgba(47, 181, 106, 0.12); color: #86e0ad; }
+  .pill.locked { background: #0c0d10; color: var(--muted); border: 1px solid var(--line); }
+  .pill.inactive { background: #0c0d10; color: #f87171; border: 1px solid rgba(220, 38, 38, 0.2); }
+  .pill.always { background: rgba(59, 130, 246, 0.12); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
+  
+  .bar { height: 8px; background: #0c0d10; border-radius: 6px; overflow: hidden; }
+  .bar > i {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--silver-dark), var(--gold));
+    border-radius: 6px;
+    transition: width 0.4s ease;
+  }
+  
+  .mod .mfoot { display: flex; align-items: center; justify-content: space-between; margin-top: auto; gap: 8px; }
+  .mod .mfoot small { color: var(--muted); font-size: 12px; font-weight: 500; }
+  .mod button { padding: 9px 16px; font-size: 13px; border-radius: 10px; }
+  
+  /* Quiz */
+  .qmeta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .qprog { height: 8px; background: #0c0d10; border-radius: 6px; overflow: hidden; margin-bottom: 24px; }
+  .qprog > i { display: block; height: 100%; background: var(--gold); transition: width 0.3s ease; }
+  .qtext { font-family: 'Sora'; font-weight: 700; font-size: 21px; line-height: 1.4; margin-bottom: 24px; color: #fff; }
+  
+  .opt {
+    width: 100%;
+    text-align: left;
+    background: rgba(21, 23, 30, 0.7);
+    border: 1.5px solid var(--line);
+    color: var(--text);
+    padding: 16px 20px;
+    border-radius: 14px;
+    margin-bottom: 12px;
+    font-size: 16px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    transition: all 0.15s ease;
+  }
+  .opt:hover:not(:disabled) { border-color: var(--gold); background: rgba(21, 23, 30, 0.9); }
+  .opt .key { font-family: 'Sora'; font-weight: 800; color: var(--gold); flex-shrink: 0; }
+  .opt.correct { border-color: var(--good); background: rgba(47, 181, 106, 0.1); }
+  .opt.correct .key { color: var(--good); }
+  .opt.wrong { border-color: var(--bad); background: rgba(224, 86, 59, 0.1); }
+  .opt.wrong .key { color: var(--bad); }
+  
+  .fb { border-radius: 14px; padding: 18px; margin: 10px 0 20px; font-size: 15px; line-height: 1.5; }
+  .fb.ok { background: rgba(47, 181, 106, 0.1); border: 1px solid var(--good); color: #a7f3d0; }
+  .fb.no { background: rgba(224, 86, 59, 0.1); border: 1px solid var(--bad); color: #fecaca; }
+  .fb b { font-family: 'Sora'; }
+  
+  /* Result & Leaderboard */
+  .trophy { font-size: 64px; text-align: center; margin-bottom: 10px; }
+  
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  th, td { text-align: left; padding: 14px 12px; border-bottom: 1px solid var(--line); font-size: 15px; }
+  th { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+  tr.me { background: rgba(212, 175, 55, 0.08); }
+  .rank { font-family: 'Sora'; font-weight: 800; width: 44px; font-size: 16px; }
+  .rank.r1 { color: var(--gold); }
+  .rank.r2 { color: var(--silver-light); }
+  .rank.r3 { color: #cc7a3a; }
+  .tag {
+    font-size: 11px;
+    background: #0c0d10;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 2px 8px;
+    color: var(--gold);
+    font-weight: 700;
+  }
+  .pts { font-family: 'Sora'; font-weight: 700; color: var(--gold); }
+  
+  /* Navigation */
+  .nav { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+  .nav button { padding: 10px 18px; font-size: 14px; }
+  .nav .active { background: var(--card-gradient); border: 1px solid var(--gold); color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+  
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+  
+  .spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid var(--line);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+    margin: 40px auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  
+  /* Settings list */
+  .unlock-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(12, 13, 16, 0.5);
+    border: 1px solid var(--line);
+    padding: 10px 14px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- SETUP-HINWEIS (falls Keys fehlen) -->
+  <div id="view-setup" class="hidden">
+    <div class="card">
+      <p class="eyebrow">Setup</p>
+      <h2 style="margin:8px 0 12px">Supabase-Zugang fehlt</h2>
+      <p class="muted">Trage in der App-Konfiguration deine <b>SUPABASE_URL</b> und deinen <b>SUPABASE_ANON_KEY</b> ein. Der anon-Key darf öffentlich sein.</p>
+    </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="view-login" class="hidden">
+    <div class="card" style="max-width:440px; margin:8vh auto 0">
+      <div style="text-align:center; margin-bottom:28px">
+        <img id="login-logo" src="" alt="Logo" style="width:120px; height:120px; border-radius:24px; object-fit:cover; border:1px solid rgba(212,175,55,0.3); box-shadow:0 8px 28px rgba(0,0,0,0.6); margin:0 auto 16px; display:block"/>
+        <h2 style="font-size:24px; font-family:'Sora'; font-weight:800; color:#fff;">FE12 LERN-AKADEMIE</h2>
+        <p class="muted" style="font-size:12px; letter-spacing:0.15em; text-transform:uppercase; margin-top:4px; font-weight:600; color:var(--gold);">Team Basel-DNA · Old Boys</p>
+      </div>
+      
+      <div style="margin-bottom:14px">
+        <label>Benutzername</label>
+        <input id="in-user" autocomplete="username" placeholder="z.B. noah" />
+      </div>
+      <div style="margin-bottom:20px">
+        <label>Passwort</label>
+        <input id="in-pass" type="password" autocomplete="current-password" placeholder="••••••••" />
+      </div>
+      
+      <button class="btn" style="width:100%" onclick="doLogin()">Einloggen</button>
+      <p id="login-err" class="hidden" style="color:var(--bad); font-size:13px; margin-top:14px; text-align:center; font-weight:600;"></p>
+    </div>
+  </div>
+
+  <!-- GESCHLOSSEN -->
+  <div id="view-closed" class="hidden">
+    <div class="topbar">
+      <div class="brand">
+        <img id="closed-logo" src="" alt="Logo" class="brand-logo"/>
+        <div><b>FE12 Lern-Akademie</b><span>Team Basel-DNA</span></div>
+      </div>
+      <button class="btn-ghost" style="padding:9px 14px" onclick="doLogout()">Abmelden</button>
+    </div>
+    
+    <div class="card center" style="max-width:500px; margin:5vh auto 0">
+      <div style="font-size:54px; margin-bottom:12px;">🔒</div>
+      <h2 style="margin-bottom:10px; color:#fff;">Die Akademie ist gerade geschlossen</h2>
+      <p class="muted" id="closed-msg">Gelernt wird immer am <b>Dienstag von 18:30 bis 20:00 Uhr</b>.</p>
+      <div id="closed-count" class="clock warn" style="display:inline-flex; margin-top:18px; justify-content:center;"></div>
+      <p class="muted" style="margin-top:20px; font-size:13px;">Dein bisheriger Fortschritt ist sicher gespeichert – es geht genau dort weiter.</p>
+    </div>
+  </div>
+
+  <!-- APP-KOPF (Spieler + Trainer) -->
+  <div id="app-head" class="hidden">
+    <div class="topbar">
+      <div class="brand">
+        <img id="header-logo" src="" alt="Logo" class="brand-logo"/>
+        <div><b id="head-name">…</b><span id="head-role">…</span></div>
+      </div>
+      <div class="row" style="display:flex; gap:10px; align-items:center;">
+        <div id="clock" class="clock hidden"></div>
+        <button class="btn-ghost" style="padding:9px 14px" onclick="doLogout()">Abmelden</button>
+      </div>
+    </div>
+    <div id="warn-banner" class="banner hidden"></div>
+  </div>
+
+  <!-- SPIELER: NAVIGATION -->
+  <div id="player-nav" class="nav hidden">
+    <button id="tab-lernen" class="active" onclick="showPlayerTab('lernen')">Lernen</button>
+    <button id="tab-rang" class="btn-ghost" onclick="showPlayerTab('rang')">Rangliste</button>
+  </div>
+
+  <!-- SPIELER: PERSONAL HEADER CARD -->
+  <div id="player-stats-card" class="card hidden" style="margin-bottom:24px; background: linear-gradient(135deg, #1c1e24 0%, #101217 100%); border-color: rgba(212,175,55,0.25);">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+      <div>
+        <p class="eyebrow" style="color:var(--gold);">Dein Trainingsstand</p>
+        <h2 id="player-stats-rank" style="margin-top:4px; font-size:22px; color:#fff;">Lade Rangposition...</h2>
+        <p id="player-stats-details" class="muted" style="font-size:13px; margin-top:2px;">...</p>
+      </div>
+      <div style="text-align:right;">
+        <span id="player-stats-points" class="pts" style="font-size:26px; color:var(--gold); font-weight:800; font-family:'Sora';">...</span>
+        <p class="muted" style="font-size:12px; margin-top:4px;">Aktuelle Runde: <b id="round-name-indicator" style="color:var(--text); font-weight:700;">...</b></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SPIELER: MODULKARTE -->
+  <div id="view-modules" class="hidden"></div>
+
+  <!-- QUIZ -->
+  <div id="view-quiz" class="hidden">
+    <button class="btn-ghost" style="padding:8px 14px; font-size:13px; margin-bottom:16px" onclick="exitQuiz()">‹ Zurück zur Übersicht</button>
+    <div class="card">
+      <div class="qmeta">
+        <span class="eyebrow" id="quiz-title">Modul</span>
+        <span class="muted" id="quiz-count" style="font-size:13px; font-weight:600;"></span>
+      </div>
+      <div class="qprog"><i id="quiz-prog"></i></div>
+      <div class="qtext" id="quiz-q"></div>
+      <div id="quiz-opts"></div>
+      <div id="quiz-fb"></div>
+      <button id="quiz-next" class="btn hidden" style="width:100%" onclick="nextQuestion()">Weiter</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="view-result" class="hidden">
+    <div class="card center" style="max-width:500px; margin:0 auto">
+      <div class="trophy" id="res-emoji">🎉</div>
+      <h2 id="res-title" style="margin-bottom:10px; color:#fff;"></h2>
+      <p class="muted" id="res-msg" style="margin-bottom:24px; font-size:15px;"></p>
+      <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <button id="res-retry" class="btn-blue hidden" onclick="retryModule()">Nochmal versuchen</button>
+        <button class="btn" onclick="exitQuiz()">Zur Übersicht</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RANGLISTE -->
+  <div id="view-rang" class="hidden">
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <div>
+          <p class="eyebrow">Meisterschaft</p>
+          <h2 style="margin-top:4px; color:#fff;">Wer lernt am stärksten?</h2>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <select id="leaderboard-filter" style="width:auto; padding:8px 12px; font-size:13px;" onchange="toggleLeaderboardFilter()">
+            <option value="round">Aktuelle Runde</option>
+            <option value="total">Gesamt-Meisterschaft</option>
+          </select>
+          <button class="btn" style="padding:9px 14px; font-size:13px;" onclick="exportLeaderboardPDF()">PDF Export</button>
+        </div>
+      </div>
+      <div id="rang-body"></div>
+    </div>
+  </div>
+
+  <!-- TRAINER-DASHBOARD -->
+  <div id="view-staff" class="hidden">
+    <div class="nav">
+      <button id="stab-rang" class="active" onclick="showStaffTab('rang')">Rangliste</button>
+      <button id="stab-frei" class="btn-ghost" onclick="showStaffTab('frei')">Freischaltungen & Reset</button>
+      <button id="stab-zeit" class="btn-ghost" onclick="showStaffTab('zeit')">Lernzeiten</button>
+      <button id="stab-runden" class="btn-ghost" onclick="showStaffTab('runden')">Runden-Manager</button>
+      <button id="stab-log" class="btn-ghost" onclick="showStaffTab('log')">Logins</button>
+      <button id="stab-vor" class="btn-ghost" onclick="showStaffTab('vor')">Module ansehen</button>
+    </div>
+    
+    <!-- Trainer-Tab: Rangliste -->
+    <div id="staff-rang" class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+        <h3 style="color:#fff;">Trainer Ranglisten-Ansicht</h3>
+        <div style="display:flex; gap:8px;">
+          <select id="staff-leaderboard-filter" style="width:auto; padding:8px 12px; font-size:13px;" onchange="toggleStaffLeaderboardFilter()">
+            <option value="round">Aktuelle Runde</option>
+            <option value="total">Gesamt-Meisterschaft</option>
+          </select>
+          <button class="btn" style="padding:9px 14px; font-size:13px;" onclick="exportLeaderboardPDF()">PDF Export</button>
+        </div>
+      </div>
+      <div id="staff-rang-body"><div class="spinner"></div></div>
+    </div>
+    
+    <!-- Trainer-Tab: Freischaltungen & Reset -->
+    <div id="staff-frei" class="card hidden">
+      <p class="eyebrow">Verwalten</p>
+      <h3 style="margin:8px 0 16px; color:#fff;">Modul für Spieler oder ganzes Team freischalten</h3>
+      
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:14px;">
+        <div>
+          <label>Modul</label>
+          <select id="frei-mod" onchange="updateModuleToggleState()"></select>
+        </div>
+        <div>
+          <label>Für wen?</label>
+          <select id="frei-player"></select>
+        </div>
+      </div>
+      
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:20px; align-items:end;">
+        <div>
+          <label>Dauer (nur für Spieler)</label>
+          <select id="frei-duration">
+            <option value="">Unbegrenzt</option>
+            <option value="2">2 Wochen freigeschaltet</option>
+            <option value="3">3 Wochen freigeschaltet</option>
+            <option value="4">4 Wochen freigeschaltet</option>
+            <option value="6">6 Wochen freigeschaltet</option>
+          </select>
+        </div>
+        <div style="display:flex; align-items:center; height:50px;">
+          <input type="checkbox" id="frei-always-open" style="width:20px; height:20px; margin-right:10px; cursor:pointer;" onchange="doToggleAlwaysOpen()"/>
+          <label for="frei-always-open" style="margin:0; cursor:pointer; font-size:13px; color:#fff;">"Immer offen" für alle (Progression übergehen)</label>
+        </div>
+      </div>
+      
+      <button class="btn" onclick="doUnlock()">Freischalten</button>
+      <p id="frei-msg" class="muted" style="font-size:13px; margin-top:14px; font-weight:600;"></p>
+      
+      <hr style="border:none; border-top:1px solid var(--line); margin:24px 0;"/>
+      
+      <!-- RESET FUNKTIONEN -->
+      <h3 style="color:#fff; margin-bottom:12px;">Fortschritt &amp; Antwort-Logs zurücksetzen</h3>
+      <p class="muted" style="font-size:13px; margin-bottom:16px;">
+        Setzt die korrekten Antworten im Log für den gewählten Umfang zurück. Der Spieler kann die Fragen danach neu beantworten.
+      </p>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:18px;">
+        <div>
+          <label>Spieler</label>
+          <select id="reset-player"></select>
+        </div>
+        <div>
+          <label>Quartal (Kategorie)</label>
+          <select id="reset-quartal">
+            <option value="">Kein Quartal wählen (Einzel-Modul)</option>
+            <option value="1">Kategorie 1 (Q1 - Basel-DNA)</option>
+            <option value="2">Kategorie 2 (Q2 - Mentalität)</option>
+            <option value="3">Kategorie 3 (Q3 - Offensive)</option>
+            <option value="4">Kategorie 4 (Q4 - Defensive)</option>
+          </select>
+        </div>
+        <div>
+          <label>Oder Modul</label>
+          <select id="reset-mod"></select>
+        </div>
+      </div>
+      <button class="btn btn-ghost" style="color:var(--bad); border-color:rgba(224,86,59,0.4);" onclick="doResetProgress()">Fortschritt zurücksetzen</button>
+      <p id="reset-msg" class="muted" style="font-size:13px; margin-top:14px; font-weight:600;"></p>
+
+      <hr style="border:none; border-top:1px solid var(--line); margin:24px 0;"/>
+      <h4 style="margin-bottom:12px; font-family:'Sora'; color:#fff;">Aktive manuelle Freischaltungen</h4>
+      <div id="active-unlocks-list">Lade Freischaltungen...</div>
+    </div>
+    
+    <!-- Trainer-Tab: Lernzeiten (Lernfenster) -->
+    <div id="staff-zeit" class="card hidden">
+      <p class="eyebrow">Einstellungen</p>
+      <h3 style="margin:8px 0 16px; color:#fff;">Lernzeiten der Online-Plattform konfigurieren</h3>
+      
+      <div style="margin-bottom:18px;">
+        <input type="checkbox" id="zeit-always-open" style="width:20px; height:20px; margin-right:10px; cursor:pointer;" onchange="toggleZeitInputs()"/>
+        <label for="zeit-always-open" style="display:inline-block; cursor:pointer; font-size:15px; color:#fff; font-weight:700;">24/7 dauerhaft geöffnet (Lernfenster deaktivieren)</label>
+      </div>
+      
+      <div id="zeit-window-inputs" style="margin-bottom:20px;">
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px;">
+          <div>
+            <label>Wochentag</label>
+            <select id="zeit-weekday">
+              <option value="1">Montag</option>
+              <option value="2">Dienstag</option>
+              <option value="3">Mittwoch</option>
+              <option value="4">Donnerstag</option>
+              <option value="5">Freitag</option>
+              <option value="6">Samstag</option>
+              <option value="7">Sonntag</option>
+            </select>
+          </div>
+          <div>
+            <label>Startzeit</label>
+            <input type="time" id="zeit-start" value="18:30" />
+          </div>
+          <div>
+            <label>Endzeit</label>
+            <input type="time" id="zeit-end" value="20:00" />
+          </div>
+        </div>
+      </div>
+      
+      <div style="margin-bottom:24px;">
+        <input type="checkbox" id="zeit-active" style="width:20px; height:20px; margin-right:10px; cursor:pointer;"/>
+        <label for="zeit-active" style="display:inline-block; cursor:pointer; font-size:15px; color:#fff; font-weight:700;">Lernfenster ist aktiv (falls aus, bleibt Akademie immer zu)</label>
+      </div>
+      
+      <button class="btn" onclick="saveLernzeiten()">Einstellungen speichern</button>
+      <p id="zeit-msg" class="muted" style="font-size:13px; margin-top:14px; font-weight:600;"></p>
+    </div>
+    
+    <!-- Trainer-Tab: Runden-Manager -->
+    <div id="staff-runden" class="card hidden">
+      <p class="eyebrow">Runden-Manager</p>
+      <h3 style="margin:8px 0 8px; color:#fff;">Meisterschafts-Runde bestimmen</h3>
+      <p class="muted" style="font-size:13px; margin-bottom:20px;">
+        Jeder Wechsel startet das Leaderboard für die gewählte Runde neu. Die Module werden gemäß Runde freigegeben:
+      </p>
+      
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+        <div class="card" style="padding:18px;" id="round-card-1">
+          <h4 style="color:var(--gold); font-family:'Sora';">M1 (Vorrunde-1)</h4>
+          <p class="muted" style="font-size:12px; margin-top:6px; line-height:1.4;">Kategorie 1 & 2 (Team Basel-DNA + Mentalität)<br/>Module 1 - 8 aktiv</p>
+          <button class="btn-ghost" style="margin-top:14px; width:100%; padding:9px 12px; font-size:12px;" onclick="changeRound(1)">Aktivieren</button>
+        </div>
+        <div class="card" style="padding:18px;" id="round-card-2">
+          <h4 style="color:var(--gold); font-family:'Sora';">M2 (Vorrunde-2)</h4>
+          <p class="muted" style="font-size:12px; margin-top:6px; line-height:1.4;">Kategorie 3 & 4 (Offensive + Defensive)<br/>Module 9 - 16 aktiv</p>
+          <button class="btn-ghost" style="margin-top:14px; width:100%; padding:9px 12px; font-size:12px;" onclick="changeRound(2)">Aktivieren</button>
+        </div>
+        <div class="card" style="padding:18px;" id="round-card-3">
+          <h4 style="color:var(--gold); font-family:'Sora';">M3 (Rückrunde-1)</h4>
+          <p class="muted" style="font-size:12px; margin-top:6px; line-height:1.4;">Kategorie 1 & 2 (Wiederholung / Vertiefung)<br/>Module 1 - 8 aktiv</p>
+          <button class="btn-ghost" style="margin-top:14px; width:100%; padding:9px 12px; font-size:12px;" onclick="changeRound(3)">Aktivieren</button>
+        </div>
+        <div class="card" style="padding:18px;" id="round-card-4">
+          <h4 style="color:var(--gold); font-family:'Sora';">M4 (Rückrunde-2)</h4>
+          <p class="muted" style="font-size:12px; margin-top:6px; line-height:1.4;">Kategorie 3 & 4 (Wiederholung Offensive + Def)<br/>Module 9 - 16 aktiv</p>
+          <button class="btn-ghost" style="margin-top:14px; width:100%; padding:9px 12px; font-size:12px;" onclick="changeRound(4)">Aktivieren</button>
+        </div>
+      </div>
+      
+      <p id="runden-msg" class="muted" style="font-size:13px; margin-top:12px; font-weight:700;"></p>
+    </div>
+    
+    <!-- Trainer-Tab: Logins -->
+    <div id="staff-log" class="card hidden"><div class="spinner"></div></div>
+    
+    <!-- Trainer-Tab: Module ansehen -->
+    <div id="staff-vor" class="card hidden"><div class="spinner"></div></div>
+  </div>
+
+  <footer>System &amp; Development by Dogus Kaplan</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ======================================================================
+   KONFIGURATION  -  Supabase API Credentials
+   ====================================================================== */
+var SUPABASE_URL      = "https://trpqupcljwftsfvmimoa.supabase.co";
+var SUPABASE_ANON_KEY = "sb_publishable_YNgN4LVxrfM16d4liwlCGQ_Mk5XFT_G";
+var LOGIN_DOMAIN      = "@fe12.local";
+
+/* Base64 Logo String */
+var LOGO_BASE64       = "<!-- LOGO_BASE64_PLACEHOLDER -->";
+
+/* ---------------------- Status ---------------------- */
+var sb = null, ME = null, PROFILE = null, ACCESS = null;
+var MODULES = [];                 // Modulstatus des Spielers
+var QZ = null;                    // aktuelles Quiz
+var clockTimer = null, secsLeft = null, syncTimer = null, closingShown = false;
+var playerTab = "lernen";
+var currentLefilter = "round";
+
+var CATEGORY_NAMES = {
+  1: "Kategorie 1 · IDENTITÄT (Team Basel-DNA)",
+  2: "Kategorie 2 · MENTALITÄT",
+  3: "Kategorie 3 · OFFENSIVE & UMSCHALTEN",
+  4: "Kategorie 4 · DEFENSIVE & UMSCHALTEN"
+};
+
+var ROUND_NAMES = {
+  1: "M1 (VR-1) — DNA & Mentalität",
+  2: "M2 (VR-2) — Offensive & Defensive",
+  3: "M3 (RR-1) — DNA & Mentalität (Vertiefung)",
+  4: "M4 (RR-2) — Offensive & Defensive (Vertiefung)"
+};
+
+/* ---------------------- Helper ---------------------- */
+function el(id){return document.getElementById(id);}
+function show(id){el(id).classList.remove("hidden");}
+function hide(id){el(id).classList.add("hidden");}
+function esc(s){var d=document.createElement("div");d.textContent=(s==null?"":s);return d.innerHTML;}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function only(id){
+  var v=["view-setup","view-login","view-closed","view-modules","view-quiz","view-result","view-rang","view-staff"];
+  for(var i=0;i<v.length;i++) hide(v[i]);
+  show(id);
+}
+
+/* ---------------------- Start ---------------------- */
+window.addEventListener("load", function(){
+  // Logo zuweisen
+  if (LOGO_BASE64 && LOGO_BASE64.indexOf("PLACEHOLDER") === -1) {
+    if(el("login-logo")) el("login-logo").src = LOGO_BASE64;
+    if(el("closed-logo")) el("closed-logo").src = LOGO_BASE64;
+    if(el("header-logo")) el("header-logo").src = LOGO_BASE64;
+  }
+
+  if(SUPABASE_URL.indexOf("DEINE_")===0 || SUPABASE_ANON_KEY.indexOf("DEIN_")===0){
+    hideAllChrome(); only("view-setup"); return;
+  }
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  sb.auth.getSession().then(function(r){
+    if(r.data.session){ ME=r.data.session.user; afterLogin(); }
+    else { hideAllChrome(); only("view-login"); }
+  });
+});
+function hideAllChrome(){hide("app-head");hide("player-nav");hide("player-stats-card");}
+
+/* ---------------------- Login / Logout ---------------------- */
+function doLogin(){
+  var u=el("in-user").value.trim(), p=el("in-pass").value;
+  if(!u||!p){return loginErr("Bitte Benutzername und Passwort eingeben.");}
+  var email = u.indexOf("@")>-1 ? u : (u.toLowerCase()+LOGIN_DOMAIN);
+  hide("login-err");
+  sb.auth.signInWithPassword({email:email,password:p}).then(function(r){
+    if(r.error){return loginErr("Login fehlgeschlagen. Bitte Zugangsdaten prüfen.");}
+    ME=r.data.user; sb.rpc("log_login_event",{p_event:"login"}); afterLogin();
+  });
+}
+function loginErr(m){var e=el("login-err");e.textContent=m;e.classList.remove("hidden");}
+function doLogout(){
+  var done=function(){ME=null;PROFILE=null;stopClock();hideAllChrome();el("in-pass").value="";only("view-login");};
+  sb.rpc("log_login_event",{p_event:"logout"}).then(function(){sb.auth.signOut().then(done);}, function(){sb.auth.signOut().then(done);});
+}
+
+/* ---------------------- Routing nach Login ---------------------- */
+function afterLogin(){
+  sb.from("profiles").select("display_name,role,team_id").eq("id",ME.id).single().then(function(r){
+    PROFILE = r.data || {display_name:ME.email, role:"spieler"};
+    el("head-name").textContent = PROFILE.display_name || "Spieler";
+    el("head-role").textContent = PROFILE.role==="spieler" ? "Spieler" : (PROFILE.role==="leiter"?"Leiter-Trainer":"Trainer");
+    refreshAccess(true);
+    if(!syncTimer) syncTimer = setInterval(function(){refreshAccess(false);}, 60000);
+  });
+}
+function isStaff(){return PROFILE && (PROFILE.role==="trainer"||PROFILE.role==="leiter");}
+
+function refreshAccess(initial){
+  sb.rpc("get_access_state").then(function(r){
+    ACCESS = r.data || {open:false, current_round:1};
+    if(isStaff()){ startClockMaybe(); if(initial) openStaff(); }
+    else if(ACCESS.open){ if(closingShown){closingShown=false;} startClockMaybe(); if(initial||el("view-closed").classList.contains("hidden")===false) openPlayer(); }
+    else { showClosed(); }
+  });
+}
+
+/* ---------------------- Countdown ---------------------- */
+function startClockMaybe(){
+  if(ACCESS.always_open) {
+    show("app-head"); el("clock").classList.remove("hidden"); el("clock").innerHTML='<span class="dot"></span> 24/7 Offen';
+  } else if(ACCESS.window_open && typeof ACCESS.seconds_until_close==="number"){
+    secsLeft = ACCESS.seconds_until_close; show("app-head"); show("clock"); tick();
+    if(clockTimer) clearInterval(clockTimer);
+    clockTimer = setInterval(tick, 1000);
+  } else if(isStaff()){
+    show("app-head"); el("clock").classList.remove("hidden"); el("clock").innerHTML='<span class="dot"></span> Trainer-Modus';
+  }
+}
+function stopClock(){ if(clockTimer)clearInterval(clockTimer); if(syncTimer){clearInterval(syncTimer);syncTimer=null;} clockTimer=null; hide("clock"); hide("warn-banner"); }
+function tick(){
+  if(secsLeft==null){return;}
+  if(secsLeft<=0){ clearInterval(clockTimer); onWindowClosed(); return; }
+  var m=Math.floor(secsLeft/60), s=secsLeft%60;
+  var c=el("clock"); c.classList.remove("hidden");
+  c.innerHTML = '<span class="dot"></span> noch '+m+":"+(s<10?"0":"")+s;
+  if(secsLeft<=600){ c.classList.add("warn");
+    el("warn-banner").classList.remove("hidden");
+    el("warn-banner").innerHTML="⏰ Die Akademie schliesst in wenigen Minuten. Beende deine aktuelle Frage – dein Stand ist gesichert.";
+  }
+  secsLeft--;
+}
+function onWindowClosed(){
+  if(isStaff()){return;}
+  closingShown=true; stopClock();
+  only("view-closed"); show("app-head");
+  el("closed-msg").innerHTML="Stark gelernt heute! 👏 Die Lernakademie schliesst wieder am nächsten Dienstag.";
+  el("closed-count").classList.add("hidden");
+}
+
+/* ---------------------- Geschlossen-Ansicht ---------------------- */
+function showClosed(){
+  stopClock(); hideAllChrome(); only("view-closed"); show("app-head"); hide("clock");
+  el("closed-msg").innerHTML="Die Akademie ist nur am <b>Dienstag von 18:30 bis 20:00 Uhr</b> geöffnet.";
+  var cc=el("closed-count");
+  if(ACCESS && ACCESS.server_time && ACCESS.weekday){
+    var secs=secondsUntilOpen(ACCESS);
+    if(secs!=null){ cc.classList.remove("hidden"); cc.textContent="Öffnet in "+humanDur(secs); }
+    else cc.classList.add("hidden");
+  } else cc.classList.add("hidden");
+}
+function secondsUntilOpen(a){
+  try{
+    var p=a.server_time.split(/[- :]/);
+    var now=new Date(+p[0],+p[1]-1,+p[2],+p[3],+p[4],+p[5]||0);
+    var hm=a.start_time.split(":"); var sh=+hm[0],sm=+hm[1];
+    for(var d=0;d<8;d++){
+      var cand=new Date(now.getFullYear(),now.getMonth(),now.getDate()+d,sh,sm,0);
+      var iso=cand.getDay()===0?7:cand.getDay();
+      if(iso===a.weekday && cand>now) return Math.floor((cand-now)/1000);
+    }
+  }catch(e){}
+  return null;
+}
+function humanDur(s){var d=Math.floor(s/86400);s-=d*86400;var h=Math.floor(s/3600);s-=h*3600;var m=Math.floor(s/60);
+  var out=[]; if(d)out.push(d+"T"); if(h||d)out.push(h+"h"); out.push(m+"min"); return out.join(" ");}
+
+/* ====================================================================
+   SPIELER
+   ==================================================================== */
+function openPlayer(){
+  hide("view-staff"); show("app-head"); show("player-nav"); showPlayerTab(playerTab||"lernen");
+}
+function showPlayerTab(t){
+  playerTab=t;
+  el("tab-lernen").className = t==="lernen"?"active":"btn-ghost";
+  el("tab-rang").className   = t==="rang"?"active":"btn-ghost";
+  if(t==="lernen"){
+    only("view-modules"); show("app-head"); show("player-nav");
+    loadPlayerStats();
+    loadModules();
+  } else {
+    hide("player-stats-card");
+    only("view-rang"); show("app-head"); show("player-nav");
+    loadLeaderboard("rang-body", currentLefilter === "round" ? ACCESS.current_round : null);
+  }
+}
+
+function loadPlayerStats() {
+  sb.rpc("get_leaderboard", {p_round_nr: ACCESS.current_round}).then(function(r) {
+    var rows = r.data || [];
+    var myRow = rows.find(function(x) { return x.player_id === ME.id; });
+    
+    el("round-name-indicator").textContent = ROUND_NAMES[ACCESS.current_round] || "Runde " + ACCESS.current_round;
+    
+    if (myRow) {
+      el("player-stats-rank").textContent = "Rang " + myRow.rang + " von " + rows.length;
+      el("player-stats-details").textContent = myRow.module_bestanden + " / 16 Module gemeistert (⭐ " + myRow.meister + " perfekt gelöst)";
+      el("player-stats-points").innerHTML = myRow.gesamt + ' <span style="font-size:13px; font-weight:600;">PUNKTE</span>';
+      show("player-stats-card");
+    } else {
+      el("player-stats-rank").textContent = "Willkommen in der Lern-Akademie!";
+      el("player-stats-details").textContent = "Starte dein erstes Modul, um im Ranking aufgenommen zu werden.";
+      el("player-stats-points").innerHTML = '0 <span style="font-size:13px; font-weight:600;">PUNKTE</span>';
+      show("player-stats-card");
+    }
+  });
+}
+
+function loadModules(){
+  el("view-modules").innerHTML='<div class="spinner"></div>';
+  sb.rpc("get_module_status").then(function(r){
+    MODULES = r.data || [];
+    renderModules();
+  });
+}
+
+function formatExpiry(isoStr) {
+  if (!isoStr) return "";
+  var d = new Date(isoStr);
+  return d.toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit" }) + " " + d.toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" });
+}
+
+function renderModules(){
+  var passed=0;
+  for(var i=0;i<MODULES.length;i++) if(MODULES[i].passed) passed++;
+  
+  var html='<div class="card" style="margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; gap:16px; background:linear-gradient(135deg, #16181f 0%, #0d0f13 100%);">'+
+    '<div><p class="eyebrow" style="color:var(--gold);">Dein Gesamtfortschritt</p><h2 style="margin-top:6px; color:#fff;">'+passed+' von 16 Modulen geschafft</h2></div>'+
+    '<div style="flex:1; max-width:200px"><div class="bar"><i style="width:'+(MODULES.length?Math.round(passed/MODULES.length*100):0)+'%"></i></div></div></div>';
+  
+  var byQ={};
+  for(var j=0; j<MODULES.length; j++){
+    var m=MODULES[j];
+    (byQ[m.quartal]=byQ[m.quartal]||[]).push(m);
+  }
+  
+  [1,2,3,4].forEach(function(q){
+    if(!byQ[q]) return;
+    html+='<div class="quartal"><div class="qhead"><span class="qnum">Q'+q+'</span><h3>'+esc(CATEGORY_NAMES[q])+'</h3></div><div class="grid">';
+    
+    byQ[q].forEach(function(m){
+      var isExpired = m.expires_at ? new Date(m.expires_at) < new Date() : false;
+      var isActiveInRound = m.ist_aktiv_in_runde;
+      var state = m.passed ? "passed" : (m.offen ? "open" : "locked");
+      
+      var pillClass = "pill locked";
+      var pillText = "🔒 Gesperrt";
+      
+      if (m.passed) {
+        pillClass = "pill passed";
+        pillText = "✓ Gemeistert";
+      } else if (m.always_open) {
+        pillClass = "pill always";
+        pillText = "🔓 Immer Offen";
+      } else if (m.expires_at && !isExpired) {
+        pillClass = "pill open";
+        pillText = "⏰ Spezial-Lektion";
+      } else if (m.offen) {
+        pillClass = "pill open";
+        pillText = "Offen";
+      } else if (!isActiveInRound) {
+        pillClass = "pill inactive";
+        pillText = "Inaktiv in M" + ACCESS.current_round;
+      }
+      
+      var extraClass = "";
+      if (!isActiveInRound && !m.always_open && !m.expires_at) {
+        extraClass = " inactive-round";
+      } else if (state === "passed") { extraClass = " passed"; }
+      else if (state === "open") { extraClass = " open"; }
+      else { extraClass = " locked"; }
+      
+      var prog = m.total_q ? Math.round(m.mastered/m.total_q*100) : 0;
+      
+      var btn = "";
+      if (m.offen) {
+        btn = '<button class="'+(m.passed?"btn-ghost":"btn")+'" onclick="startModule(\''+m.module_id+'\')">'+(m.passed?"Wiederholen":(m.mastered>0?"Weiter":"Starten"))+'</button>';
+      } else if (!isActiveInRound) {
+        btn = '<small class="muted" style="color:var(--bad);">In dieser Runde inaktiv</small>';
+      } else {
+        btn = '<small class="muted">Voriges Modul abschliessen (80%)</small>';
+      }
+      
+      var expiryInfo = "";
+      if (m.expires_at && !isExpired) {
+        expiryInfo = '<div style="font-size:11px; color:var(--gold); font-weight:700; margin-top:2px;">Freigeschaltet bis: ' + formatExpiry(m.expires_at) + '</div>';
+      }
+      
+      html+='<div class="mod' + extraClass + '"><div class="mtop"><span class="mnr">MODUL '+m.modul_nr+'</span><span class="'+pillClass+'">'+pillText+'</span></div>'+
+        '<h3 style="color:#fff;">'+esc(m.titel.replace(/^.*?- /,""))+'</h3>'+
+        expiryInfo+
+        '<div class="bar"><i style="width:'+prog+'%"></i></div>'+
+        '<div class="mfoot"><small>'+m.mastered+'/'+m.total_q+' Fragen richtig</small>'+btn+'</div>'+
+        '</div>';
+    });
+    html+='</div></div>';
+  });
+  el("view-modules").innerHTML=html;
+}
+
+/* ---------------------- Quiz ---------------------- */
+function startModule(moduleId){
+  var mod=null; for(var i=0;i<MODULES.length;i++) if(MODULES[i].module_id===moduleId)mod=MODULES[i];
+  only("view-quiz"); show("app-head"); if(!isStaff()) { show("player-nav"); hide("player-stats-card"); }
+  el("quiz-q").innerHTML='<div class="spinner"></div>'; el("quiz-opts").innerHTML=""; el("quiz-fb").innerHTML=""; hide("quiz-next");
+  el("quiz-title").textContent = mod? ("Modul "+mod.modul_nr) : "Modul";
+  sb.rpc("get_module_questions",{p_module_id:moduleId}).then(function(r){
+    if(r.error){
+      if((r.error.message||"").indexOf("LERNFENSTER")>-1){onWindowClosed();} 
+      else {el("quiz-q").textContent="Dieses Modul ist gerade nicht verfügbar.";} 
+      return; 
+    }
+    var rows=r.data||[], byQ={}, order=[];
+    rows.forEach(function(row){
+      if(!byQ[row.question_id]){byQ[row.question_id]={id:row.question_id,nr:row.frage_nr,text:row.frage_text,options:[]};order.push(row.question_id);}
+      byQ[row.question_id].options.push({id:row.option_id,key:row.option_key,text:row.option_text});
+    });
+    var qs=order.map(function(id){var q=byQ[id];shuffle(q.options);return q;});
+    QZ={moduleId:moduleId,title:el("quiz-title").textContent,questions:qs,idx:0,mod:mod};
+    renderQuestion();
+  });
+}
+function renderQuestion(){
+  var q=QZ.questions[QZ.idx], n=QZ.questions.length;
+  el("quiz-count").textContent="Frage "+(QZ.idx+1)+" / "+n;
+  el("quiz-prog").style.width=Math.round(QZ.idx/n*100)+"%";
+  el("quiz-q").textContent=q.text;
+  el("quiz-fb").innerHTML=""; hide("quiz-next");
+  var h="";
+  var keys = ["A", "B", "C", "D"];
+  q.options.forEach(function(o, idx){
+    h+='<button class="opt" id="opt-'+o.id+'" onclick="answer(\''+q.id+'\',\''+o.id+'\')">'+
+       '<span class="key">'+(keys[idx] || o.key)+'</span><span>'+esc(o.text)+'</span></button>';
+  });
+  el("quiz-opts").innerHTML=h;
+}
+function answer(qid, oid){
+  var btns=el("quiz-opts").querySelectorAll(".opt");
+  for(var i=0;i<btns.length;i++) btns[i].disabled=true;
+  sb.rpc("submit_answer",{p_question_id:qid,p_chosen_option_id:oid}).then(function(r){
+    if(r.error){
+      if((r.error.message||"").indexOf("LERNFENSTER")>-1){ onWindowClosed(); return; }
+      for(var i=0;i<btns.length;i++) btns[i].disabled=false;
+      el("quiz-fb").innerHTML='<div class="fb no">Fehler bei der Übertragung – bitte versuche es noch einmal.</div>'; return;
+    }
+    var d=r.data, correctId=d.correct_option_id, ok=d.is_correct;
+    var chosen=el("opt-"+oid); if(chosen) chosen.classList.add(ok?"correct":"wrong");
+    if(!ok){var c=el("opt-"+correctId); if(c)c.classList.add("correct");}
+    QZ.lastPassed = d.modul_bestanden;
+    var fb = ok
+      ? '<div class="fb ok"><b>Stark! ✓</b> Richtige Antwort erkannt.</div>'
+      : '<div class="fb no"><b>Leider nicht ganz.</b> Die korrekte Option ist grün markiert. Nutze Fehler zum Lernen!</div>';
+    el("quiz-fb").innerHTML=fb;
+    el("quiz-next").textContent = (QZ.idx+1<QZ.questions.length)?"Weiter":"Modul abschliessen";
+    show("quiz-next");
+  });
+}
+function nextQuestion(){
+  if(QZ.idx+1<QZ.questions.length){ QZ.idx++; renderQuestion(); }
+  else { finishModule(); }
+}
+function finishModule(){
+  sb.rpc("get_module_status").then(function(r){
+    MODULES=r.data||[]; var mod=null;
+    for(var i=0;i<MODULES.length;i++) if(MODULES[i].module_id===QZ.moduleId)mod=MODULES[i];
+    only("view-result"); show("app-head"); if(!isStaff()) show("player-nav");
+    var passed = mod && mod.passed;
+    el("res-emoji").textContent = passed?"🏅":"💪";
+    if(passed){
+      el("res-title").textContent="Modul gemeistert!";
+      el("res-msg").innerHTML="Du hast "+mod.mastered+" von "+mod.total_q+" Fragen richtig. Die nächste Lektion ist nun freigeschaltet. Weiter so!";
+      hide("res-retry");
+    }else{
+      el("res-title").textContent="Fast geschafft!";
+      el("res-msg").innerHTML="Du hast "+(mod?mod.mastered:0)+" von "+(mod?mod.total_q:0)+" richtig. Für das Bestehen benötigen wir mindestens 80% richtige Antworten. Nimm dir etwas Ruhe, wiederhole den Stoff und versuche es erneut!";
+      show("res-retry");
+    }
+  });
+}
+function retryModule(){ startModule(QZ.moduleId); }
+function exitQuiz(){ QZ=null; if(isStaff()) showStaffTab("vor"); else showPlayerTab("lernen"); }
+
+/* ---------------------- Rangliste (Spieler & Trainer) ---------------------- */
+function loadLeaderboard(targetId, roundNr){
+  el(targetId).innerHTML='<div class="spinner"></div>';
+  sb.rpc("get_leaderboard", {p_round_nr: roundNr}).then(function(r){
+    var rows=r.data||[];
+    var roundName = roundNr ? ROUND_NAMES[roundNr] : "Gesamte Meisterschaft (Addiert)";
+    if(!rows.length){ el(targetId).innerHTML='<p class="muted center">Noch keine Punkte eingetragen in diesem Bereich.</p>'; return; }
+    
+    var h='<div style="font-size:12px; color:var(--gold); font-weight:700; margin-bottom:10px;">Auswertung für: '+esc(roundName)+'</div>';
+    h+='<table id="leaderboard-table"><thead><tr><th class="rank">#</th><th>Spieler</th><th>Gesamtpunkte</th><th>Meister-Module</th><th>⭐</th></tr></thead><tbody>';
+    rows.forEach(function(x){
+      var me = ME && x.player_id===ME.id;
+      var rc = x.rang===1?"r1":(x.rang===2?"r2":(x.rang===3?"r3":""));
+      var medal = x.rang===1?"🥇":(x.rang===2?"🥈":(x.rang===3?"🥉":x.rang));
+      h+='<tr class="'+(me?"me":"")+'"><td class="rank '+rc+'">'+medal+'</td>'+
+         '<td style="color:#fff; font-weight:600;">'+esc(x.display_name)+(me?' <span class="tag">du</span>':'')+'</td>'+
+         '<td class="pts">'+x.gesamt+'</td>'+
+         '<td>'+x.module_bestanden+' / 16</td>'+
+         '<td>'+(x.meister>0?('⭐ '+x.meister):'–')+'</td></tr>';
+    });
+    h+='</tbody></table>';
+    el(targetId).innerHTML=h;
+  });
+}
+
+function toggleLeaderboardFilter() {
+  currentLefilter = el("leaderboard-filter").value;
+  var roundParam = currentLefilter === "round" ? ACCESS.current_round : null;
+  loadLeaderboard("rang-body", roundParam);
+}
+
+function toggleStaffLeaderboardFilter() {
+  var filterVal = el("staff-leaderboard-filter").value;
+  var roundParam = filterVal === "round" ? ACCESS.current_round : null;
+  loadLeaderboard("staff-rang-body", roundParam);
+}
+
+function exportLeaderboardPDF() {
+  var { jsPDF } = window.jspdf;
+  var doc = new jsPDF();
+  
+  // Titel
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(18);
+  doc.text("FOOTECO Lern-Akademie · FE12", 14, 20);
+  
+  var isRound = (playerTab === "rang" ? currentLefilter : el("staff-leaderboard-filter").value) === "round";
+  var roundName = isRound ? (ROUND_NAMES[ACCESS.current_round] || "Runde " + ACCESS.current_round) : "Gesamte Meisterschaft (Gesamt-Ranking)";
+  
+  doc.setFont("Helvetica", "normal");
+  doc.setFontSize(12);
+  doc.text("Auswertung: " + roundName, 14, 28);
+  doc.text("Exportiert am: " + new Date().toLocaleString("de-CH"), 14, 34);
+  
+  var roundParam = isRound ? ACCESS.current_round : null;
+  
+  sb.rpc("get_leaderboard", {p_round_nr: roundParam}).then(function(r) {
+    var rows = r.data || [];
+    var body = rows.map(function(x) {
+      return [x.rang, x.display_name, x.gesamt, x.module_bestanden + " / 16", x.meister > 0 ? x.meister : "–"];
+    });
+    
+    doc.autoTable({
+      startY: 40,
+      head: [['#', 'Spieler', 'Punkte', 'Module bestanden', 'Meister-Sterne (⭐)']],
+      body: body,
+      theme: 'striped',
+      headStyles: { fillColor: [212, 175, 55], textColor: [12, 13, 16], fontStyle: 'bold' },
+      styles: { font: "Helvetica", fontSize: 10 }
+    });
+    
+    doc.save("FE12_Akademie_Rangliste_" + (isRound ? "Runde_" + ACCESS.current_round : "Gesamt") + ".pdf");
+  });
+}
+
+/* ====================================================================
+   TRAINER-DASHBOARD
+   ==================================================================== */
+function openStaff(){ hide("player-nav"); only("view-staff"); show("app-head"); showStaffTab("rang"); }
+function showStaffTab(t){
+  ["rang","frei","zeit","runden","log","vor"].forEach(function(k){
+    el("stab-"+k).className = k===t?"active":"btn-ghost";
+    el("staff-"+k).classList.toggle("hidden", k!==t);
+  });
+  only("view-staff"); show("app-head");
+  if(t==="rang") {
+    el("staff-leaderboard-filter").value = "round";
+    loadLeaderboard("staff-rang-body", ACCESS.current_round);
+  }
+  if(t==="frei") loadUnlockForm();
+  if(t==="zeit") loadLernzeitenForm();
+  if(t==="runden") highlightActiveRoundCard(ACCESS.current_round || 1);
+  if(t==="log")  loadLoginLog();
+  if(t==="vor")  loadStaffModules();
+}
+
+function loadUnlockForm(){
+  sb.rpc("get_module_status").then(function(r){
+    var mods=r.data||[]; var mh="";
+    mods.forEach(function(m){
+      var detail = m.always_open ? " (IMMER OFFEN)" : "";
+      mh+='<option value="'+m.module_id+'">Modul '+m.modul_nr+' · '+esc(m.titel.replace(/^.*?- /,""))+detail+'</option>';
+    });
+    el("frei-mod").innerHTML=mh;
+    el("reset-mod").innerHTML='<option value="">Ganze Kategorie zurücksetzen (siehe Quartal)</option>' + mh;
+    updateModuleToggleState();
+  });
+  
+  sb.from("profiles").select("id,display_name").eq("role","spieler").order("display_name").then(function(r){
+    var ph='<option value="">Ganzes Team</option>';
+    var pData = r.data || [];
+    pData.forEach(function(p){ph+='<option value="'+p.id+'">'+esc(p.display_name)+'</option>';});
+    el("frei-player").innerHTML=ph;
+    el("reset-player").innerHTML='<option value="">Ganzes Team zurücksetzen</option>' + pData.map(function(p) {
+      return '<option value="'+p.id+'">'+esc(p.display_name)+'</option>';
+    }).join('');
+  });
+  
+  el("frei-msg").textContent="";
+  el("reset-msg").textContent="";
+  loadActiveUnlocksList();
+}
+
+function updateModuleToggleState() {
+  var mid = el("frei-mod").value;
+  if (!mid) return;
+  sb.rpc("get_module_status").then(function(r) {
+    var mods = r.data || [];
+    var currentMod = mods.find(function(m) { return m.module_id === mid; });
+    if (currentMod) {
+      el("frei-always-open").checked = currentMod.always_open;
+    }
+  });
+}
+
+function doToggleAlwaysOpen() {
+  var mid = el("frei-mod").value;
+  var alwaysOpen = el("frei-always-open").checked;
+  if (!mid) return;
+  
+  sb.rpc("toggle_module_always_open", {p_module_id: mid, p_always_open: alwaysOpen}).then(function(r) {
+    if (r.error) {
+      el("frei-msg").style.color = "var(--bad)";
+      el("frei-msg").textContent = "Fehler beim Umschalten: " + r.error.message;
+    } else {
+      el("frei-msg").style.color = "var(--good)";
+      el("frei-msg").textContent = alwaysOpen ? "✓ Modul ist nun permanent für alle Spieler freigegeben." : "✓ Modul-Progression ist wieder aktiv.";
+      loadUnlockForm();
+    }
+  });
+}
+
+function doUnlock(){
+  var mid=el("frei-mod").value, pid=el("frei-player").value||null;
+  var durationWeeks = el("frei-duration").value ? parseInt(el("frei-duration").value) : null;
+  
+  sb.rpc("unlock_module",{p_module_id:mid, p_player_id:pid, p_duration_weeks:durationWeeks}).then(function(r){
+    if (r.error) {
+      el("frei-msg").style.color = "var(--bad)";
+      el("frei-msg").textContent = "Fehler: " + r.error.message;
+    } else {
+      el("frei-msg").style.color = "var(--good)";
+      var text = "✓ Freigeschaltet";
+      if (pid) text += " für den ausgewählten Spieler";
+      else text += " für das gesamte Team";
+      if (durationWeeks) text += " (zeitlich begrenzt auf " + durationWeeks + " Wochen).";
+      else text += " (unbegrenzt).";
+      el("frei-msg").textContent = text;
+      loadUnlockForm();
+    }
+  });
+}
+
+function loadActiveUnlocksList() {
+  el("active-unlocks-list").innerHTML = '<div class="spinner"></div>';
+  
+  sb.from("module_unlocks").select("id, module_id, player_id, expires_at, unlocked_at").then(function(r) {
+    var unlocks = r.data || [];
+    if (!unlocks.length) {
+      el("active-unlocks-list").innerHTML = '<p class="muted">Keine manuellen Einzelfreigaben aktiv.</p>';
+      return;
+    }
+    
+    sb.from("profiles").select("id, display_name").then(function(pRes) {
+      var profiles = pRes.data || [];
+      var profileMap = {};
+      profiles.forEach(function(p) { profileMap[p.id] = p.display_name; });
+      
+      sb.rpc("get_module_status").then(function(mRes) {
+        var modules = mRes.data || [];
+        var moduleMap = {};
+        modules.forEach(function(m) { moduleMap[m.module_id] = "Modul " + m.modul_nr + " · " + m.titel.replace(/^.*?- /,""); });
+        
+        var h = "";
+        unlocks.forEach(function(u) {
+          var targetName = u.player_id ? (profileMap[u.player_id] || "Unbekannter Spieler") : "Ganzes Team";
+          var modName = moduleMap[u.module_id] || "Unbekanntes Modul";
+          var expiryText = u.expires_at ? ("Ablauf: " + formatExpiry(u.expires_at)) : "Dauerhaft freigeschaltet";
+          
+          h += '<div class="unlock-item">' +
+               '<div>' +
+                 '<div style="font-weight:700; color:#fff;">' + esc(modName) + '</div>' +
+                 '<div class="muted" style="margin-top:2px;">Für: ' + esc(targetName) + ' | ' + expiryText + '</div>' +
+               '</div>' +
+               '<button class="btn-ghost" style="padding:5px 10px; font-size:11px; border-radius:6px; color:var(--bad); border-color:rgba(224,86,59,0.3);" onclick="revokeUnlock(\''+u.id+'\')">Aufheben</button>' +
+               '</div>';
+        });
+        el("active-unlocks-list").innerHTML = h;
+      });
+    });
+  });
+}
+
+function revokeUnlock(unlockId) {
+  sb.from("module_unlocks").delete().eq("id", unlockId).then(function(r) {
+    loadUnlockForm();
+  });
+}
+
+/* Fortschritt zurücksetzen */
+function doResetProgress() {
+  var pid = el("reset-player").value || null;
+  var mid = el("reset-mod").value || null;
+  var quartal = el("reset-quartal").value ? parseInt(el("reset-quartal").value) : null;
+  
+  var confirmMsg = "Möchtest du diesen Fortschritt wirklich zurücksetzen? Die entsprechenden korrekten Antworten werden aus dem Protokoll gelöscht. Dies kann nicht rückgängig gemacht werden!";
+  if (!confirm(confirmMsg)) return;
+  
+  sb.rpc("reset_player_progress", {
+    p_player_id: pid,
+    p_module_id: mid,
+    p_quartal: quartal
+  }).then(function(r) {
+    if (r.error) {
+      el("reset-msg").style.color = "var(--bad)";
+      el("reset-msg").textContent = "Fehler beim Zurücksetzen: " + r.error.message;
+    } else {
+      el("reset-msg").style.color = "var(--good)";
+      el("reset-msg").textContent = "✓ Fortschritt wurde erfolgreich gelöscht. Der Spieler kann die Fragen nun erneut beantworten.";
+      loadUnlockForm();
+    }
+  });
+}
+
+/* Lernzeiten (Lernfenster) */
+function loadLernzeitenForm() {
+  el("zeit-msg").textContent = "";
+  sb.rpc("get_access_state").then(function(r) {
+    var data = r.data || {};
+    el("zeit-always-open").checked = data.always_open || false;
+    el("zeit-weekday").value = data.weekday || 2;
+    el("zeit-start").value = data.start_time || "18:30";
+    el("zeit-end").value = data.end_time || "20:00";
+    el("zeit-active").checked = data.active !== false;
+    toggleZeitInputs();
+  });
+}
+
+function toggleZeitInputs() {
+  var alwaysOpen = el("zeit-always-open").checked;
+  el("zeit-window-inputs").style.opacity = alwaysOpen ? "0.4" : "1";
+  el("zeit-weekday").disabled = alwaysOpen;
+  el("zeit-start").disabled = alwaysOpen;
+  el("zeit-end").disabled = alwaysOpen;
+}
+
+function saveLernzeiten() {
+  var alwaysOpen = el("zeit-always-open").checked;
+  var weekday = parseInt(el("zeit-weekday").value);
+  var startTime = el("zeit-start").value;
+  var endTime = el("zeit-end").value;
+  var active = el("zeit-active").checked;
+  
+  if (!startTime || !endTime) {
+    el("zeit-msg").style.color = "var(--bad)";
+    el("zeit-msg").textContent = "Bitte gib eine Start- und Endzeit an.";
+    return;
+  }
+  
+  sb.rpc("update_lern_fenster", {
+    p_weekday: weekday,
+    p_start_time: startTime,
+    p_end_time: endTime,
+    p_active: active,
+    p_always_open: alwaysOpen
+  }).then(function(r) {
+    if (r.error) {
+      el("zeit-msg").style.color = "var(--bad)";
+      el("zeit-msg").textContent = "Fehler beim Speichern: " + r.error.message;
+    } else {
+      el("zeit-msg").style.color = "var(--good)";
+      el("zeit-msg").textContent = "✓ Lernzeiten wurden erfolgreich in der Datenbank aktualisiert.";
+      refreshAccess(false);
+    }
+  });
+}
+
+/* Runden-Verwaltung */
+function highlightActiveRoundCard(activeRound) {
+  for (var i = 1; i <= 4; i++) {
+    var rc = el("round-card-" + i);
+    if (!rc) continue;
+    if (i === activeRound) {
+      rc.style.borderColor = "var(--gold)";
+      rc.style.background = "rgba(212, 175, 55, 0.08)";
+      var btn = rc.querySelector("button");
+      if (btn) {
+        btn.textContent = "Aktive Runde";
+        btn.disabled = true;
+        btn.className = "btn";
+      }
+    } else {
+      rc.style.borderColor = "rgba(139, 146, 156, 0.15)";
+      rc.style.background = "var(--card-gradient)";
+      var btn = rc.querySelector("button");
+      if (btn) {
+        btn.textContent = "Aktivieren";
+        btn.disabled = false;
+        btn.className = "btn btn-ghost";
+      }
+    }
+  }
+}
+
+function changeRound(roundNr) {
+  if (!confirm("Möchtest du wirklich in Runde " + roundNr + " wechseln? Dies setzt die Rangliste für diese Runde zurück (alte Daten bleiben im Log erhalten).")) return;
+  
+  sb.rpc("set_current_round", {p_round: roundNr}).then(function(r) {
+    if (r.error) {
+      el("runden-msg").style.color = "var(--bad)";
+      el("runden-msg").textContent = "Fehler beim Rundenwechsel: " + r.error.message;
+    } else {
+      el("runden-msg").style.color = "var(--good)";
+      el("runden-msg").textContent = "Erfolgreich in Runde " + roundNr + " gewechselt. Leaderboard und Fortschritt wurden aktualisiert.";
+      refreshAccess(false);
+      setTimeout(function() {
+        showStaffTab("runden");
+      }, 1000);
+    }
+  });
+}
+
+function loadLoginLog(){
+  el("staff-log").innerHTML='<div class="spinner"></div>';
+  sb.from("login_log").select("event_type,occurred_at,user_id").order("occurred_at",{ascending:false}).limit(40).then(function(r){
+    sb.from("profiles").select("id,display_name").then(function(p){
+      var names={}; (p.data||[]).forEach(function(x){names[x.id]=x.display_name;});
+      var rows=r.data||[];
+      var h='<p class="eyebrow">Aktivität</p><h3 style="margin:8px 0 16px; color:#fff;">Letzte Logins / Logouts</h3>';
+      if(!rows.length){h+='<p class="muted">Noch keine Einträge.</p>';}
+      else{ h+='<table><thead><tr><th>Spieler</th><th>Ereignis</th><th>Zeit</th></tr></thead><tbody>';
+        rows.forEach(function(x){
+          var dt=new Date(x.occurred_at);
+          var typeLabel = x.event_type==="login" ? '<span class="tag" style="color:var(--good); border-color:var(--good);">Login</span>' : '<span class="tag" style="color:var(--muted);">Logout</span>';
+          h+='<tr><td style="color:#fff; font-weight:600;">'+esc(names[x.user_id]||"?")+'</td><td>'+typeLabel+'</td>'+
+             '<td class="muted">'+dt.toLocaleString("de-CH")+'</td></tr>';
+        });
+        h+='</tbody></table>'; }
+      el("staff-log").innerHTML=h;
+    });
+  });
+}
+
+function loadStaffModules(){
+  el("staff-vor").innerHTML='<div class="spinner"></div>';
+  sb.rpc("get_module_status").then(function(r){
+    var mods=r.data||[];
+    var h='<p class="eyebrow">Vorschau</p><h3 style="margin:8px 0 16px; color:#fff;">Alle Module ansehen / testen</h3><div class="grid">';
+    mods.forEach(function(m){
+      var isExpired = m.expires_at ? new Date(m.expires_at) < new Date() : false;
+      var roundBadge = m.ist_aktiv_in_runde ? '<span class="pill always">In M' + ACCESS.current_round + ' aktiv</span>' : '<span class="pill locked">Inaktiv</span>';
+      if (m.always_open) roundBadge = '<span class="pill always">🔓 Immer offen</span>';
+      
+      h+='<div class="mod open"><div class="mtop"><span class="mnr">MODUL '+m.modul_nr+'</span>' + roundBadge + '</div>'+
+         '<h3 style="color:#fff;">'+esc(m.titel.replace(/^.*?- /,""))+'</h3>'+
+         '<div class="mfoot"><small>'+m.total_q+' Fragen</small>'+
+         '<button class="btn" style="padding:9px 14px; font-size:13px" onclick="startModule(\''+m.module_id+'\')">Ansehen</button></div></div>';
+    });
+    h+='</div><p class="muted" style="font-size:13px; margin-top:16px">Deine Test-Antworten werden als Trainer nicht für die Rangliste gewertet.</p>';
+    el("staff-vor").innerHTML=h;
+  });
+}
+</script>
+</body>
+</html>
