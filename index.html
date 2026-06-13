@@ -538,6 +538,12 @@
         <p class="muted" id="closed-msg">Gelernt wird immer am <b>Dienstag von 18:30 bis 20:00 Uhr</b>.</p>
         <div id="closed-count" class="clock warn" style="display:inline-flex; margin-top:18px; justify-content:center;"></div>
         <p class="muted" style="margin-top:20px; font-size:13px;">Dein bisheriger Fortschritt ist sicher gespeichert – es geht genau dort weiter.</p>
+        <div style="margin-top:24px; border-top:1px solid rgba(255,255,255,0.08); padding-top:20px;">
+          <p style="font-size:13.5px; color:#fff; font-weight:600; margin-bottom:12px;">Offline trainieren?</p>
+          <button class="btn" style="width:100%; display:inline-flex; align-items:center; justify-content:center; gap:8px;" onclick="exportSkillsMasterPDF()">
+            📄 Skill-Challenges PDF (Blanko) herunterladen
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -575,6 +581,17 @@
       <div style="text-align:right;">
         <span id="player-stats-points" class="pts" style="font-size:26px; color:var(--gold); font-weight:800; font-family:'Sora';">...</span>
         <p class="muted" style="font-size:12px; margin-top:4px;">Aktuelle Runde: <b id="round-name-indicator" style="color:var(--text); font-weight:700;">...</b></p>
+      </div>
+    </div>
+    <div style="width:100%; border-top:1px solid rgba(255,255,255,0.06); margin-top:12px; padding-top:10px; display:flex; align-items:center; gap:12px; justify-content:space-between; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:12px; color:var(--muted); font-weight:600;">Mein Nickname / Lieblingsspieler:</span>
+        <span id="nickname-display" style="font-size:13px; color:var(--gold); font-weight:700; cursor:pointer;" onclick="editNickname()">Klicken zum Festlegen...</span>
+        <input id="nickname-input" class="hidden" style="background:#1a1c23; border:1px solid var(--gold); color:#fff; font-size:12px; padding:3px 8px; border-radius:4px; width:120px;" onblur="saveNickname()" onkeydown="if(event.key==='Enter') saveNickname()" />
+      </div>
+      <div style="font-size:11.5px; color:var(--muted);">
+        Rückennummer: <span id="player-card-nr" style="color:#fff; font-weight:700;">–</span> | 
+        Starker Fuss: <span id="player-card-fuss" style="color:#fff; font-weight:700;">–</span>
       </div>
     </div>
   </div>
@@ -938,7 +955,10 @@
       <p id="reset-msg" class="muted" style="font-size:13px; margin-top:14px; font-weight:600;"></p>
 
       <hr style="border:none; border-top:1px solid var(--line); margin:24px 0;"/>
-      <h4 style="margin-bottom:12px; font-family:'Sora'; color:#fff;">Aktive manuelle Freischaltungen</h4>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+        <h4 style="font-family:'Sora'; color:#fff; margin:0;">Aktive manuelle Freischaltungen</h4>
+        <button class="btn btn-ghost" style="padding:6px 12px; font-size:11px; color:var(--bad); border-color:rgba(224,86,59,0.4);" onclick="revokeAllUnlocks()">Alle löschen (Reset)</button>
+      </div>
       <div id="active-unlocks-list">Lade Freischaltungen...</div>
     </div>
     
@@ -1093,12 +1113,82 @@ function doLogout(){
   sb.rpc("log_login_event",{p_event:"logout"}).then(function(){sb.auth.signOut().then(done);}, function(){sb.auth.signOut().then(done);});
 }
 
+function scrollToTop() {
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function formatPlayerName(displayName, skills) {
+  if (!displayName) return "Spieler/in";
+  var capName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
+  var nick = (skills && skills.nickname) ? skills.nickname : "";
+  if (nick) {
+    nick = nick.charAt(0).toUpperCase() + nick.slice(1);
+    return capName + " (" + nick + ")";
+  }
+  return capName;
+}
+
+function editNickname() {
+  var display = el("nickname-display");
+  var input = el("nickname-input");
+  if(!display || !input) return;
+  input.value = display.textContent === "Klicken zum Festlegen..." ? "" : display.textContent;
+  display.classList.add("hidden");
+  input.classList.remove("hidden");
+  input.focus();
+}
+
+function saveNickname() {
+  var display = el("nickname-display");
+  var input = el("nickname-input");
+  if(!display || !input) return;
+  var val = input.value.trim();
+  
+  if (val.length > 0) {
+    val = val.charAt(0).toUpperCase() + val.slice(1);
+  }
+  
+  input.classList.add("hidden");
+  display.classList.remove("hidden");
+  
+  if (val === "") {
+    display.textContent = "Klicken zum Festlegen...";
+  } else {
+    display.textContent = val;
+  }
+  
+  PROFILE.skills = PROFILE.skills || {};
+  PROFILE.skills.nickname = val;
+  
+  sb.from("profiles").update({ skills: PROFILE.skills }).eq("id", ME.id).then(function(r) {
+    updatePlayerHeaderName();
+  });
+}
+
+function updatePlayerHeaderName() {
+  if (!PROFILE) return;
+  var nameStr = formatPlayerName(PROFILE.display_name, PROFILE.skills);
+  el("head-name").textContent = nameStr;
+}
+
 /* ---------------------- Routing nach Login ---------------------- */
 function afterLogin(){
   sb.from("profiles").select("display_name,role,team_id,geb,fuss,player_nr,skills").eq("id",ME.id).single().then(function(r){
     PROFILE = r.data || {display_name:ME.email, role:"spieler", skills:{}};
-    el("head-name").textContent = PROFILE.display_name || "Spieler/in";
+    PROFILE.skills = PROFILE.skills || {};
+    updatePlayerHeaderName();
     el("head-role").textContent = PROFILE.role==="spieler" ? "Spieler/in" : (PROFILE.role==="leiter"?"Leiter-Trainer":"Trainer");
+    
+    if (el("player-card-fuss")) el("player-card-fuss").textContent = PROFILE.fuss || "–";
+    if (el("player-card-nr")) el("player-card-nr").textContent = PROFILE.player_nr || "–";
+    if (el("nickname-display")) {
+      if (PROFILE.skills && PROFILE.skills.nickname) {
+        el("nickname-display").textContent = PROFILE.skills.nickname;
+      } else {
+        el("nickname-display").textContent = "Klicken zum Festlegen...";
+      }
+    }
+    
     refreshAccess(true);
     if(!syncTimer) syncTimer = setInterval(function(){refreshAccess(false);}, 60000);
   });
@@ -1119,7 +1209,7 @@ function startClockMaybe(){
   var c = el("clock");
   if(c) c.classList.remove("warn");
   if(ACCESS.always_open) {
-    show("app-head"); el("clock").classList.remove("hidden"); el("clock").innerHTML='<span class="dot"></span> 24/7 Offen';
+    show("app-head"); el("clock").classList.remove("hidden"); el("clock").innerHTML='<span class="dot"></span> Online';
   } else if(ACCESS.window_open && typeof ACCESS.seconds_until_close==="number"){
     secsLeft = ACCESS.seconds_until_close; show("app-head"); show("clock"); tick();
     if(clockTimer) clearInterval(clockTimer);
@@ -1134,7 +1224,7 @@ function tick(){
   if(secsLeft<=0){ clearInterval(clockTimer); onWindowClosed(); return; }
   var m=Math.floor(secsLeft/60), s=secsLeft%60;
   var c=el("clock"); c.classList.remove("hidden");
-  c.innerHTML = '<span class="dot"></span> noch '+m+":"+(s<10?"0":"")+s;
+  c.innerHTML = '<span class="dot"></span> Online · noch '+m+":"+(s<10?"0":"")+s;
   if(secsLeft<=600){ c.classList.add("warn");
     el("warn-banner").classList.remove("hidden");
     el("warn-banner").innerHTML="⏰ Die Akademie schliesst in wenigen Minuten. Beende deine aktuelle Frage – dein Stand ist gesichert.";
@@ -1212,6 +1302,7 @@ function openPlayer(){
   hide("view-staff"); show("app-head"); show("player-nav"); showPlayerTab(playerTab||"lernen");
 }
 function showPlayerTab(t){
+  scrollToTop();
   playerTab=t;
   el("tab-lernen").className = t==="lernen"?"active":"btn-ghost";
   var tabS = el("tab-skills"); if(tabS) tabS.className = t==="skills"?"active":"btn-ghost";
@@ -1352,6 +1443,7 @@ function renderModules(){
 function startModule(moduleId){
   var mod=null; for(var i=0;i<MODULES.length;i++) if(MODULES[i].module_id===moduleId)mod=MODULES[i];
   if(!mod || (!mod.offen && !isStaff())) return;
+  scrollToTop();
   only("view-learn"); show("app-head"); if(!isStaff()) { show("player-nav"); hide("player-stats-card"); }
   el("learn-title").textContent = "Lernblock · Modul " + mod.modul_nr;
   el("learn-module-titel").textContent = mod.titel;
@@ -1380,6 +1472,7 @@ function formatLernstoffText(text){
 function launchQuiz(moduleId){
   var mod=null; for(var i=0;i<MODULES.length;i++) if(MODULES[i].module_id===moduleId)mod=MODULES[i];
   if(!mod || (!mod.offen && !isStaff())) return;
+  scrollToTop();
   only("view-quiz"); show("app-head"); if(!isStaff()) { show("player-nav"); hide("player-stats-card"); }
   el("quiz-q").innerHTML='<div class="spinner"></div>'; el("quiz-opts").innerHTML=""; el("quiz-fb").innerHTML=""; hide("quiz-next");
   el("quiz-title").textContent = mod? ("Modul "+mod.modul_nr) : "Modul";
@@ -1459,6 +1552,7 @@ function nextQuestion(){
   else { finishModule(); }
 }
 function finishModule(){
+  scrollToTop();
   only("view-result"); show("app-head"); if(!isStaff()) show("player-nav");
   var passed = (QZ.correctCount / QZ.questions.length) >= 0.80;
   if(passed){
@@ -1552,6 +1646,12 @@ function exportLeaderboardPDF() {
       styles: { font: "Helvetica", fontSize: 10 }
     });
     
+    // Add developer credit in footer
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text("System & Development by Dogus Kaplan", 14, 285);
+    
     doc.save("FE12_Akademie_Rangliste_" + (isRound ? "Runde_" + ACCESS.current_round : "Gesamt") + ".pdf");
   });
 }
@@ -1561,6 +1661,7 @@ function exportLeaderboardPDF() {
    ==================================================================== */
 function openStaff(){ hide("player-nav"); only("view-staff"); show("app-head"); showStaffTab("kader"); }
 function showStaffTab(t){
+  scrollToTop();
   ["kader","skills","rang","frei","zeit","runden","log","vor"].forEach(function(k){
     var btn = el("stab-"+k); if(btn) btn.className = k===t?"active":"btn-ghost";
     var content = el("staff-"+k); if(content) content.classList.toggle("hidden", k!==t);
@@ -1932,6 +2033,12 @@ function exportSkillsMasterPDF() {
     styles: { font: "Helvetica", fontSize: 9 }
   });
   
+  // Add developer credit in footer Page 1
+  doc.setFont("Helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(150, 150, 150);
+  doc.text("System & Development by Dogus Kaplan", 14, 285);
+  
   // Add a new page for Tricks list
   doc.addPage();
   
@@ -1997,6 +2104,12 @@ function exportSkillsMasterPDF() {
     styles: { font: "Helvetica", fontSize: 8 }
   });
   
+  // Add developer credit in footer Page 2
+  doc.setFont("Helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(150, 150, 150);
+  doc.text("System & Development by Dogus Kaplan", 14, 285);
+  
   doc.save("Team_Basel_OB_FE12_Skills_Master.pdf");
 }
 
@@ -2007,7 +2120,7 @@ var currentKaderSortAsc = true;
 function loadKaderTable() {
   el("staff-kader-tbody").innerHTML = '<tr><td colspan="7"><div class="spinner"></div></td></tr>';
   
-  sb.from("profiles").select("id, display_name, geb, fuss, player_nr").eq("role", "spieler").then(function(pRes) {
+  sb.from("profiles").select("id, display_name, geb, fuss, player_nr, skills").eq("role", "spieler").then(function(pRes) {
     var profiles = pRes.data || [];
     
     sb.rpc("get_leaderboard", { p_round_nr: ACCESS.current_round }).then(function(lRes) {
@@ -2019,9 +2132,10 @@ function loadKaderTable() {
       
       KADER_PLAYERS = profiles.map(function(p) {
         var l = lMap[p.id] || { module_bestanden: 0, meister: 0 };
+        var nameStr = formatPlayerName(p.display_name, p.skills);
         return {
           id: p.id,
-          name: p.display_name || "Unbekannt",
+          name: nameStr,
           geb: p.geb || 2015,
           fuss: p.fuss || "R",
           nr: p.player_nr || "–",
@@ -2211,7 +2325,8 @@ function loadStaffSkillsLeaderboards() {
           sum += parseFloat(s[k]) || 0;
         }
       });
-      return { name: p.display_name, score: sum };
+      var nameStr = formatPlayerName(p.display_name, p.skills);
+      return { name: nameStr, score: sum };
     }).filter(function(p) { return p.score > 0; });
     
     overallList.sort(function(a, b) { return b.score - a.score; });
@@ -2223,7 +2338,8 @@ function renderTable(tbodyId, players, challengeId, type, unit, isRating) {
   var list = players.map(function(p) {
     var s = p.skills || {};
     var val = s[challengeId] != null ? parseFloat(s[challengeId]) : null;
-    return { name: p.display_name, score: val };
+    var nameStr = formatPlayerName(p.display_name, p.skills);
+    return { name: nameStr, score: val };
   }).filter(function(p) {
     return p.score != null && p.score > 0;
   });
@@ -2410,6 +2526,13 @@ function loadActiveUnlocksList() {
 
 function revokeUnlock(unlockId) {
   sb.from("module_unlocks").delete().eq("id", unlockId).then(function(r) {
+    loadUnlockForm();
+  });
+}
+
+function revokeAllUnlocks() {
+  if (!confirm("Möchtest du wirklich alle manuellen Modul-Freischaltungen für das gesamte Team löschen (Reset)?")) return;
+  sb.from("module_unlocks").delete().neq("id", "00000000-0000-0000-0000-000000000000").then(function(r) {
     loadUnlockForm();
   });
 }
