@@ -433,9 +433,56 @@
     border: 1px solid var(--line);
     background: rgba(21, 23, 30, 0.6);
   }
+  
+  /* Glowing Stadium Soccer Field Background */
+  .field-bg {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.05;
+    margin: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    box-shadow: inset 0 0 40px rgba(0, 255, 100, 0.1);
+  }
+  .field-line {
+    position: absolute;
+    border: 2px solid #fff;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.2);
+  }
+  .field-center-line {
+    top: 0; bottom: 0; left: 50%;
+    width: 0;
+    transform: translateX(-50%);
+  }
+  .field-center-circle {
+    top: 50%; left: 50%;
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .field-penalty-box-left {
+    top: 30%; bottom: 30%; left: 0;
+    width: 10%;
+    border-left: none;
+  }
+  .field-penalty-box-right {
+    top: 30%; bottom: 30%; right: 0;
+    width: 10%;
+    border-right: none;
+  }
 </style>
 </head>
 <body>
+<!-- Glowing Stadium Background -->
+<div class="field-bg">
+  <div class="field-line field-center-line"></div>
+  <div class="field-line field-center-circle"></div>
+  <div class="field-line field-penalty-box-left"></div>
+  <div class="field-line field-penalty-box-right"></div>
+</div>
+
 <div class="wrap">
 
   <!-- SETUP-HINWEIS (falls Keys fehlen) -->
@@ -458,11 +505,11 @@
       
       <div style="margin-bottom:14px">
         <label>Benutzername</label>
-        <input id="in-user" autocomplete="username" placeholder="z.B. noah" />
+        <input id="in-user" autocomplete="username" placeholder="z.B. noah" onkeydown="if(event.key==='Enter') doLogin()" />
       </div>
       <div style="margin-bottom:20px">
         <label>Passwort</label>
-        <input id="in-pass" type="password" autocomplete="current-password" placeholder="••••••••" />
+        <input id="in-pass" type="password" autocomplete="current-password" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()" />
       </div>
       
       <button class="btn" style="width:100%" onclick="doLogin()">Einloggen</button>
@@ -1223,11 +1270,15 @@ function renderModules(){
         expiryInfo = '<div style="font-size:11px; color:var(--gold); font-weight:700; margin-top:2px;">Freigeschaltet bis: ' + formatExpiry(m.expires_at) + '</div>';
       }
       
+      var titleText = m.offen ? esc(m.titel.replace(/^.*?- /,"")) : "🔒 Geheime Mission...";
+      var descText = m.offen 
+        ? '<div class="bar"><i style="width:'+prog+'%"></i></div><div class="mfoot"><small>'+m.mastered+'/'+m.total_q+' Fragen richtig</small>'+btn+'</div>'
+        : '<div class="bar" style="background:#222630;"><i style="width:0%"></i></div><div class="mfoot" style="margin-top:auto;"><small style="font-size:11.5px; line-height:1.35; display:block; color:var(--muted); font-weight:500;">Dieses Modul ist noch geheim! Hol dir die Freigabe vom Trainer, um das Rätsel zu lösen! 🔥</small></div>';
+      
       html+='<div class="mod' + extraClass + '"><div class="mtop"><span class="mnr">MODUL '+m.modul_nr+'</span><span class="'+pillClass+'">'+pillText+'</span></div>'+
-        '<h3 style="color:#fff;">'+esc(m.titel.replace(/^.*?- /,""))+'</h3>'+
+        '<h3 style="color:#fff; min-height: 48px; display: flex; align-items: center;">'+titleText+'</h3>'+
         expiryInfo+
-        '<div class="bar"><i style="width:'+prog+'%"></i></div>'+
-        '<div class="mfoot"><small>'+m.mastered+'/'+m.total_q+' Fragen richtig</small>'+btn+'</div>'+
+        descText+
         '</div>';
     });
     html+='</div></div>';
@@ -1253,7 +1304,7 @@ function startModule(moduleId){
       byQ[row.question_id].options.push({id:row.option_id,key:row.option_key,text:row.option_text});
     });
     var qs=order.map(function(id){var q=byQ[id];shuffle(q.options);return q;});
-    QZ={moduleId:moduleId,title:el("quiz-title").textContent,questions:qs,idx:0,mod:mod};
+    QZ={moduleId:moduleId,title:el("quiz-title").textContent,questions:qs,idx:0,mod:mod,correctCount:0};
     renderQuestion();
   });
 }
@@ -1284,6 +1335,9 @@ function answer(qid, oid){
     var chosen=el("opt-"+oid); if(chosen) chosen.classList.add(ok?"correct":"wrong");
     if(!ok){var c=el("opt-"+correctId); if(c)c.classList.add("correct");}
     QZ.lastPassed = d.modul_bestanden;
+    if (ok) {
+      QZ.correctCount++;
+    }
     var correctMsgs = [
       "Mega! Du hast die Basel-DNA im Blut! ⚡⚽",
       "Genial gelöst! Weiter so! 🎉",
@@ -1314,22 +1368,23 @@ function nextQuestion(){
   else { finishModule(); }
 }
 function finishModule(){
+  only("view-result"); show("app-head"); if(!isStaff()) show("player-nav");
+  var passed = (QZ.correctCount / QZ.questions.length) >= 0.80;
+  if(passed){
+    el("res-emoji").textContent = "🏆";
+    el("res-title").textContent = "Mega Leistung! 🎉";
+    el("res-msg").innerHTML = "Du hast <b>" + QZ.correctCount + " von " + QZ.questions.length + "</b> Fragen richtig beantwortet! Du hast das Modul gemeistert und bist einen großen Schritt weiter. Mach weiter so, Champion! 🚀";
+    hide("res-retry");
+  }else{
+    el("res-emoji").textContent = "💪";
+    el("res-title").textContent = "Kopf hoch, Champion! 🏃";
+    el("res-msg").innerHTML = "Du hast <b>" + QZ.correctCount + " von " + QZ.questions.length + "</b> richtig gelöst. Für das Bestehen brauchen wir mindestens 80% (Zwei Fehler sind okay!). Nimm dir eine kurze Pause und starte einen neuen Versuch. Du schaffst das! ⚽";
+    show("res-retry");
+  }
+  
+  // Im Hintergrund aktualisieren wir den Modulstatus in Supabase
   sb.rpc("get_module_status").then(function(r){
-    MODULES=r.data||[]; var mod=null;
-    for(var i=0;i<MODULES.length;i++) if(MODULES[i].module_id===QZ.moduleId)mod=MODULES[i];
-    only("view-result"); show("app-head"); if(!isStaff()) show("player-nav");
-    var passed = mod && mod.passed;
-    if(passed){
-      el("res-emoji").textContent = "🏆";
-      el("res-title").textContent = "Mega Leistung! 🎉";
-      el("res-msg").innerHTML = "Du hast <b>" + mod.mastered + " von " + mod.total_q + "</b> Fragen richtig beantwortet! Du hast das Modul gemeistert und bist einen großen Schritt weiter. Mach weiter so, Champion! 🚀";
-      hide("res-retry");
-    }else{
-      el("res-emoji").textContent = "💪";
-      el("res-title").textContent = "Kopf hoch, Champion! 🏃";
-      el("res-msg").innerHTML = "Du hast <b>" + (mod?mod.mastered:0) + " von " + (mod?mod.total_q:0) + "</b> richtig gelöst. Für das Bestehen brauchen wir mindestens 80% (Zwei Fehler sind okay!). Nimm dir eine kurze Pause und starte einen neuen Versuch. Du schaffst das! ⚽";
-      show("res-retry");
-    }
+    if (r.data) MODULES = r.data;
   });
 }
 function retryModule(){ startModule(QZ.moduleId); }
