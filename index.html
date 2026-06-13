@@ -398,6 +398,41 @@
     margin-bottom: 8px;
     font-size: 13px;
   }
+  
+  /* Kid-friendly and glowing styles */
+  .trophy {
+    font-size: 72px;
+    text-align: center;
+    margin-bottom: 12px;
+    filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.4));
+    animation: bounce 1s infinite alternate;
+  }
+  @keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-8px); }
+  }
+  
+  .badge-container {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(212, 175, 55, 0.08);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gold);
+    margin-top: 8px;
+  }
+  
+  /* Table layout for staff */
+  .table-container {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: rgba(21, 23, 30, 0.6);
+  }
 </style>
 </head>
 <body>
@@ -471,8 +506,9 @@
 
   <!-- SPIELER: NAVIGATION -->
   <div id="player-nav" class="nav hidden">
-    <button id="tab-lernen" class="active" onclick="showPlayerTab('lernen')">Lernen</button>
-    <button id="tab-rang" class="btn-ghost" onclick="showPlayerTab('rang')">Rangliste</button>
+    <button id="tab-lernen" class="active" onclick="showPlayerTab('lernen')">📖 Lernen</button>
+    <button id="tab-skills" class="btn-ghost" onclick="showPlayerTab('skills')">🎯 Skill-Challenges</button>
+    <button id="tab-rang" class="btn-ghost" onclick="showPlayerTab('rang')">🏆 Rangliste</button>
   </div>
 
   <!-- SPIELER: PERSONAL HEADER CARD -->
@@ -522,6 +558,22 @@
     </div>
   </div>
 
+  <!-- SPIELER: SKILL CHALLENGES -->
+  <div id="view-skills" class="hidden">
+    <div class="card" style="margin-bottom:24px; background: linear-gradient(135deg, #1c1e24 0%, #101217 100%); border-color: rgba(212,175,55,0.25);">
+      <p class="eyebrow" style="color:var(--gold);">TIPS/U DNA-Akademie</p>
+      <h2 style="margin-top:4px; color:#fff;">🎯 Deine Skill-Challenges</h2>
+      <p class="muted" style="font-size:13px; margin-top:4px; line-height:1.4;">
+        Zeige deinen Trainern, was du drauf hast! Trage hier deine persönlichen Rekorde ein. 
+        Versuche, dich zu verbessern und dir die Trophäen 🥉, 🥈 oder 🏆 zu schnappen!
+      </p>
+    </div>
+    
+    <div class="grid" id="skills-grid">
+      <!-- Dynamisch befüllt -->
+    </div>
+  </div>
+
   <!-- RANGLISTE -->
   <div id="view-rang" class="hidden">
     <div class="card">
@@ -545,12 +597,178 @@
   <!-- TRAINER-DASHBOARD -->
   <div id="view-staff" class="hidden">
     <div class="nav">
-      <button id="stab-rang" class="active" onclick="showStaffTab('rang')">Rangliste</button>
+      <button id="stab-kader" class="active" onclick="showStaffTab('kader')">📋 Kader & Fortschritt</button>
+      <button id="stab-skills" class="btn-ghost" onclick="showStaffTab('skills')">🎯 Skill-Leaderboards</button>
+      <button id="stab-rang" class="btn-ghost" onclick="showStaffTab('rang')">🏆 Modul-Rangliste</button>
       <button id="stab-frei" class="btn-ghost" onclick="showStaffTab('frei')">Freischaltungen & Reset</button>
       <button id="stab-zeit" class="btn-ghost" onclick="showStaffTab('zeit')">Lernzeiten</button>
       <button id="stab-runden" class="btn-ghost" onclick="showStaffTab('runden')">Runden-Manager</button>
       <button id="stab-log" class="btn-ghost" onclick="showStaffTab('log')">Logins</button>
       <button id="stab-vor" class="btn-ghost" onclick="showStaffTab('vor')">Module ansehen</button>
+    </div>
+
+    <!-- Trainer-Tab: Kader & Fortschritt -->
+    <div id="staff-kader" class="card hidden">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+        <div>
+          <p class="eyebrow">Mannschaftsverwaltung</p>
+          <h3 style="color:#fff;">📋 U12 Mannschafts-Kader &amp; Lernfortschritt</h3>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <input type="text" id="kader-search" oninput="filterKaderTable()" placeholder="🔍 Spieler suchen..." style="width:200px; padding:8px 12px; font-size:13px;" />
+        </div>
+      </div>
+
+      <!-- EDIT FORM FOR PLAYER METADATA -->
+      <div id="kader-edit-card" class="card hidden" style="background:rgba(0,0,0,0.3); border:1px solid var(--gold); margin-bottom:16px; padding:16px;">
+        <h4 id="kader-edit-title" style="color:var(--gold); font-family:'Sora'; margin-bottom:12px;">Spieler-Details bearbeiten</h4>
+        <input type="hidden" id="edit-player-id" />
+        <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap:10px; margin-bottom:12px; align-items:end;">
+          <div>
+            <label style="font-size:11px;">Name (Anzeige)</label>
+            <input type="text" id="edit-player-name" style="padding:8px;" />
+          </div>
+          <div>
+            <label style="font-size:11px;">Rückennummer (Nr.)</label>
+            <input type="text" id="edit-player-nr" placeholder="z.B. 07" style="padding:8px;" />
+          </div>
+          <div>
+            <label style="font-size:11px;">Jahrgang</label>
+            <input type="number" id="edit-player-geb" placeholder="2015" style="padding:8px;" />
+          </div>
+          <div>
+            <label style="font-size:11px;">Starker Fuss</label>
+            <select id="edit-player-fuss" style="padding:8px; height:40px;">
+              <option value="R">R</option>
+              <option value="L">L</option>
+              <option value="R/L">R/L</option>
+              <option value="R TW">R TW</option>
+              <option value="L TW">L TW</option>
+              <option value="R/L TW">R/L TW</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; justify-content:flex-end;">
+          <button class="btn-ghost" style="padding:8px 14px; font-size:12px;" onclick="hideKaderEdit()">Abbrechen</button>
+          <button class="btn" style="padding:8px 14px; font-size:12px;" onclick="saveKaderPlayer()">Speichern</button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="trainer-table" id="kader-table">
+          <thead>
+            <tr>
+              <th onclick="sortKader(0)" style="cursor:pointer; width:60px; text-align:center;">Nr. ⇅</th>
+              <th onclick="sortKader(1)" style="cursor:pointer;">Spielername ⇅</th>
+              <th onclick="sortKader(2)" style="cursor:pointer; width:100px; text-align:center;">Jahrgang ⇅</th>
+              <th onclick="sortKader(3)" style="cursor:pointer; width:100px; text-align:center;">Fuss ⇅</th>
+              <th onclick="sortKader(4)" style="cursor:pointer; width:220px;">Lernfortschritt (Module) ⇅</th>
+              <th onclick="sortKader(5)" style="cursor:pointer;">Aktuelles Level ⇅</th>
+              <th style="width:160px; text-align:center;">Aktionen</th>
+            </tr>
+          </thead>
+          <tbody id="staff-kader-tbody">
+            <!-- Dynamisch geladen -->
+          </tbody>
+        </table>
+      </div>
+      <p id="kader-kpi-info" class="muted" style="margin-top:10px; font-size:13px; font-weight:600;"></p>
+    </div>
+
+    <!-- Trainer-Tab: Skill-Leaderboards -->
+    <div id="staff-skills" class="card hidden">
+      <div style="margin-bottom:16px;">
+        <p class="eyebrow">Rekorde</p>
+        <h3 style="color:#fff;">🎯 TIPS/U Skill-Challenge Bestenlisten</h3>
+        <p class="muted" style="font-size:13px; margin-top:4px;">Hier siehst du die aktuellen Bestleistungen deines Teams bei den 4 Skill-Challenges, live synchronisiert aus den Profilen der Spieler.</p>
+      </div>
+
+      <!-- Grid der 4 Bestenlisten -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+        <!-- Jonglieren -->
+        <div class="card" style="padding: 0; overflow: hidden; border-color: rgba(255,255,255,0.03); margin-bottom: 0;">
+          <div style="padding: 12px 14px; background: rgba(212, 175, 55, 0.08); border-bottom: 1px solid var(--line);">
+            <h4 style="font-size: 13px; font-weight: 700; color: var(--gold);">🥇 Jonglier-Meister (Links) ⚽</h4>
+          </div>
+          <div class="table-container" style="border: none; border-radius: 0;">
+            <table class="trainer-table" style="font-size: 12px;">
+              <thead>
+                <tr>
+                  <th style="width: 50px; text-align: center; padding: 8px;">Rang</th>
+                  <th style="padding: 8px;">Spieler/in</th>
+                  <th style="width: 90px; text-align: center; padding: 8px;">Rekord</th>
+                </tr>
+              </thead>
+              <tbody id="tbl-skills-jonglieren">
+                <!-- Dynamisch -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Dribbling -->
+        <div class="card" style="padding: 0; overflow: hidden; border-color: rgba(255,255,255,0.03); margin-bottom: 0;">
+          <div style="padding: 12px 14px; background: rgba(212, 175, 55, 0.08); border-bottom: 1px solid var(--line);">
+            <h4 style="font-size: 13px; font-weight: 700; color: var(--gold);">⚡ Speed-Dribbler Slalom</h4>
+          </div>
+          <div class="table-container" style="border: none; border-radius: 0;">
+            <table class="trainer-table" style="font-size: 12px;">
+              <thead>
+                <tr>
+                  <th style="width: 50px; text-align: center; padding: 8px;">Rang</th>
+                  <th style="padding: 8px;">Spieler/in</th>
+                  <th style="width: 90px; text-align: center; padding: 8px;">Rekord</th>
+                </tr>
+              </thead>
+              <tbody id="tbl-skills-dribbling">
+                <!-- Dynamisch -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Torlatte -->
+        <div class="card" style="padding: 0; overflow: hidden; border-color: rgba(255,255,255,0.03); margin-bottom: 0;">
+          <div style="padding: 12px 14px; background: rgba(212, 175, 55, 0.08); border-bottom: 1px solid var(--line);">
+            <h4 style="font-size: 13px; font-weight: 700; color: var(--gold);">🎯 Querlatte (von 5) 🎯</h4>
+          </div>
+          <div class="table-container" style="border: none; border-radius: 0;">
+            <table class="trainer-table" style="font-size: 12px;">
+              <thead>
+                <tr>
+                  <th style="width: 50px; text-align: center; padding: 8px;">Rang</th>
+                  <th style="padding: 8px;">Spieler/in</th>
+                  <th style="width: 90px; text-align: center; padding: 8px;">Rekord</th>
+                </tr>
+              </thead>
+              <tbody id="tbl-skills-latte">
+                <!-- Dynamisch -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Wallpass -->
+        <div class="card" style="padding: 0; overflow: hidden; border-color: rgba(255,255,255,0.03); margin-bottom: 0;">
+          <div style="padding: 12px 14px; background: rgba(212, 175, 55, 0.08); border-bottom: 1px solid var(--line);">
+            <h4 style="font-size: 13px; font-weight: 700; color: var(--gold);">🧱 Wall-Pass Turbo 🧱</h4>
+          </div>
+          <div class="table-container" style="border: none; border-radius: 0;">
+            <table class="trainer-table" style="font-size: 12px;">
+              <thead>
+                <tr>
+                  <th style="width: 50px; text-align: center; padding: 8px;">Rang</th>
+                  <th style="padding: 8px;">Spieler/in</th>
+                  <th style="width: 90px; text-align: center; padding: 8px;">Rekord</th>
+                </tr>
+              </thead>
+              <tbody id="tbl-skills-wallpass">
+                <!-- Dynamisch -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
     
     <!-- Trainer-Tab: Rangliste -->
@@ -747,7 +965,7 @@ function hide(id){el(id).classList.add("hidden");}
 function esc(s){var d=document.createElement("div");d.textContent=(s==null?"":s);return d.innerHTML;}
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
 function only(id){
-  var v=["view-setup","view-login","view-closed","view-modules","view-quiz","view-result","view-rang","view-staff"];
+  var v=["view-setup","view-login","view-closed","view-modules","view-quiz","view-result","view-rang","view-skills","view-staff"];
   for(var i=0;i<v.length;i++) hide(v[i]);
   show(id);
 }
@@ -791,8 +1009,8 @@ function doLogout(){
 
 /* ---------------------- Routing nach Login ---------------------- */
 function afterLogin(){
-  sb.from("profiles").select("display_name,role,team_id").eq("id",ME.id).single().then(function(r){
-    PROFILE = r.data || {display_name:ME.email, role:"spieler"};
+  sb.from("profiles").select("display_name,role,team_id,geb,fuss,player_nr,skills").eq("id",ME.id).single().then(function(r){
+    PROFILE = r.data || {display_name:ME.email, role:"spieler", skills:{}};
     el("head-name").textContent = PROFILE.display_name || "Spieler/in";
     el("head-role").textContent = PROFILE.role==="spieler" ? "Spieler/in" : (PROFILE.role==="leiter"?"Leiter-Trainer":"Trainer");
     refreshAccess(true);
@@ -887,11 +1105,16 @@ function openPlayer(){
 function showPlayerTab(t){
   playerTab=t;
   el("tab-lernen").className = t==="lernen"?"active":"btn-ghost";
+  var tabS = el("tab-skills"); if(tabS) tabS.className = t==="skills"?"active":"btn-ghost";
   el("tab-rang").className   = t==="rang"?"active":"btn-ghost";
   if(t==="lernen"){
     only("view-modules"); show("app-head"); show("player-nav");
     loadPlayerStats();
     loadModules();
+  } else if(t==="skills") {
+    hide("player-stats-card");
+    only("view-skills"); show("app-head"); show("player-nav");
+    renderPlayerSkills();
   } else {
     hide("player-stats-card");
     only("view-rang"); show("app-head"); show("player-nav");
@@ -1061,9 +1284,26 @@ function answer(qid, oid){
     var chosen=el("opt-"+oid); if(chosen) chosen.classList.add(ok?"correct":"wrong");
     if(!ok){var c=el("opt-"+correctId); if(c)c.classList.add("correct");}
     QZ.lastPassed = d.modul_bestanden;
+    var correctMsgs = [
+      "Mega! Du hast die Basel-DNA im Blut! ⚡⚽",
+      "Genial gelöst! Weiter so! 🎉",
+      "Absolut richtig! Du spielst wie ein Profi! 🏆",
+      "Klasse! Voll ins Schwarze getroffen! 🎯",
+      "Stark! Du bist voll fokussiert! 💪"
+    ];
+    var wrongMsgs = [
+      "Fast geschafft! Aus Fehlern lernen wir – beim nächsten Mal klappt's bestimmt! 💪",
+      "Knapp daneben! Schau dir die Optionen an und probier's gleich noch mal! 🧠",
+      "Kein Problem! Fehler machen uns nur stärker. Probier es noch einmal! ⚽",
+      "Kopf hoch! Das war knifflig, aber du lernst das im Nu! 🌟"
+    ];
+    var randomMsg = ok 
+      ? correctMsgs[Math.floor(Math.random() * correctMsgs.length)] 
+      : wrongMsgs[Math.floor(Math.random() * wrongMsgs.length)];
+
     var fb = ok
-      ? '<div class="fb ok"><b>Stark! ✓</b> Richtige Antwort erkannt.</div>'
-      : '<div class="fb no"><b>Leider nicht ganz.</b> Die korrekte Option ist grün markiert. Nutze Fehler zum Lernen!</div>';
+      ? '<div class="fb ok"><b>Stark! ✓</b> ' + randomMsg + '</div>'
+      : '<div class="fb no"><b>Leider nicht ganz.</b> Die richtige Antwort ist grün markiert. ' + randomMsg + '</div>';
     el("quiz-fb").innerHTML=fb;
     el("quiz-next").textContent = (QZ.idx+1<QZ.questions.length)?"Weiter":"Modul abschliessen";
     show("quiz-next");
@@ -1079,14 +1319,15 @@ function finishModule(){
     for(var i=0;i<MODULES.length;i++) if(MODULES[i].module_id===QZ.moduleId)mod=MODULES[i];
     only("view-result"); show("app-head"); if(!isStaff()) show("player-nav");
     var passed = mod && mod.passed;
-    el("res-emoji").textContent = passed?"🏅":"💪";
     if(passed){
-      el("res-title").textContent="Modul gemeistert!";
-      el("res-msg").innerHTML="Du hast "+mod.mastered+" von "+mod.total_q+" Fragen richtig. Die nächste Lektion ist nun freigeschaltet. Weiter so!";
+      el("res-emoji").textContent = "🏆";
+      el("res-title").textContent = "Mega Leistung! 🎉";
+      el("res-msg").innerHTML = "Du hast <b>" + mod.mastered + " von " + mod.total_q + "</b> Fragen richtig beantwortet! Du hast das Modul gemeistert und bist einen großen Schritt weiter. Mach weiter so, Champion! 🚀";
       hide("res-retry");
     }else{
-      el("res-title").textContent="Fast geschafft!";
-      el("res-msg").innerHTML="Du hast "+(mod?mod.mastered:0)+" von "+(mod?mod.total_q:0)+" richtig. Für das Bestehen benötigen wir mindestens 80% richtige Antworten. Nimm dir etwas Ruhe, wiederhole den Stoff und versuche es erneut!";
+      el("res-emoji").textContent = "💪";
+      el("res-title").textContent = "Kopf hoch, Champion! 🏃";
+      el("res-msg").innerHTML = "Du hast <b>" + (mod?mod.mastered:0) + " von " + (mod?mod.total_q:0) + "</b> richtig gelöst. Für das Bestehen brauchen wir mindestens 80% (Zwei Fehler sind okay!). Nimm dir eine kurze Pause und starte einen neuen Versuch. Du schaffst das! ⚽";
       show("res-retry");
     }
   });
@@ -1172,13 +1413,15 @@ function exportLeaderboardPDF() {
 /* ====================================================================
    TRAINER-DASHBOARD
    ==================================================================== */
-function openStaff(){ hide("player-nav"); only("view-staff"); show("app-head"); showStaffTab("rang"); }
+function openStaff(){ hide("player-nav"); only("view-staff"); show("app-head"); showStaffTab("kader"); }
 function showStaffTab(t){
-  ["rang","frei","zeit","runden","log","vor"].forEach(function(k){
-    el("stab-"+k).className = k===t?"active":"btn-ghost";
-    el("staff-"+k).classList.toggle("hidden", k!==t);
+  ["kader","skills","rang","frei","zeit","runden","log","vor"].forEach(function(k){
+    var btn = el("stab-"+k); if(btn) btn.className = k===t?"active":"btn-ghost";
+    var content = el("staff-"+k); if(content) content.classList.toggle("hidden", k!==t);
   });
   only("view-staff"); show("app-head");
+  if(t==="kader") loadKaderTable();
+  if(t==="skills") loadStaffSkillsLeaderboards();
   if(t==="rang") {
     el("staff-leaderboard-filter").value = "round";
     loadLeaderboard("staff-rang-body", ACCESS.current_round);
@@ -1188,6 +1431,353 @@ function showStaffTab(t){
   if(t==="runden") highlightActiveRoundCard(ACCESS.current_round || 1);
   if(t==="log")  loadLoginLog();
   if(t==="vor")  loadStaffModules();
+}
+
+/* ====================================================================
+   FUSION SYSTEM EXTRA FUNCTIONS: SKILLS & KADER
+   ==================================================================== */
+var SKILL_CHALLENGES = [
+  {
+    id: 'jonglieren',
+    title: 'Jonglier-Meister (Links) ⚽',
+    desc: 'Jongliere den Ball so oft wie möglich nur mit deinem linken Fuss!',
+    unit: 'Kontakte',
+    type: 'max',
+    limits: { gold: 30, silver: 15, bronze: 5 }
+  },
+  {
+    id: 'dribbling',
+    title: 'Speed-Dribbler Slalom ⚡',
+    desc: 'Dribble so schnell du kannst im Slalom durch 5 Hütchen (Zeit in Sekunden)!',
+    unit: 'Sekunden',
+    type: 'min',
+    limits: { gold: 9.5, silver: 12.0, bronze: 16.0 }
+  },
+  {
+    id: 'latte',
+    title: 'Präzisions-König (Latte) 🎯',
+    desc: 'Triff die Querlatte aus 11 Metern Entfernung so oft du kannst (von 5 Schüssen)!',
+    unit: 'Treffer (von 5)',
+    type: 'max',
+    limits: { gold: 3, silver: 2, bronze: 1 }
+  },
+  {
+    id: 'wallpass',
+    title: 'Wall-Pass Turbo 🧱',
+    desc: 'Spiele so viele Pässe wie möglich gegen eine Wand in 30 Sekunden!',
+    unit: 'Pässe',
+    type: 'max',
+    limits: { gold: 35, silver: 25, bronze: 15 }
+  }
+];
+
+function getBadge(score, limits, type) {
+  if (score == null || score === "" || isNaN(score) || score <= 0) return { name: "Noch kein Rekord", emoji: "⚪", color: "var(--muted)" };
+  var s = parseFloat(score);
+  if (type === 'max') {
+    if (s >= limits.gold) return { name: "Gold Meister", emoji: "🏆", color: "var(--gold)" };
+    if (s >= limits.silver) return { name: "Silber", emoji: "🥈", color: "var(--silver-light)" };
+    if (s >= limits.bronze) return { name: "Bronze", emoji: "🥉", color: "#cc7a3a" };
+  } else {
+    if (s <= limits.gold) return { name: "Gold Meister", emoji: "🏆", color: "var(--gold)" };
+    if (s <= limits.silver) return { name: "Silber", emoji: "🥈", color: "var(--silver-light)" };
+    if (s <= limits.bronze) return { name: "Bronze", emoji: "🥉", color: "#cc7a3a" };
+  }
+  return { name: "Starter", emoji: "⚽", color: "var(--muted)" };
+}
+
+function renderPlayerSkills() {
+  var userSkills = PROFILE.skills || {};
+  var html = "";
+  SKILL_CHALLENGES.forEach(function(c) {
+    var score = userSkills[c.id] || null;
+    var badge = getBadge(score, c.limits, c.type);
+    
+    html += '<div class="card" style="display:flex; flex-direction:column; gap:12px; background:var(--card-gradient); position:relative; border-color:' + (score ? badge.color : 'rgba(139,146,156,0.15)') + ';">' +
+      '<div style="display:flex; justify-content:space-between; align-items:flex-start;">' +
+        '<div>' +
+          '<h3 style="color:#fff; font-family:\'Sora\'; font-size:16px;">' + esc(c.title) + '</h3>' +
+          '<p class="muted" style="font-size:12px; margin-top:4px; line-height:1.4;">' + esc(c.desc) + '</p>' +
+        '</div>' +
+        '<span style="font-size:32px; filter:drop-shadow(0 4px 6px rgba(0,0,0,0.3));">' + badge.emoji + '</span>' +
+      '</div>' +
+      '<div style="background:rgba(0,0,0,0.2); padding:10px; border-radius:10px; font-size:12px; border:1px solid var(--line); margin-top:auto;">' +
+        '<div style="display:flex; justify-content:space-between; margin-bottom:4px;">' +
+          '<span class="muted">Grenzwerte:</span>' +
+          '<span style="font-weight:700;">' +
+            '🏆 Gold: ' + (c.type === 'min' ? '≤ ' : '≥ ') + c.limits.gold + ' | ' +
+            '🥈 Silber: ' + (c.type === 'min' ? '≤ ' : '≥ ') + c.limits.silver + ' | ' +
+            '🥉 Bronze: ' + (c.type === 'min' ? '≤ ' : '≥ ') + c.limits.bronze +
+          '</span>' +
+        '</div>' +
+        '<div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">' +
+          '<span style="font-weight:700; color:' + badge.color + ';">Aktueller Rekord:</span>' +
+          '<span style="font-family:\'Sora\'; font-size:16px; font-weight:800; color:#fff;">' + (score != null ? (score + ' ' + c.unit) : 'Kein Eintrag') + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex; gap:8px; margin-top:12px;">' +
+        '<input type="number" step="' + (c.id === 'dribbling' ? '0.1' : '1') + '" min="0" placeholder="' + (c.id === 'dribbling' ? 'z.B. 10.4' : 'z.B. 15') + '" id="input-skill-' + c.id + '" style="flex:1; padding:8px 10px; font-size:13px;" />' +
+        '<button class="btn" style="padding:8px 14px; font-size:12px;" onclick="savePlayerSkill(\'' + c.id + '\')">Speichern</button>' +
+      '</div>' +
+      '<div id="fb-skill-' + c.id + '" style="font-size:12px; font-weight:700; margin-top:4px;"></div>' +
+    '</div>';
+  });
+  el("skills-grid").innerHTML = html;
+}
+
+function savePlayerSkill(challengeId) {
+  var valEl = el("input-skill-" + challengeId);
+  var val = valEl.value.trim();
+  if (val === "" || isNaN(val) || parseFloat(val) <= 0) {
+    alert("Bitte gib einen gültigen Wert ein.");
+    return;
+  }
+  var score = parseFloat(val);
+  var fbEl = el("fb-skill-" + challengeId);
+  fbEl.style.color = "var(--gold)";
+  fbEl.textContent = "Speichert Rekord...";
+  
+  sb.rpc("submit_skill_record", { p_challenge_id: challengeId, p_score: score }).then(function(r) {
+    if (r.error) {
+      fbEl.style.color = "var(--bad)";
+      fbEl.textContent = "Fehler: " + r.error.message;
+    } else {
+      fbEl.style.color = "var(--good)";
+      fbEl.textContent = "Rekord erfolgreich gespeichert! 🎉";
+      valEl.value = "";
+      if (!PROFILE.skills) PROFILE.skills = {};
+      PROFILE.skills[challengeId] = score;
+      setTimeout(function() {
+        renderPlayerSkills();
+      }, 1000);
+    }
+  });
+}
+
+var KADER_PLAYERS = [];
+var currentKaderSortCol = 0;
+var currentKaderSortAsc = true;
+
+function loadKaderTable() {
+  el("staff-kader-tbody").innerHTML = '<tr><td colspan="7"><div class="spinner"></div></td></tr>';
+  
+  sb.from("profiles").select("id, display_name, geb, fuss, player_nr").eq("role", "spieler").then(function(pRes) {
+    var profiles = pRes.data || [];
+    
+    sb.rpc("get_leaderboard", { p_round_nr: ACCESS.current_round }).then(function(lRes) {
+      var leaderboard = lRes.data || [];
+      var lMap = {};
+      leaderboard.forEach(function(row) {
+        lMap[row.player_id] = row;
+      });
+      
+      KADER_PLAYERS = profiles.map(function(p) {
+        var l = lMap[p.id] || { module_bestanden: 0, meister: 0 };
+        return {
+          id: p.id,
+          name: p.display_name || "Unbekannt",
+          geb: p.geb || 2015,
+          fuss: p.fuss || "R",
+          nr: p.player_nr || "–",
+          passed: l.module_bestanden,
+          meister: l.meister,
+          current_level: l.module_bestanden
+        };
+      });
+      
+      sortAndRenderKader();
+    });
+  });
+}
+
+function sortAndRenderKader() {
+  KADER_PLAYERS.sort(function(a, b) {
+    var valA, valB;
+    if (currentKaderSortCol === 0) {
+      valA = a.nr === "–" ? 999 : parseInt(a.nr) || 999;
+      valB = b.nr === "–" ? 999 : parseInt(b.nr) || 999;
+    } else if (currentKaderSortCol === 1) {
+      valA = a.name.toLowerCase();
+      valB = b.name.toLowerCase();
+    } else if (currentKaderSortCol === 2) {
+      valA = a.geb;
+      valB = b.geb;
+    } else if (currentKaderSortCol === 3) {
+      valA = a.fuss.toLowerCase();
+      valB = b.fuss.toLowerCase();
+    } else {
+      valA = a.passed;
+      valB = b.passed;
+    }
+    
+    if (valA < valB) return currentKaderSortAsc ? -1 : 1;
+    if (valA > valB) return currentKaderSortAsc ? 1 : -1;
+    return 0;
+  });
+  
+  var html = "";
+  KADER_PLAYERS.forEach(function(p) {
+    var pct = Math.round((p.passed / 16) * 100);
+    var levelNum = p.passed >= 16 ? 16 : p.passed + 1;
+    var currentLevelText = p.passed >= 16 ? "✓ Alle gemeistert" : "Modul " + (levelNum < 10 ? "0" + levelNum : levelNum);
+    
+    html += '<tr>' +
+      '<td style="text-align:center; font-weight:800; color:var(--gold);">' + esc(p.nr) + '</td>' +
+      '<td style="font-weight:700; color:#fff;">' + esc(p.name) + '</td>' +
+      '<td style="text-align:center;"><span class="tag">' + p.geb + '</span></td>' +
+      '<td style="text-align:center;"><span class="tag" style="color:var(--text);">' + esc(p.fuss) + '</span></td>' +
+      '<td>' +
+        '<div style="display:flex; align-items:center; gap:8px;">' +
+          '<div class="bar" style="flex:1;"><i style="width:' + pct + '%;"></i></div>' +
+          '<span style="font-size:11px; font-weight:800; color:var(--gold);">' + p.passed + '/16</span>' +
+        '</div>' +
+      '</td>' +
+      '<td style="font-weight:700; color:var(--gold);">' + currentLevelText + '</td>' +
+      '<td style="text-align:center; display:flex; gap:6px; justify-content:center;">' +
+        '<button class="btn-ghost" style="padding:4px 8px; font-size:11px; border-radius:6px;" onclick="showKaderEdit(\'' + p.id + '\',\'' + esc(p.name) + '\',\'' + esc(p.nr) + '\',' + p.geb + ',\'' + esc(p.fuss) + '\')">Bearbeiten</button>' +
+        '<button class="btn-ghost" style="padding:4px 8px; font-size:11px; border-radius:6px; color:var(--bad); border-color:rgba(224,86,59,0.3);" onclick="resetKaderPlayerProgress(\'' + p.id + '\')">Reset</button>' +
+      '</td>' +
+    '</tr>';
+  });
+  el("staff-kader-tbody").innerHTML = html || '<tr><td colspan="7" class="center muted">Keine Spieler gefunden.</td></tr>';
+  
+  var totalProgressPct = 0;
+  KADER_PLAYERS.forEach(function(p) { totalProgressPct += (p.passed / 16) * 100; });
+  var avg = KADER_PLAYERS.length > 0 ? Math.round(totalProgressPct / KADER_PLAYERS.length) : 0;
+  el("kader-kpi-info").textContent = "Gesamtstärke: " + KADER_PLAYERS.length + " Spieler/innen | Durchschnitts-Fortschritt: " + avg + "%";
+}
+
+function sortKader(colIdx) {
+  if (currentKaderSortCol === colIdx) {
+    currentKaderSortAsc = !currentKaderSortAsc;
+  } else {
+    currentKaderSortCol = colIdx;
+    currentKaderSortAsc = true;
+  }
+  sortAndRenderKader();
+}
+
+function filterKaderTable() {
+  var q = el("kader-search").value.toLowerCase();
+  sb.from("profiles").select("id, display_name, geb, fuss, player_nr").eq("role", "spieler").then(function(pRes) {
+    var profiles = pRes.data || [];
+    profiles = profiles.filter(function(p) {
+      return (p.display_name || "").toLowerCase().indexOf(q) > -1 || (p.player_nr || "").indexOf(q) > -1;
+    });
+    sb.rpc("get_leaderboard", { p_round_nr: ACCESS.current_round }).then(function(lRes) {
+      var leaderboard = lRes.data || [];
+      var lMap = {};
+      leaderboard.forEach(function(row) { lMap[row.player_id] = row; });
+      KADER_PLAYERS = profiles.map(function(p) {
+        var l = lMap[p.id] || { module_bestanden: 0, meister: 0 };
+        return {
+          id: p.id,
+          name: p.display_name || "Unbekannt",
+          geb: p.geb || 2015,
+          fuss: p.fuss || "R",
+          nr: p.player_nr || "–",
+          passed: l.module_bestanden,
+          meister: l.meister,
+          current_level: l.module_bestanden
+        };
+      });
+      sortAndRenderKader();
+    });
+  });
+}
+
+function showKaderEdit(id, name, nr, geb, fuss) {
+  el("edit-player-id").value = id;
+  el("edit-player-name").value = name;
+  el("edit-player-nr").value = nr === "–" ? "" : nr;
+  el("edit-player-geb").value = geb || 2015;
+  el("edit-player-fuss").value = fuss || "R";
+  show("kader-edit-card");
+  el("kader-edit-card").scrollIntoView({ behavior: 'smooth' });
+}
+
+function hideKaderEdit() {
+  hide("kader-edit-card");
+}
+
+function saveKaderPlayer() {
+  var id = el("edit-player-id").value;
+  var name = el("edit-player-name").value.trim();
+  var nr = el("edit-player-nr").value.trim();
+  var geb = el("edit-player-geb").value ? parseInt(el("edit-player-geb").value) : null;
+  var fuss = el("edit-player-fuss").value;
+  
+  if (!name) {
+    alert("Bitte Name eingeben.");
+    return;
+  }
+  
+  sb.from("profiles").update({
+    display_name: name,
+    player_nr: nr || null,
+    geb: geb,
+    fuss: fuss
+  }).eq("id", id).then(function(r) {
+    if (r.error) {
+      alert("Fehler beim Speichern: " + r.error.message);
+    } else {
+      hideKaderEdit();
+      loadKaderTable();
+    }
+  });
+}
+
+function resetKaderPlayerProgress(playerId) {
+  if (!confirm("Möchtest du den Fortschritt dieses Spielers wirklich komplett zurücksetzen?")) return;
+  sb.rpc("reset_player_progress", { p_player_id: playerId }).then(function(r) {
+    if (r.error) {
+      alert("Fehler beim Zurücksetzen: " + r.error.message);
+    } else {
+      loadKaderTable();
+    }
+  });
+}
+
+function loadStaffSkillsLeaderboards() {
+  el("tbl-skills-jonglieren").innerHTML = '<tr><td colspan="3" class="center muted">Lade...</td></tr>';
+  el("tbl-skills-dribbling").innerHTML = '<tr><td colspan="3" class="center muted">Lade...</td></tr>';
+  el("tbl-skills-latte").innerHTML = '<tr><td colspan="3" class="center muted">Lade...</td></tr>';
+  el("tbl-skills-wallpass").innerHTML = '<tr><td colspan="3" class="center muted">Lade...</td></tr>';
+  
+  sb.from("profiles").select("display_name, skills").eq("role", "spieler").then(function(r) {
+    var players = r.data || [];
+    
+    SKILL_CHALLENGES.forEach(function(c) {
+      var list = players.map(function(p) {
+        var s = p.skills || {};
+        var val = s[c.id] != null ? parseFloat(s[c.id]) : null;
+        return { name: p.display_name, score: val };
+      }).filter(function(p) {
+        return p.score != null && p.score > 0;
+      });
+      
+      list.sort(function(a, b) {
+        return c.type === 'max' ? b.score - a.score : a.score - b.score;
+      });
+      
+      var tbody = el("tbl-skills-" + c.id);
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="center muted" style="padding:12px;">Noch kein Rekord eingetragen</td></tr>';
+        return;
+      }
+      
+      var h = "";
+      list.forEach(function(p, idx) {
+        var medal = idx === 0 ? "🥇" : (idx === 1 ? "🥈" : (idx === 2 ? "🥉" : (idx + 1)));
+        h += '<tr>' +
+          '<td style="text-align:center; font-weight:800; color:var(--gold); padding:8px;">' + medal + '</td>' +
+          '<td style="font-weight:700; color:#fff; padding:8px;">' + esc(p.name) + '</td>' +
+          '<td style="text-align:center; font-weight:800; color:var(--gold); padding:8px;">' + p.score + ' ' + (c.id === 'dribbling' ? 's' : '') + '</td>' +
+        '</tr>';
+      });
+      tbody.innerHTML = h;
+    });
+  });
 }
 
 function loadUnlockForm(){
