@@ -1350,23 +1350,38 @@ function showPlayerTab(t){
 }
 
 function loadPlayerStats() {
-  sb.rpc("get_leaderboard", {p_round_nr: ACCESS.current_round}).then(function(r) {
-    var rows = r.data || [];
+  el("round-name-indicator").textContent = ROUND_NAMES[ACCESS.current_round] || "Quartal " + ACCESS.current_round;
+
+  // Lade Leaderboard + Modulstatus parallel
+  Promise.all([
+    sb.rpc("get_leaderboard", {p_round_nr: ACCESS.current_round}),
+    sb.rpc("get_module_status")
+  ]).then(function(results) {
+    var rows = (results[0].data) || [];
+    var mods = (results[1].data) || [];
+
+    // Echten Modul-Fortschritt berechnen (nur freigeschaltete Q1-Module)
+    var openMods = mods.filter(function(m){ return m.quartal === 1 && Q1_OPEN_MODULE_NR.indexOf(m.modul_nr) > -1; });
+    var passedCount = openMods.filter(function(m){ return m.passed; }).length;
+
+    // Spieler in Leaderboard suchen
     var myRow = rows.find(function(x) { return x.player_id === ME.id; });
-    
-    el("round-name-indicator").textContent = ROUND_NAMES[ACCESS.current_round] || "Quartal " + ACCESS.current_round;
-    
+
     if (myRow) {
       el("player-stats-rank").textContent = "Rang " + myRow.rang + " von " + rows.length;
-      el("player-stats-details").textContent = myRow.module_bestanden + " Module gemeistert (⭐ " + myRow.meister + " perfekt gelöst) · Quartal 1";
+      el("player-stats-details").textContent = passedCount + " von " + openMods.length + " Modulen gemeistert (⭐ " + myRow.meister + " perfekt) · " + (ROUND_NAMES[ACCESS.current_round] || "Quartal 1");
       el("player-stats-points").innerHTML = myRow.gesamt + ' <span style="font-size:13px; font-weight:600;">PUNKTE</span>';
-      show("player-stats-card");
-    } else {
-      el("player-stats-rank").textContent = "Willkommen in der Lern-Akademie!";
-      el("player-stats-details").textContent = "Starte dein erstes Modul in Quartal 1, um im Ranking aufgenommen zu werden.";
+    } else if (passedCount > 0) {
+      // Spieler hat Module abgeschlossen, aber noch keine Punkte im Leaderboard
+      el("player-stats-rank").textContent = "Noch nicht in der Rangliste 🔜";
+      el("player-stats-details").textContent = passedCount + " von " + openMods.length + " Modulen gemeistert · " + (ROUND_NAMES[ACCESS.current_round] || "Quartal 1");
       el("player-stats-points").innerHTML = '0 <span style="font-size:13px; font-weight:600;">PUNKTE</span>';
-      show("player-stats-card");
+    } else {
+      el("player-stats-rank").textContent = "Willkommen in der Lern-Akademie! 🚀";
+      el("player-stats-details").textContent = "Starte dein erstes Modul in " + (ROUND_NAMES[ACCESS.current_round] || "Quartal 1") + ", um im Ranking aufgenommen zu werden.";
+      el("player-stats-points").innerHTML = '0 <span style="font-size:13px; font-weight:600;">PUNKTE</span>';
     }
+    show("player-stats-card");
   });
 }
 
@@ -1395,9 +1410,15 @@ function renderModules(){
     if(MODULES[i].quartal===1 && Q1_OPEN_MODULE_NR.indexOf(MODULES[i].modul_nr)>-1 && MODULES[i].passed) passedOpen++;
   }
   
+  var progressLabel = passedOpen === openCount
+    ? '🏆 Alle ' + openCount + ' Module gemeistert!'
+    : passedOpen + ' von ' + openCount + ' Modulen gemeistert';
+
   var html='<div class="card" style="margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; gap:16px; background:linear-gradient(135deg, #16181f 0%, #0d0f13 100%);">'+
-    '<div><p class="eyebrow" style="color:var(--gold);">Dein Fortschritt · Quartal 1</p><h2 style="margin-top:6px; color:#fff;">'+passedOpen+' von '+openCount+' Modulen gemeistert</h2></div>'+
-    '<div style="flex:1; max-width:200px"><div class="bar"><i style="width:'+Math.round(passedOpen/openCount*100)+'%"></i></div></div></div>';
+    '<div><p class="eyebrow" style="color:var(--gold);">Dein Fortschritt · Quartal 1</p><h2 style="margin-top:6px; color:#fff;">'+progressLabel+'</h2></div>'+
+    '<div style="flex:1; max-width:200px"><div class="bar"><i style="width:'+Math.round(passedOpen/openCount*100)+'%"></i></div></div>'+
+    '<button class="btn-ghost" style="padding:9px 14px; font-size:12px; white-space:nowrap;" onclick="exportMyResultsPDF()">📄 Meine Resultate</button>'+
+    '</div>';
   
   var byQ={};
   for(var j=0; j<MODULES.length; j++){
@@ -1595,7 +1616,11 @@ function finishModule(){
   
   // Im Hintergrund aktualisieren wir den Modulstatus in Supabase
   sb.rpc("get_module_status").then(function(r){
-    if (r.data) MODULES = r.data;
+    if (r.data) {
+      MODULES = r.data;
+      // Spieler-Stats-Card sofort aktualisieren, damit Punkte/Fortschritt stimmen
+      loadPlayerStats();
+    }
   });
 }
 function retryModule(){ startModule(QZ.moduleId); }
@@ -1682,9 +1707,88 @@ function exportLeaderboardPDF() {
   });
 }
 
-/* ====================================================================
-   TRAINER-DASHBOARD
-   ==================================================================== */
+function exportMyResultsPDF() {
+  if (!ME || !PROFILE) return;
+  var { jsPDF } = window.jspdf;
+  var doc = new jsPDF();
+
+  // Header
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(18);
+  doc.text("FOOTECO Lern-Akademie · FE12", 14, 18);
+
+  doc.setFont("Helvetica", "normal");
+  doc.setFontSize(11);
+  var playerName = PROFILE.display_name ? (PROFILE.display_name.charAt(0).toUpperCase() + PROFILE.display_name.slice(1)) : "Spieler/in";
+  doc.text("Spieler/in: " + playerName, 14, 26);
+  var ruckennr = PROFILE.player_nr ? ("#" + PROFILE.player_nr + " · ") : "";
+  doc.text(ruckennr + (ROUND_NAMES[ACCESS.current_round] || "Quartal " + ACCESS.current_round), 14, 32);
+  doc.text("Exportiert am: " + new Date().toLocaleString("de-CH"), 14, 38);
+
+  // Trennlinie
+  doc.setDrawColor(212, 175, 55);
+  doc.setLineWidth(0.5);
+  doc.line(14, 42, 196, 42);
+
+  // Modul-Fortschritt aus MODULES
+  var openMods = (MODULES || []).filter(function(m){ return m.quartal === 1 && Q1_OPEN_MODULE_NR.indexOf(m.modul_nr) > -1; });
+  var modBody = openMods.map(function(m) {
+    var status = m.passed ? "✓ Gemeistert" : (m.mastered > 0 ? "In Arbeit" : "Noch nicht gestartet");
+    var score = m.total_q > 0 ? m.mastered + " / " + m.total_q + " Fragen" : "–";
+    var pct = m.total_q > 0 ? Math.round(m.mastered / m.total_q * 100) + "%" : "–";
+    return ["Modul " + m.modul_nr, m.titel.replace(/^.*?- /, ""), score, pct, status];
+  });
+
+  doc.autoTable({
+    startY: 46,
+    head: [['Modul', 'Titel', 'Richtige Antworten', 'Score', 'Status']],
+    body: modBody,
+    theme: 'striped',
+    headStyles: { fillColor: [212, 175, 55], textColor: [12, 13, 16], fontStyle: 'bold', fontSize: 9 },
+    styles: { font: "Helvetica", fontSize: 9 },
+    columnStyles: { 0: { cellWidth: 18 }, 1: { cellWidth: 70 }, 2: { cellWidth: 35 }, 3: { cellWidth: 18 }, 4: { cellWidth: 35 } }
+  });
+
+  var afterY = doc.lastAutoTable.finalY + 8;
+
+  // Leaderboard-Zeile des Spielers
+  sb.rpc("get_leaderboard", {p_round_nr: ACCESS.current_round}).then(function(r) {
+    var rows = r.data || [];
+    var myRow = rows.find(function(x) { return x.player_id === ME.id; });
+    var passedCount = openMods.filter(function(m){ return m.passed; }).length;
+
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(40, 40, 40);
+    doc.text("Dein aktueller Stand in der Rangliste:", 14, afterY);
+
+    var summaryBody = [[
+      myRow ? myRow.rang + ". Rang" : "–",
+      passedCount + " / " + openMods.length,
+      myRow ? myRow.gesamt : 0,
+      myRow ? (myRow.meister > 0 ? "⭐ " + myRow.meister : "–") : "–"
+    ]];
+
+    doc.autoTable({
+      startY: afterY + 4,
+      head: [['Rang', 'Module gemeistert', 'Punkte', 'Meister-Sterne']],
+      body: summaryBody,
+      theme: 'grid',
+      headStyles: { fillColor: [30, 30, 40], textColor: [212, 175, 55], fontStyle: 'bold', fontSize: 9 },
+      styles: { font: "Helvetica", fontSize: 10, halign: 'center' }
+    });
+
+    // Footer
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text("System & Development by Dogus Kaplan · FOOTECO FE12 Basel-Old Boys", 14, 285);
+
+    var safeName = playerName.replace(/[^a-zA-Z0-9]/g, "_");
+    doc.save("FE12_Resultate_" + safeName + "_Q" + ACCESS.current_round + ".pdf");
+  });
+}
+
 function openStaff(){ hide("player-nav"); only("view-staff"); show("app-head"); showStaffTab("kader"); }
 function showStaffTab(t){
   scrollToTop();
