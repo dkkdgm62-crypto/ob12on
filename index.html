@@ -539,8 +539,11 @@
         <div id="closed-count" class="clock warn" style="display:inline-flex; margin-top:18px; justify-content:center;"></div>
         <p class="muted" style="margin-top:20px; font-size:13px;">Dein bisheriger Fortschritt ist sicher gespeichert – es geht genau dort weiter.</p>
         <div style="margin-top:24px; border-top:1px solid rgba(255,255,255,0.08); padding-top:20px;">
-          <p style="font-size:13.5px; color:#fff; font-weight:600; margin-bottom:12px;">Offline trainieren?</p>
-          <button class="btn" style="width:100%; display:inline-flex; align-items:center; justify-content:center; gap:8px;" onclick="exportSkillsMasterPDF()">
+          <p style="font-size:13.5px; color:#fff; font-weight:600; margin-bottom:12px;">Trotzdem trainieren?</p>
+          <button class="btn" style="width:100%; display:inline-flex; align-items:center; justify-content:center; gap:8px; margin-bottom:10px;" onclick="openSkillsOnly()">
+            🎯 Skill-Challenges öffnen & eintragen
+          </button>
+          <button class="btn-ghost" style="width:100%; display:inline-flex; align-items:center; justify-content:center; gap:8px;" onclick="exportSkillsMasterPDF()">
             📄 Skill-Challenges PDF (Blanko) herunterladen
           </button>
         </div>
@@ -580,7 +583,7 @@
       </div>
       <div style="text-align:right;">
         <span id="player-stats-points" class="pts" style="font-size:26px; color:var(--gold); font-weight:800; font-family:'Sora';">...</span>
-        <p class="muted" style="font-size:12px; margin-top:4px;">Aktuelle Runde: <b id="round-name-indicator" style="color:var(--text); font-weight:700;">...</b></p>
+        <p class="muted" style="font-size:12px; margin-top:4px;">Aktuelles Quartal: <b id="round-name-indicator" style="color:var(--text); font-weight:700;">...</b></p>
       </div>
     </div>
     <div style="width:100%; border-top:1px solid rgba(255,255,255,0.06); margin-top:12px; padding-top:10px; display:flex; align-items:center; gap:12px; justify-content:space-between; flex-wrap:wrap;">
@@ -686,7 +689,7 @@
         </div>
         <div style="display:flex; gap:8px; align-items:center;">
           <select id="leaderboard-filter" style="width:auto; padding:8px 12px; font-size:13px;" onchange="toggleLeaderboardFilter()">
-            <option value="round">Aktuelle Runde</option>
+            <option value="round">Aktuelles Quartal</option>
             <option value="total">Gesamt-Meisterschaft</option>
           </select>
           <button class="btn" style="padding:9px 14px; font-size:13px;" onclick="exportLeaderboardPDF()">PDF Export</button>
@@ -704,7 +707,7 @@
       <button id="stab-rang" class="btn-ghost" onclick="showStaffTab('rang')">🏆 Modul-Rangliste</button>
       <button id="stab-frei" class="btn-ghost" onclick="showStaffTab('frei')">Freischaltungen & Reset</button>
       <button id="stab-zeit" class="btn-ghost" onclick="showStaffTab('zeit')">Lernzeiten</button>
-      <button id="stab-runden" class="btn-ghost" onclick="showStaffTab('runden')">Runden-Manager</button>
+      <button id="stab-runden" class="btn-ghost" onclick="showStaffTab('runden')">Quartals-Manager</button>
       <button id="stab-log" class="btn-ghost" onclick="showStaffTab('log')">Logins</button>
       <button id="stab-vor" class="btn-ghost" onclick="showStaffTab('vor')">Module ansehen</button>
     </div>
@@ -765,7 +768,7 @@
               <th onclick="sortKader(2)" style="cursor:pointer; width:100px; text-align:center;">Jahrgang ⇅</th>
               <th onclick="sortKader(3)" style="cursor:pointer; width:100px; text-align:center;">Fuss ⇅</th>
               <th onclick="sortKader(4)" style="cursor:pointer; width:220px;">Lernfortschritt (Module) ⇅</th>
-              <th onclick="sortKader(5)" style="cursor:pointer;">Aktuelles Level ⇅</th>
+              <th onclick="sortKader(5)" style="cursor:pointer;">Fortschritt ⇅</th>
               <th style="width:160px; text-align:center;">Aktionen</th>
             </tr>
           </thead>
@@ -879,7 +882,7 @@
         <h3 style="color:#fff;">Trainer Ranglisten-Ansicht</h3>
         <div style="display:flex; gap:8px;">
           <select id="staff-leaderboard-filter" style="width:auto; padding:8px 12px; font-size:13px;" onchange="toggleStaffLeaderboardFilter()">
-            <option value="round">Aktuelle Runde</option>
+            <option value="round">Aktuelles Quartal</option>
             <option value="total">Gesamt-Meisterschaft</option>
           </select>
           <button class="btn" style="padding:9px 14px; font-size:13px;" onclick="exportLeaderboardPDF()">PDF Export</button>
@@ -987,31 +990,31 @@
     
     <!-- Trainer-Tab: Runden-Manager -->
     <div id="staff-runden" class="card hidden">
-      <p class="eyebrow">Runden-Manager</p>
-      <h3 style="margin:8px 0 8px; color:#fff;">Meisterschafts-Runde bestimmen</h3>
+      <p class="eyebrow">Quartals-Manager</p>
+      <h3 style="margin:8px 0 8px; color:#fff;">Aktives Quartal bestimmen</h3>
       <p class="muted" style="font-size:13px; margin-bottom:20px;">
-        Jeder Wechsel startet das Leaderboard für die gewählte Runde neu. Die Module werden gemäß Runde freigegeben:
+        Jeder Wechsel startet das Leaderboard für das gewählte Quartal neu. Die Module werden gemäß Quartal freigegeben:
       </p>
       
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
         <div class="card" style="padding:18px;" id="round-card-1">
-          <h4 style="color:var(--gold); font-family:'Sora';">M1 (Vorrunde-1)</h4>
-          <p class="muted" style="font-size:12px; margin-top:6px; line-height:1.4;">Kategorie 1 & 2 (Team Basel-Old Boys · DNA + Mentalität)<br/>Module 1 - 8 active</p>
+          <h4 style="color:var(--gold); font-family:'Sora';">Quartal 1</h4>
+          <p class="muted" style="font-size:12px; margin-top:6px; line-height:1.4;">Persönlichkeit & Einstellung<br/>Offen: Modul 1, 2, 4, 6</p>
           <button class="btn-ghost" style="margin-top:14px; width:100%; padding:9px 12px; font-size:12px;" onclick="changeRound(1)">Aktivieren</button>
         </div>
         <div class="card" style="padding:18px;" id="round-card-2">
-          <h4 style="color:var(--gold); font-family:'Sora';">M2 (Vorrunde-2)</h4>
-          <p class="muted" style="font-size:12px; margin-top:6px; line-height:1.4;">Kategorie 3 & 4 (Offensive + Defensive)<br/>Module 9 - 16 aktiv</p>
+          <h4 style="color:var(--gold); font-family:'Sora';">Quartal 2</h4>
+          <p class="muted" style="font-size:12px; margin-top:6px; line-height:1.4;">Strategie & Vorbereitung<br/>Bald verfügbar 🔒</p>
           <button class="btn-ghost" style="margin-top:14px; width:100%; padding:9px 12px; font-size:12px;" onclick="changeRound(2)">Aktivieren</button>
         </div>
         <div class="card" style="padding:18px;" id="round-card-3">
-          <h4 style="color:var(--gold); font-family:'Sora';">M3 (Rückrunde-1)</h4>
-          <p class="muted" style="font-size:12px; margin-top:6px; line-height:1.4;">Kategorie 1 & 2 (Wiederholung / Vertiefung)<br/>Module 1 - 8 aktiv</p>
+          <h4 style="color:var(--gold); font-family:'Sora';">Quartal 3</h4>
+          <p class="muted" style="font-size:12px; margin-top:6px; line-height:1.4;">Umsetzung & Performance<br/>Bald verfügbar 🔒</p>
           <button class="btn-ghost" style="margin-top:14px; width:100%; padding:9px 12px; font-size:12px;" onclick="changeRound(3)">Aktivieren</button>
         </div>
         <div class="card" style="padding:18px;" id="round-card-4">
-          <h4 style="color:var(--gold); font-family:'Sora';">M4 (Rückrunde-2)</h4>
-          <p class="muted" style="font-size:12px; margin-top:6px; line-height:1.4;">Kategorie 3 & 4 (Wiederholung Offensive + Def)<br/>Module 9 - 16 aktiv</p>
+          <h4 style="color:var(--gold); font-family:'Sora';">Quartal 4</h4>
+          <p class="muted" style="font-size:12px; margin-top:6px; line-height:1.4;">Reflexion & Weiterentwicklung<br/>Bald verfügbar 🔒</p>
           <button class="btn-ghost" style="margin-top:14px; width:100%; padding:9px 12px; font-size:12px;" onclick="changeRound(4)">Aktivieren</button>
         </div>
       </div>
@@ -1050,17 +1053,17 @@ var playerTab = "lernen";
 var currentLefilter = "round";
 
 var CATEGORY_NAMES = {
-  1: "Kategorie 1 · IDENTITÄT (Team Basel-Old Boys · DNA)",
-  2: "Kategorie 2 · MENTALITÄT",
-  3: "Kategorie 3 · OFFENSIVE & UMSCHALTEN",
-  4: "Kategorie 4 · DEFENSIVE & UMSCHALTEN"
+  1: "QUARTAL 1 · PERSÖNLICHKEIT & EINSTELLUNG",
+  2: "QUARTAL 2 · STRATEGIE & VORBEREITUNG",
+  3: "QUARTAL 3 · UMSETZUNG & PERFORMANCE",
+  4: "QUARTAL 4 · REFLEXION & WEITERENTWICKLUNG"
 };
 
 var ROUND_NAMES = {
-  1: "M1 (VR-1) — DNA & Mentalität",
-  2: "M2 (VR-2) — Offensive & Defensive",
-  3: "M3 (RR-1) — DNA & Mentalität (Vertiefung)",
-  4: "M4 (RR-2) — Offensive & Defensive (Vertiefung)"
+  1: "Quartal 1 — Persönlichkeit & Einstellung",
+  2: "Quartal 2 — Strategie & Vorbereitung",
+  3: "Quartal 3 — Umsetzung & Performance",
+  4: "Quartal 4 — Reflexion & Weiterentwicklung"
 };
 
 /* ---------------------- Helper ---------------------- */
@@ -1251,6 +1254,10 @@ function onWindowClosed(){
 /* ---------------------- Geschlossen-Ansicht ---------------------- */
 function showClosed(){
   stopClock(); hideAllChrome(); only("view-closed"); show("app-head");
+  /* Lernen-Tab wieder zurücksetzen, Hinweis-Banner ausblenden */
+  var tl = el("tab-lernen"); if(tl) tl.classList.remove("hidden");
+  hide("player-nav");
+  var bn = el("warn-banner"); if(bn){ bn.classList.add("hidden"); bn.style.background=""; bn.style.borderColor=""; bn.style.color=""; }
   
   var dayName = "Dienstag";
   var startTime = "18:30";
@@ -1301,6 +1308,26 @@ function humanDur(s){var d=Math.floor(s/86400);s-=d*86400;var h=Math.floor(s/360
 function openPlayer(){
   hide("view-staff"); show("app-head"); show("player-nav"); showPlayerTab(playerTab||"lernen");
 }
+
+/* Skills sind IMMER offen — auch bei geschlossener Akademie */
+function openSkillsOnly(){
+  scrollToTop();
+  stopClock();
+  show("app-head");
+  /* Nur Skills + Rangliste in der Nav, Lernen ausblenden (Lernen nur im Fenster) */
+  el("tab-lernen").classList.add("hidden");
+  show("player-nav");
+  showPlayerTab("skills");
+  /* Hinweis-Banner */
+  var b = el("warn-banner");
+  if(b){
+    b.classList.remove("hidden");
+    b.style.background = "rgba(212,175,55,0.1)";
+    b.style.borderColor = "var(--gold)";
+    b.style.color = "#f3d47a";
+    b.innerHTML = "🎯 Die Lern-Module sind nur im Lernfenster offen. Deine Skill-Challenges kannst du aber jederzeit trainieren und eintragen! Zurück zur <a href='#' onclick='showClosed();return false;' style='color:#fff; text-decoration:underline;'>Übersicht</a>.";
+  }
+}
 function showPlayerTab(t){
   scrollToTop();
   playerTab=t;
@@ -1312,12 +1339,12 @@ function showPlayerTab(t){
     loadPlayerStats();
     loadModules();
   } else if(t==="skills") {
-    hide("player-stats-card");
     only("view-skills"); show("app-head"); show("player-nav");
+    loadPlayerStats();
     renderPlayerSkills();
   } else {
-    hide("player-stats-card");
     only("view-rang"); show("app-head"); show("player-nav");
+    loadPlayerStats();
     loadLeaderboard("rang-body", currentLefilter === "round" ? ACCESS.current_round : null);
   }
 }
@@ -1327,16 +1354,16 @@ function loadPlayerStats() {
     var rows = r.data || [];
     var myRow = rows.find(function(x) { return x.player_id === ME.id; });
     
-    el("round-name-indicator").textContent = ROUND_NAMES[ACCESS.current_round] || "Runde " + ACCESS.current_round;
+    el("round-name-indicator").textContent = ROUND_NAMES[ACCESS.current_round] || "Quartal " + ACCESS.current_round;
     
     if (myRow) {
       el("player-stats-rank").textContent = "Rang " + myRow.rang + " von " + rows.length;
-      el("player-stats-details").textContent = myRow.module_bestanden + " / 16 Module gemeistert (⭐ " + myRow.meister + " perfekt gelöst)";
+      el("player-stats-details").textContent = myRow.module_bestanden + " Module gemeistert (⭐ " + myRow.meister + " perfekt gelöst) · Quartal 1";
       el("player-stats-points").innerHTML = myRow.gesamt + ' <span style="font-size:13px; font-weight:600;">PUNKTE</span>';
       show("player-stats-card");
     } else {
       el("player-stats-rank").textContent = "Willkommen in der Lern-Akademie!";
-      el("player-stats-details").textContent = "Starte dein erstes Modul, um im Ranking aufgenommen zu werden.";
+      el("player-stats-details").textContent = "Starte dein erstes Modul in Quartal 1, um im Ranking aufgenommen zu werden.";
       el("player-stats-points").innerHTML = '0 <span style="font-size:13px; font-weight:600;">PUNKTE</span>';
       show("player-stats-card");
     }
@@ -1357,13 +1384,20 @@ function formatExpiry(isoStr) {
   return d.toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit" }) + " " + d.toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" });
 }
 
+/* ===== QUARTAL 1 ZUGANG: Nur diese Modul-Nummern sind offen ===== */
+var Q1_OPEN_MODULE_NR = [1, 2, 4, 6];
+
 function renderModules(){
-  var passed=0;
-  for(var i=0;i<MODULES.length;i++) if(MODULES[i].passed) passed++;
+  /* Nur Q1-offene Module für den Fortschritt zählen */
+  var openCount = Q1_OPEN_MODULE_NR.length;
+  var passedOpen = 0;
+  for(var i=0;i<MODULES.length;i++){
+    if(MODULES[i].quartal===1 && Q1_OPEN_MODULE_NR.indexOf(MODULES[i].modul_nr)>-1 && MODULES[i].passed) passedOpen++;
+  }
   
   var html='<div class="card" style="margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; gap:16px; background:linear-gradient(135deg, #16181f 0%, #0d0f13 100%);">'+
-    '<div><p class="eyebrow" style="color:var(--gold);">Dein Gesamtfortschritt</p><h2 style="margin-top:6px; color:#fff;">'+passed+' von 16 Modulen geschafft</h2></div>'+
-    '<div style="flex:1; max-width:200px"><div class="bar"><i style="width:'+(MODULES.length?Math.round(passed/MODULES.length*100):0)+'%"></i></div></div></div>';
+    '<div><p class="eyebrow" style="color:var(--gold);">Dein Fortschritt · Quartal 1</p><h2 style="margin-top:6px; color:#fff;">'+passedOpen+' von '+openCount+' Modulen gemeistert</h2></div>'+
+    '<div style="flex:1; max-width:200px"><div class="bar"><i style="width:'+Math.round(passedOpen/openCount*100)+'%"></i></div></div></div>';
   
   var byQ={};
   for(var j=0; j<MODULES.length; j++){
@@ -1371,66 +1405,55 @@ function renderModules(){
     (byQ[m.quartal]=byQ[m.quartal]||[]).push(m);
   }
   
+  /* ALLE Quartale anzeigen — gesperrte Module als Geheime Mission */
   [1,2,3,4].forEach(function(q){
     if(!byQ[q]) return;
     html+='<div class="quartal"><div class="qhead"><span class="qnum">Q'+q+'</span><h3>'+esc(CATEGORY_NAMES[q])+'</h3></div><div class="grid">';
     
     byQ[q].forEach(function(m){
+      /* Effektiver Zugang: NUR Q1-Module in der erlaubten Liste */
+      var isQ1Open = (m.quartal === 1 && Q1_OPEN_MODULE_NR.indexOf(m.modul_nr) > -1);
       var isExpired = m.expires_at ? new Date(m.expires_at) < new Date() : false;
-      var isActiveInRound = m.ist_aktiv_in_runde;
-      var state = m.passed ? "passed" : (m.offen ? "open" : "locked");
+      var effectivelyOpen = isQ1Open;
+      
+      var state = m.passed ? "passed" : (effectivelyOpen ? "open" : "locked");
       
       var pillClass = "pill locked";
       var pillText = "🔒 Gesperrt";
       
-      if (m.passed) {
+      if (m.passed && isQ1Open) {
         pillClass = "pill passed";
         pillText = "✓ Gemeistert";
-      } else if (m.always_open) {
-        pillClass = "pill always";
-        pillText = "🔓 Immer Offen";
-      } else if (m.expires_at && !isExpired) {
-        pillClass = "pill open";
-        pillText = "⏰ Spezial-Lektion";
-      } else if (m.offen) {
+      } else if (effectivelyOpen) {
         pillClass = "pill open";
         pillText = "Offen";
-      } else if (!isActiveInRound) {
-        pillClass = "pill inactive";
-        pillText = "Inaktiv in M" + ACCESS.current_round;
+      } else {
+        pillClass = "pill locked";
+        pillText = "🔒 Bald verfügbar";
       }
       
       var extraClass = "";
-      if (!isActiveInRound && !m.always_open && !m.expires_at) {
-        extraClass = " inactive-round";
-      } else if (state === "passed") { extraClass = " passed"; }
+      if (state === "passed") { extraClass = " passed"; }
       else if (state === "open") { extraClass = " open"; }
       else { extraClass = " locked"; }
       
       var prog = m.total_q ? Math.round(m.mastered/m.total_q*100) : 0;
       
       var btn = "";
-      if (m.offen) {
+      if (effectivelyOpen) {
         btn = '<button class="'+(m.passed?"btn-ghost":"btn")+'" onclick="startModule(\''+m.module_id+'\')">'+(m.passed?"Wiederholen":(m.mastered>0?"Weiter":"Starten"))+'</button>';
-      } else if (!isActiveInRound) {
-        btn = '<small class="muted" style="color:var(--bad);">In dieser Runde inaktiv</small>';
-      } else {
-        btn = '<small class="muted">Voriges Modul abschliessen (80%)</small>';
       }
       
-      var expiryInfo = "";
-      if (m.expires_at && !isExpired) {
-        expiryInfo = '<div style="font-size:11px; color:var(--gold); font-weight:700; margin-top:2px;">Freigeschaltet bis: ' + formatExpiry(m.expires_at) + '</div>';
-      }
-      
-      var titleText = m.offen ? esc(m.titel.replace(/^.*?- /,"")) : "🔒 Geheime Mission...";
-      var descText = m.offen 
+      var titleText = effectivelyOpen ? esc(m.titel.replace(/^.*?- /,"")) : "🔒 Geheime Mission...";
+      var teaserMsg = (m.quartal === 1)
+        ? "Dieses Modul wird bald freigeschaltet! Schliesse zuerst die offenen Module ab. 🔥"
+        : "Diese Mission gehört zu Quartal " + m.quartal + " und wird später freigeschaltet. Bleib dran! 🚀";
+      var descText = effectivelyOpen
         ? '<div class="bar"><i style="width:'+prog+'%"></i></div><div class="mfoot"><small>'+m.mastered+'/'+m.total_q+' Fragen richtig</small>'+btn+'</div>'
-        : '<div class="bar" style="background:#222630;"><i style="width:0%"></i></div><div class="mfoot" style="margin-top:auto;"><small style="font-size:11.5px; line-height:1.35; display:block; color:var(--muted); font-weight:500;">Dieses Modul ist noch geheim! Hol dir die Freigabe vom Trainer, um das Rätsel zu lösen! 🔥</small></div>';
+        : '<div class="bar" style="background:#222630;"><i style="width:0%"></i></div><div class="mfoot" style="margin-top:auto;"><small style="font-size:11.5px; line-height:1.35; display:block; color:var(--muted); font-weight:500;">'+teaserMsg+'</small></div>';
       
       html+='<div class="mod' + extraClass + '"><div class="mtop"><span class="mnr">MODUL '+m.modul_nr+'</span><span class="'+pillClass+'">'+pillText+'</span></div>'+
         '<h3 style="color:#fff; min-height: 48px; display: flex; align-items: center;">'+titleText+'</h3>'+
-        expiryInfo+
         descText+
         '</div>';
     });
@@ -1442,7 +1465,10 @@ function renderModules(){
 /* ---------------------- Quiz ---------------------- */
 function startModule(moduleId){
   var mod=null; for(var i=0;i<MODULES.length;i++) if(MODULES[i].module_id===moduleId)mod=MODULES[i];
-  if(!mod || (!mod.offen && !isStaff())) return;
+  if(!mod) return;
+  /* Zugangs-Schutz: Spieler dürfen nur Q1-Module 1,2,4,6 öffnen */
+  var isQ1Open = (mod.quartal === 1 && Q1_OPEN_MODULE_NR.indexOf(mod.modul_nr) > -1);
+  if(!isQ1Open && !isStaff()) return;
   scrollToTop();
   only("view-learn"); show("app-head"); if(!isStaff()) { show("player-nav"); hide("player-stats-card"); }
   el("learn-title").textContent = "Lernblock · Modul " + mod.modul_nr;
@@ -1592,7 +1618,7 @@ function loadLeaderboard(targetId, roundNr){
       h+='<tr class="'+(me?"me":"")+'"><td class="rank '+rc+'">'+medal+'</td>'+
          '<td style="color:#fff; font-weight:600;">'+esc(x.display_name)+(me?' <span class="tag">du</span>':'')+'</td>'+
          '<td class="pts">'+x.gesamt+'</td>'+
-         '<td>'+x.module_bestanden+' / 16</td>'+
+         '<td>'+x.module_bestanden+' / 4</td>'+
          '<td>'+(x.meister>0?('⭐ '+x.meister):'–')+'</td></tr>';
     });
     h+='</tbody></table>';
@@ -1622,7 +1648,7 @@ function exportLeaderboardPDF() {
   doc.text("FOOTECO Lern-Akademie · FE12", 14, 20);
   
   var isRound = (playerTab === "rang" ? currentLefilter : el("staff-leaderboard-filter").value) === "round";
-  var roundName = isRound ? (ROUND_NAMES[ACCESS.current_round] || "Runde " + ACCESS.current_round) : "Gesamte Meisterschaft (Gesamt-Ranking)";
+  var roundName = isRound ? (ROUND_NAMES[ACCESS.current_round] || "Quartal " + ACCESS.current_round) : "Gesamte Meisterschaft (Gesamt-Ranking)";
   
   doc.setFont("Helvetica", "normal");
   doc.setFontSize(12);
@@ -1634,7 +1660,7 @@ function exportLeaderboardPDF() {
   sb.rpc("get_leaderboard", {p_round_nr: roundParam}).then(function(r) {
     var rows = r.data || [];
     var body = rows.map(function(x) {
-      return [x.rang, x.display_name, x.gesamt, x.module_bestanden + " / 16", x.meister > 0 ? x.meister : "–"];
+      return [x.rang, x.display_name, x.gesamt, x.module_bestanden + " / 4", x.meister > 0 ? x.meister : "–"];
     });
     
     doc.autoTable({
@@ -2177,9 +2203,9 @@ function sortAndRenderKader() {
   
   var html = "";
   KADER_PLAYERS.forEach(function(p) {
-    var pct = Math.round((p.passed / 16) * 100);
-    var levelNum = p.passed >= 16 ? 16 : p.passed + 1;
-    var currentLevelText = p.passed >= 16 ? "✓ Alle gemeistert" : "Modul " + (levelNum < 10 ? "0" + levelNum : levelNum);
+    var pct = Math.round((p.passed / 4) * 100);
+    if (pct > 100) pct = 100;
+    var currentLevelText = p.passed >= 4 ? "✓ Quartal 1 gemeistert" : p.passed + " / 4 Module";
     
     html += '<tr>' +
       '<td style="text-align:center; font-weight:800; color:var(--gold);">' + esc(p.nr) + '</td>' +
@@ -2189,7 +2215,7 @@ function sortAndRenderKader() {
       '<td>' +
         '<div style="display:flex; align-items:center; gap:8px;">' +
           '<div class="bar" style="flex:1;"><i style="width:' + pct + '%;"></i></div>' +
-          '<span style="font-size:11px; font-weight:800; color:var(--gold);">' + p.passed + '/16</span>' +
+          '<span style="font-size:11px; font-weight:800; color:var(--gold);">' + p.passed + '/4</span>' +
         '</div>' +
       '</td>' +
       '<td style="font-weight:700; color:var(--gold);">' + currentLevelText + '</td>' +
@@ -2202,7 +2228,7 @@ function sortAndRenderKader() {
   el("staff-kader-tbody").innerHTML = html || '<tr><td colspan="7" class="center muted">Keine Spieler gefunden.</td></tr>';
   
   var totalProgressPct = 0;
-  KADER_PLAYERS.forEach(function(p) { totalProgressPct += (p.passed / 16) * 100; });
+  KADER_PLAYERS.forEach(function(p) { var pp = Math.min(p.passed, 4); totalProgressPct += (pp / 4) * 100; });
   var avg = KADER_PLAYERS.length > 0 ? Math.round(totalProgressPct / KADER_PLAYERS.length) : 0;
   el("kader-kpi-info").textContent = "Gesamtstärke: " + KADER_PLAYERS.length + " Spieler/innen | Durchschnitts-Fortschritt: " + avg + "%";
 }
@@ -2608,7 +2634,7 @@ function highlightActiveRoundCard(activeRound) {
       rc.style.background = "rgba(212, 175, 55, 0.08)";
       var btn = rc.querySelector("button");
       if (btn) {
-        btn.textContent = "Aktive Runde";
+        btn.textContent = "Aktives Quartal";
         btn.disabled = true;
         btn.className = "btn";
       }
@@ -2626,15 +2652,15 @@ function highlightActiveRoundCard(activeRound) {
 }
 
 function changeRound(roundNr) {
-  if (!confirm("Möchtest du wirklich in Runde " + roundNr + " wechseln? Dies setzt die Rangliste für diese Runde zurück (alte Daten bleiben im Log erhalten).")) return;
+  if (!confirm("Möchtest du wirklich in Quartal " + roundNr + " wechseln? Dies setzt die Rangliste für dieses Quartal zurück (alte Daten bleiben im Log erhalten).")) return;
   
   sb.rpc("set_current_round", {p_round: roundNr}).then(function(r) {
     if (r.error) {
       el("runden-msg").style.color = "var(--bad)";
-      el("runden-msg").textContent = "Fehler beim Rundenwechsel: " + r.error.message;
+      el("runden-msg").textContent = "Fehler beim Quartalswechsel: " + r.error.message;
     } else {
       el("runden-msg").style.color = "var(--good)";
-      el("runden-msg").textContent = "Erfolgreich in Runde " + roundNr + " gewechselt. Leaderboard und Fortschritt wurden aktualisiert.";
+      el("runden-msg").textContent = "Erfolgreich in Quartal " + roundNr + " gewechselt. Leaderboard und Fortschritt wurden aktualisiert.";
       refreshAccess(false);
       setTimeout(function() {
         showStaffTab("runden");
