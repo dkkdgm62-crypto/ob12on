@@ -472,6 +472,178 @@
     width: 10%;
     border-right: none;
   }
+  
+  /* ============ SOMMER-LOGBUCH 2026 ============ */
+  .logbuch-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    margin-bottom: 6px;
+    gap: 12px;
+  }
+  .logbuch-row .name {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .logbuch-toggle {
+    flex-shrink: 0;
+    width: 56px;
+    height: 44px;
+    border-radius: 10px;
+    background: transparent;
+    border: 1.5px solid rgba(139,146,156,0.35);
+    color: var(--muted);
+    font-size: 22px;
+    font-weight: 800;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    padding: 0;
+  }
+  .logbuch-toggle:hover:not(:disabled) {
+    border-color: var(--gold);
+    color: var(--gold);
+    transform: translateY(-1px);
+  }
+  .logbuch-toggle.done {
+    background: var(--gold-grad);
+    border-color: var(--gold);
+    color: #0c0d10;
+    box-shadow: 0 4px 10px rgba(212,175,55,0.2);
+  }
+  .logbuch-toggle:disabled { opacity: 0.6; cursor: wait; }
+  .logbuch-toggle .check-icon { line-height: 1; }
+  .logbuch-section-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gold);
+    margin: 22px 0 8px;
+    letter-spacing: 0.04em;
+  }
+  
+  /* ============ SOMMER-LOGBUCH ÜBERSICHT-GRID ============ */
+  .logbuch-grid-wrap {
+    overflow-x: auto;
+    overflow-y: visible;
+    margin: 0 -8px;
+    padding: 0 8px 8px 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .logbuch-grid {
+    border-collapse: separate;
+    border-spacing: 3px;
+    table-layout: fixed;
+  }
+  .logbuch-grid th, .logbuch-grid td { padding: 0; text-align: center; vertical-align: middle; }
+  .logbuch-grid .lg-name-col {
+    text-align: left;
+    padding: 4px 10px 4px 2px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 130px;
+    max-width: 160px;
+    width: 150px;
+  }
+  .logbuch-grid .lg-day-col {
+    min-width: 32px;
+    width: 32px;
+    padding: 3px 0 6px;
+    border-radius: 5px;
+  }
+  .logbuch-grid .lg-day-wd {
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .logbuch-grid .lg-day-num {
+    font-family: 'Sora', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    margin-top: 1px;
+  }
+  .logbuch-grid .lg-day-col.today {
+    background: rgba(212,175,55,0.18);
+  }
+  .logbuch-grid .lg-day-col.today .lg-day-wd,
+  .logbuch-grid .lg-day-col.today .lg-day-num { color: var(--gold); }
+  .logbuch-grid .lg-section-row td {
+    font-family: 'Sora', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--gold);
+    padding: 14px 0 4px 2px;
+    letter-spacing: 0.05em;
+    text-align: left;
+  }
+  .logbuch-cell {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.12s ease;
+    line-height: 1;
+  }
+  .logbuch-cell:hover:not(:disabled) {
+    border-color: var(--gold);
+    background: rgba(212,175,55,0.12);
+    transform: scale(1.05);
+  }
+  .logbuch-cell.done {
+    background: var(--gold-grad);
+    border-color: var(--gold);
+    color: #0c0d10;
+  }
+  .logbuch-cell.today-col {
+    border-color: var(--gold);
+    border-width: 1.5px;
+  }
+  .logbuch-cell.future {
+    opacity: 0.25;
+    cursor: not-allowed;
+    background: transparent;
+  }
+  .logbuch-cell:disabled { cursor: not-allowed; }
+  .logbuch-cell.readonly {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+  }
+  .logbuch-cell.readonly:hover {
+    border-color: var(--line);
+    background: rgba(255,255,255,0.025);
+    transform: none;
+  }
+  .logbuch-cell.readonly.done:hover {
+    background: var(--gold-grad);
+    border-color: var(--gold);
+  }
 </style>
 </head>
 <body>
@@ -570,6 +742,7 @@
   <div id="player-nav" class="nav hidden">
     <button id="tab-lernen" class="active" onclick="showPlayerTab('lernen')">📖 Lernen</button>
     <button id="tab-skills" class="btn-ghost" onclick="showPlayerTab('skills')">🎯 Skill-Challenges</button>
+    <button id="tab-logbuch" class="btn-ghost" onclick="showPlayerTab('logbuch')">🌞 Sommer</button>
     <button id="tab-rang" class="btn-ghost" onclick="showPlayerTab('rang')">🏆 Rangliste</button>
   </div>
 
@@ -699,11 +872,17 @@
     </div>
   </div>
 
+  <!-- SPIELER: SOMMER-LOGBUCH 2026 -->
+  <div id="view-logbuch" class="hidden">
+    <div id="logbuch-content"><div class="spinner"></div></div>
+  </div>
+
   <!-- TRAINER-DASHBOARD -->
   <div id="view-staff" class="hidden">
     <div class="nav">
       <button id="stab-kader" class="active" onclick="showStaffTab('kader')">📋 Kader & Fortschritt</button>
       <button id="stab-skills" class="btn-ghost" onclick="showStaffTab('skills')">🎯 Skill-Leaderboards</button>
+      <button id="stab-logbuch" class="btn-ghost" onclick="showStaffTab('logbuch')">🌞 Sommer-Logbuch</button>
       <button id="stab-rang" class="btn-ghost" onclick="showStaffTab('rang')">🏆 Modul-Rangliste</button>
       <button id="stab-frei" class="btn-ghost" onclick="showStaffTab('frei')">Freischaltungen & Reset</button>
       <button id="stab-zeit" class="btn-ghost" onclick="showStaffTab('zeit')">Lernzeiten</button>
@@ -874,6 +1053,11 @@
           </div>
         </div>
       </div>
+    </div>
+    
+    <!-- Trainer-Tab: Sommer-Logbuch -->
+    <div id="staff-logbuch" class="card hidden">
+      <div id="staff-logbuch-content"><div class="spinner"></div></div>
     </div>
     
     <!-- Trainer-Tab: Rangliste -->
@@ -1333,6 +1517,7 @@ function showPlayerTab(t){
   playerTab=t;
   el("tab-lernen").className = t==="lernen"?"active":"btn-ghost";
   var tabS = el("tab-skills"); if(tabS) tabS.className = t==="skills"?"active":"btn-ghost";
+  var tabL = el("tab-logbuch"); if(tabL) tabL.className = t==="logbuch"?"active":"btn-ghost";
   el("tab-rang").className   = t==="rang"?"active":"btn-ghost";
   if(t==="lernen"){
     only("view-modules"); show("app-head"); show("player-nav");
@@ -1342,6 +1527,10 @@ function showPlayerTab(t){
     only("view-skills"); show("app-head"); show("player-nav");
     loadPlayerStats();
     renderPlayerSkills();
+  } else if(t==="logbuch") {
+    only("view-logbuch"); show("app-head"); show("player-nav");
+    loadPlayerStats();
+    renderLogbuch();
   } else {
     only("view-rang"); show("app-head"); show("player-nav");
     loadPlayerStats();
@@ -1388,19 +1577,15 @@ function formatExpiry(isoStr) {
 var Q1_OPEN_MODULE_NR = [1, 2, 4, 6];
 
 function renderModules(){
-  /* Fortschritt: zähle alle offenen Module (kommt aus Supabase via m.offen) */
-  var openCount = 0;
+  /* Nur Q1-offene Module für den Fortschritt zählen */
+  var openCount = Q1_OPEN_MODULE_NR.length;
   var passedOpen = 0;
   for(var i=0;i<MODULES.length;i++){
-    if(MODULES[i].offen === true){
-      openCount++;
-      if(MODULES[i].passed) passedOpen++;
-    }
+    if(MODULES[i].quartal===1 && Q1_OPEN_MODULE_NR.indexOf(MODULES[i].modul_nr)>-1 && MODULES[i].passed) passedOpen++;
   }
-  if(openCount === 0) openCount = 1; /* Division durch 0 vermeiden */
   
   var html='<div class="card" style="margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; gap:16px; background:linear-gradient(135deg, #16181f 0%, #0d0f13 100%);">'+
-    '<div><p class="eyebrow" style="color:var(--gold);">Dein Fortschritt</p><h2 style="margin-top:6px; color:#fff;">'+passedOpen+' von '+openCount+' Modulen gemeistert</h2></div>'+
+    '<div><p class="eyebrow" style="color:var(--gold);">Dein Fortschritt · Quartal 1</p><h2 style="margin-top:6px; color:#fff;">'+passedOpen+' von '+openCount+' Modulen gemeistert</h2></div>'+
     '<div style="flex:1; max-width:200px"><div class="bar"><i style="width:'+Math.round(passedOpen/openCount*100)+'%"></i></div></div></div>';
   
   var byQ={};
@@ -1415,23 +1600,22 @@ function renderModules(){
     html+='<div class="quartal"><div class="qhead"><span class="qnum">Q'+q+'</span><h3>'+esc(CATEGORY_NAMES[q])+'</h3></div><div class="grid">';
     
     byQ[q].forEach(function(m){
-      /* Effektiver Zugang: kommt direkt aus Supabase (m.offen berücksichtigt
-         Quartal-Status UND manuelle Trainer-Freischaltungen UND always_open) */
+      /* Effektiver Zugang: NUR Q1-Module in der erlaubten Liste */
+      var isQ1Open = (m.quartal === 1 && Q1_OPEN_MODULE_NR.indexOf(m.modul_nr) > -1);
       var isExpired = m.expires_at ? new Date(m.expires_at) < new Date() : false;
-      var effectivelyOpen = m.offen === true && !isExpired;
-      var isQ1Open = effectivelyOpen;
+      var effectivelyOpen = isQ1Open;
       
       var state = m.passed ? "passed" : (effectivelyOpen ? "open" : "locked");
       
       var pillClass = "pill locked";
       var pillText = "🔒 Gesperrt";
       
-      if (m.passed && effectivelyOpen) {
+      if (m.passed && isQ1Open) {
         pillClass = "pill passed";
         pillText = "✓ Gemeistert";
       } else if (effectivelyOpen) {
         pillClass = "pill open";
-        pillText = m.expires_at ? "Offen · läuft " + formatExpiry(m.expires_at) : "Offen";
+        pillText = "Offen";
       } else {
         pillClass = "pill locked";
         pillText = "🔒 Bald verfügbar";
@@ -1471,10 +1655,9 @@ function renderModules(){
 function startModule(moduleId){
   var mod=null; for(var i=0;i<MODULES.length;i++) if(MODULES[i].module_id===moduleId)mod=MODULES[i];
   if(!mod) return;
-  /* Zugangs-Schutz: kommt aus Supabase (mod.offen) — berücksichtigt manuelle Freischaltungen */
-  var isExpired = mod.expires_at ? new Date(mod.expires_at) < new Date() : false;
-  var isModOpen = mod.offen === true && !isExpired;
-  if(!isModOpen && !isStaff()) return;
+  /* Zugangs-Schutz: Spieler dürfen nur Q1-Module 1,2,4,6 öffnen */
+  var isQ1Open = (mod.quartal === 1 && Q1_OPEN_MODULE_NR.indexOf(mod.modul_nr) > -1);
+  if(!isQ1Open && !isStaff()) return;
   scrollToTop();
   only("view-learn"); show("app-head"); if(!isStaff()) { show("player-nav"); hide("player-stats-card"); }
   el("learn-title").textContent = "Lernblock · Modul " + mod.modul_nr;
@@ -1694,7 +1877,7 @@ function exportLeaderboardPDF() {
 function openStaff(){ hide("player-nav"); only("view-staff"); show("app-head"); showStaffTab("kader"); }
 function showStaffTab(t){
   scrollToTop();
-  ["kader","skills","rang","frei","zeit","runden","log","vor"].forEach(function(k){
+  ["kader","skills","logbuch","rang","frei","zeit","runden","log","vor"].forEach(function(k){
     var btn = el("stab-"+k); if(btn) btn.className = k===t?"active":"btn-ghost";
     var content = el("staff-"+k); if(content) content.classList.toggle("hidden", k!==t);
   });
@@ -1705,6 +1888,7 @@ function showStaffTab(t){
   only("view-staff"); show("app-head");
   if(t==="kader") loadKaderTable();
   if(t==="skills") loadStaffSkillsLeaderboards();
+  if(t==="logbuch") loadStaffLogbuch();
   if(t==="rang") {
     el("staff-leaderboard-filter").value = "round";
     loadLeaderboard("staff-rang-body", ACCESS.current_round);
@@ -1974,26 +2158,761 @@ function savePlayerSkillSelect(challengeId) {
   });
 }
 
-function exportSkillsMasterPDF() {
+/* ====================================================================
+   SOMMER-LOGBUCH 2026  (Phase 1 — Datenlayer)
+   Zeitraum: 06.07.2026 – 26.07.2026  ·  Fix, automatisch nach Datum
+   ==================================================================== */
+
+var LOGBUCH_BLOCK_KEY = 'logbuch_2026_sommer';
+var LOGBUCH_START     = '2026-07-06';
+var LOGBUCH_END       = '2026-07-26';
+var logbuchSubTab     = 'heute'; // 'heute' | 'uebersicht' — nur in aktiver Phase relevant
+
+// Reihenfolge wie sie im UI und im PDF erscheinen sollen (28 Reihen)
+var LOGBUCH_EXERCISES = [
+  // --- 8 Jonglier-Challenges (Sektion 1) ---
+  { id: 'jong_spann_rl',             label: 'Vollspann L/R',            section: 'jonglier' },
+  { id: 'jong_spann_wechsel',        label: 'Spann im Wechsel',         section: 'jonglier' },
+  { id: 'jong_oberschenkel_rl',      label: 'Oberschenkel L/R',         section: 'jonglier' },
+  { id: 'jong_oberschenkel_wechsel', label: 'Oberschenkel abw.',        section: 'jonglier' },
+  { id: 'jong_kopf',                 label: 'Kopfball-Meister',         section: 'jonglier' },
+  { id: 'jong_aussenrist',           label: 'Außenrist L/R',            section: 'jonglier' },
+  { id: 'jong_innenrist',            label: 'Innenrist L/R',            section: 'jonglier' },
+  { id: 'jong_weltreise',            label: 'Master: Kleine Weltreise', section: 'jonglier' },
+  // --- 19 Tricks (Sektion 2) ---
+  { id: 'trick_samba',         label: 'Samba Steps',          section: 'trick' },
+  { id: 'trick_rabona',        label: 'Rabona',               section: 'trick' },
+  { id: 'trick_pass_fake',     label: 'Pass Fake',            section: 'trick' },
+  { id: 'trick_back_rolls',    label: 'Back Rolls',           section: 'trick' },
+  { id: 'trick_360',           label: '360 Grad / Roulette',  section: 'trick' },
+  { id: 'trick_cruyff',        label: 'Cruyff-Turn',          section: 'trick' },
+  { id: 'trick_atw',           label: 'Around the World',     section: 'trick' },
+  { id: 'trick_magnet',        label: 'Magnet',               section: 'trick' },
+  { id: 'trick_neymar',        label: 'Neymar Trick',         section: 'trick' },
+  { id: 'trick_rubber',        label: 'Ball Rubber',          section: 'trick' },
+  { id: 'trick_rakitic',       label: 'Rakitic Hacken',       section: 'trick' },
+  { id: 'trick_ronaldo_step',  label: 'Ronaldo-Übersteiger',  section: 'trick' },
+  { id: 'trick_triple_step',   label: '3fach-Übersteiger',    section: 'trick' },
+  { id: 'trick_neymar1',       label: 'Neymar1 Special',      section: 'trick' },
+  { id: 'trick_zidane',        label: 'Zidane Drehung',       section: 'trick' },
+  { id: 'trick_cr7',           label: 'CR7 Chop',             section: 'trick' },
+  { id: 'trick_the_v',         label: 'The V',                section: 'trick' },
+  { id: 'trick_okocha',        label: 'Okocha Flick',         section: 'trick' },
+  { id: 'trick_combo1',        label: 'Combo 1 (Neymar1-Zidane-...)', section: 'trick' },
+  // --- 1 freie Combo (Sektion 3) ---
+  { id: 'free_combo',          label: 'Meine eigene Combo',   section: 'free' }
+];
+
+// Liste aller 21 Datums-Strings im Zeitraum (06.07. – 26.07.2026)
+function getLogbuchDateList() {
+  var dates = [];
+  var d = new Date(LOGBUCH_START + 'T00:00:00');
+  var end = new Date(LOGBUCH_END + 'T00:00:00');
+  while (d <= end) {
+    dates.push(d.toISOString().slice(0, 10)); // "2026-07-06"
+    d.setDate(d.getDate() + 1);
+  }
+  return dates;
+}
+
+// Liest den Logbuch-Block aus PROFILE.skills (lokales Cache)
+function getLogbuchData() {
+  if (!PROFILE || !PROFILE.skills) return {};
+  return PROFILE.skills[LOGBUCH_BLOCK_KEY] || {};
+}
+
+// Prüft ob ein bestimmtes Häkchen gesetzt ist
+function isLogbuchEntryDone(exerciseId, dateStr) {
+  var data = getLogbuchData();
+  var dates = data[exerciseId];
+  return Array.isArray(dates) && dates.indexOf(dateStr) !== -1;
+}
+
+// Statistik für einen Spieler: trainierte Tage, prozent etc.
+function getLogbuchStats(profileSkills) {
+  var data = profileSkills && profileSkills[LOGBUCH_BLOCK_KEY] ? profileSkills[LOGBUCH_BLOCK_KEY] : {};
+  var allDates = getLogbuchDateList();
+  var totalDays = allDates.length; // 21
+  var daysWithActivity = {};
+  var totalChecks = 0;
+  var exercisesTouched = 0;
+  
+  for (var i = 0; i < LOGBUCH_EXERCISES.length; i++) {
+    var ex = LOGBUCH_EXERCISES[i];
+    var dates = data[ex.id];
+    if (Array.isArray(dates) && dates.length > 0) {
+      exercisesTouched++;
+      totalChecks += dates.length;
+      for (var j = 0; j < dates.length; j++) daysWithActivity[dates[j]] = true;
+    }
+  }
+  
+  return {
+    daysActive:        Object.keys(daysWithActivity).length,
+    daysTotal:         totalDays,
+    exercisesTouched:  exercisesTouched,
+    exercisesTotal:    LOGBUCH_EXERCISES.length,
+    totalChecks:       totalChecks
+  };
+}
+
+// Toggle-Aufruf via RPC. Aktualisiert auch das lokale PROFILE.skills.
+function toggleLogbuchEntry(exerciseId, dateStr, callback) {
+  sb.rpc('toggle_logbuch_entry', {
+    p_exercise_id: exerciseId,
+    p_log_date:    dateStr
+  }).then(function(r) {
+    if (r.error) {
+      console.error('toggle_logbuch_entry Fehler:', r.error);
+      if (callback) callback(r.error, null);
+      return;
+    }
+    // Lokales PROFILE.skills synchronisieren
+    if (!PROFILE.skills) PROFILE.skills = {};
+    if (!PROFILE.skills[LOGBUCH_BLOCK_KEY]) PROFILE.skills[LOGBUCH_BLOCK_KEY] = {};
+    PROFILE.skills[LOGBUCH_BLOCK_KEY][exerciseId] = r.data.dates;
+    if (callback) callback(null, r.data);
+  });
+}
+
+// Speichert den vom Spieler frei vergebenen Namen für seine eigene Combo
+function saveComboName(newName, callback) {
+  if (!PROFILE.skills) PROFILE.skills = {};
+  if (!PROFILE.skills[LOGBUCH_BLOCK_KEY]) PROFILE.skills[LOGBUCH_BLOCK_KEY] = {};
+  PROFILE.skills[LOGBUCH_BLOCK_KEY].free_combo_name = newName;
+  sb.from('profiles').update({ skills: PROFILE.skills }).eq('id', ME.id).then(function(r) {
+    if (callback) callback(r.error, r.data);
+  });
+}
+
+// Aktuelles "Heute" mit Test-Override-Möglichkeit
+// Beispiel zum Testen in der Konsole: window.LOGBUCH_TEST_TODAY = '2026-07-10'
+function getLogbuchToday() {
+  if (window.LOGBUCH_TEST_TODAY) return window.LOGBUCH_TEST_TODAY;
+  return new Date().toISOString().slice(0, 10);
+}
+
+// Aktuelle Phase des Logbuchs (vor / während / nach)
+function getLogbuchPhase() {
+  var today = getLogbuchToday();
+  if (today < LOGBUCH_START) return 'before';
+  if (today > LOGBUCH_END)   return 'after';
+  return 'active';
+}
+
+/* ====================================================================
+   SOMMER-LOGBUCH 2026  (Phase 2 — Spieler-UI "Heute"-Modus)
+   ==================================================================== */
+
+// Anzahl Tage zwischen zwei ISO-Dates
+function diffDays(fromIso, toIso) {
+  var d1 = new Date(fromIso + 'T00:00:00');
+  var d2 = new Date(toIso   + 'T00:00:00');
+  return Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
+}
+
+// Hübsches deutsches Datum: "Donnerstag, 10. Juli 2026"
+function formatGermanDate(isoDate) {
+  var d = new Date(isoDate + 'T00:00:00');
+  var weekdays = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+  var months   = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  return weekdays[d.getDay()] + ', ' + d.getDate() + '. ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+// HTML-escape (klein)
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// Haupt-Render-Funktion — wird beim Tab-Wechsel aufgerufen
+function renderLogbuch() {
+  var phase = getLogbuchPhase();
+  var container = el('logbuch-content');
+  if (!container) return;
+  if      (phase === 'before') container.innerHTML = renderLogbuchPre();
+  else if (phase === 'after')  container.innerHTML = renderLogbuchPost();
+  else                          container.innerHTML = renderLogbuchActive();
+}
+
+// --- VOR-PHASE: Countdown & Vorschau --------------------------------
+function renderLogbuchPre() {
+  var today      = getLogbuchToday();
+  var daysToGo   = diffDays(today, LOGBUCH_START);
+  var startNice  = formatGermanDate(LOGBUCH_START);
+  
+  return ''
+  + '<div class="card" style="text-align:center; padding:30px 24px; background:linear-gradient(135deg, rgba(212,175,55,0.08) 0%, rgba(20,22,28,0.5) 100%); border-color:rgba(212,175,55,0.3);">'
+  +   '<p class="eyebrow" style="color:var(--gold);">Bald geht\'s los</p>'
+  +   '<h2 style="margin-top:6px; color:#fff; font-size:24px;">🌞 Sommer-Challenge 2026</h2>'
+  +   '<p class="muted" style="margin-top:6px;">21 Tage · 28 Übungen · Eine Mission</p>'
+  +   '<div style="margin:24px 0; padding:18px; background:rgba(0,0,0,0.3); border-radius:12px; display:inline-block;">'
+  +     '<div style="font-family:\'Sora\'; font-size:48px; font-weight:800; color:var(--gold); line-height:1;">' + daysToGo + '</div>'
+  +     '<div style="font-size:12px; color:var(--muted); margin-top:4px;">Tage bis Start</div>'
+  +   '</div>'
+  +   '<p style="font-size:14px; margin-top:8px;">Startet am <b style="color:var(--gold);">' + startNice + '</b></p>'
+  + '</div>'
+  
+  + '<div class="card" style="margin-top:14px;">'
+  +   '<h3 style="font-size:16px; color:#fff; margin-bottom:12px;">📋 So funktioniert die Challenge</h3>'
+  +   '<p style="font-size:13.5px; line-height:1.6;">Vom <b>06. bis 26. Juli</b> kannst du täglich ein <b style="color:var(--gold);">✓</b> setzen für jede Übung, die du an dem Tag trainiert hast. Am Ende kannst du eine PDF herunterladen, die zeigt, was du wann gemacht hast — perfekt zum Ausdrucken!</p>'
+  +   '<div style="margin-top:14px; padding:12px; background:rgba(212,175,55,0.06); border-left:3px solid var(--gold); border-radius:0 8px 8px 0;">'
+  +     '<p style="font-size:12.5px; line-height:1.5; color:#f3d47a;"><b>Täglicher Plan (20–45 Min):</b><br>'
+  +     '⚽ Jonglier-Einheit · ✨ Trick-Einheit (L/R) · 💥 Combo-Einheit</p>'
+  +   '</div>'
+  + '</div>'
+  
+  + '<div class="card" style="margin-top:14px;">'
+  +   '<h3 style="font-size:16px; color:#fff; margin-bottom:12px;">Was dich erwartet</h3>'
+  +   renderExercisePreview()
+  + '</div>';
+}
+
+// Kompakter Vorschau-Block der 28 Übungen (gruppiert)
+function renderExercisePreview() {
+  var groups = { jonglier: [], trick: [], free: [] };
+  for (var i = 0; i < LOGBUCH_EXERCISES.length; i++) {
+    groups[LOGBUCH_EXERCISES[i].section].push(LOGBUCH_EXERCISES[i]);
+  }
+  
+  function renderGroup(emoji, title, items) {
+    var rows = items.map(function(ex) {
+      return '<span style="display:inline-block; padding:4px 10px; margin:3px; background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:6px; font-size:12px;">' + esc(ex.label) + '</span>';
+    }).join('');
+    return ''
+    + '<h4 style="font-size:13px; color:var(--gold); margin:14px 0 6px; font-family:\'Sora\';">' + emoji + ' ' + title + ' <span style="color:var(--muted); font-weight:400;">(' + items.length + ')</span></h4>'
+    + '<div>' + rows + '</div>';
+  }
+  
+  return renderGroup('⚽', 'Jonglier-Challenges', groups.jonglier)
+       + renderGroup('✨', 'Tricks',              groups.trick)
+       + renderGroup('💫', 'Eigene Combo',        groups.free);
+}
+
+// --- AKTIVE PHASE: Mit Sub-Tabs (Heute / Übersicht) -----------------
+function renderLogbuchActive() {
+  return renderLogbuchSubTabNav()
+       + renderLogbuchStatsCard()
+       + (logbuchSubTab === 'uebersicht' ? renderLogbuchUebersichtBody() : renderLogbuchHeuteBody());
+}
+
+// Sub-Tab-Navigation oben (Heute / Übersicht)
+function renderLogbuchSubTabNav() {
+  var heuteCls = logbuchSubTab === 'heute'      ? 'active' : 'btn-ghost';
+  var ueberCls = logbuchSubTab === 'uebersicht' ? 'active' : 'btn-ghost';
+  return ''
+  + '<div class="nav" style="margin-bottom:14px;">'
+  +   '<button id="lbtab-heute" class="' + heuteCls + '" onclick="showLogbuchSubTab(\'heute\')">📅 Heute</button>'
+  +   '<button id="lbtab-uebersicht" class="' + ueberCls + '" onclick="showLogbuchSubTab(\'uebersicht\')">📋 Übersicht</button>'
+  + '</div>';
+}
+
+// Sub-Tab-Wechsel
+function showLogbuchSubTab(t) {
+  logbuchSubTab = t;
+  renderLogbuch();
+}
+
+// Stats-Card oben (geteilt von Heute & Übersicht)
+function renderLogbuchStatsCard() {
+  var today     = getLogbuchToday();
+  var dayNum    = diffDays(LOGBUCH_START, today) + 1;
+  var daysLeft  = diffDays(today, LOGBUCH_END);
+  var todayNice = formatGermanDate(today);
+  var stats     = getLogbuchStats(PROFILE && PROFILE.skills ? PROFILE.skills : {});
+  
+  return ''
+  + '<div id="logbuch-stats-card" class="card" style="background:linear-gradient(135deg, rgba(212,175,55,0.1) 0%, rgba(20,22,28,0.6) 100%); border-color:rgba(212,175,55,0.3);">'
+  +   '<p class="eyebrow" style="color:var(--gold);">Sommer-Challenge 2026 · Tag ' + dayNum + ' von 21</p>'
+  +   '<h2 style="margin-top:4px; color:#fff; font-size:20px;">☀️ ' + todayNice + '</h2>'
+  +   '<p class="muted" style="margin-top:4px; font-size:13px;">Noch ' + daysLeft + ' Tag' + (daysLeft === 1 ? '' : 'e') + ' bis zum Ende der Challenge</p>'
+  +   '<div id="logbuch-stats-numbers" style="display:flex; gap:18px; margin-top:14px; flex-wrap:wrap;">'
+  +     statBlock(stats.daysActive,       '/ ' + stats.daysTotal,      'Tage aktiv')
+  +     statBlock(stats.exercisesTouched, '/ ' + stats.exercisesTotal, 'Übungen angefasst')
+  +     statBlock(stats.totalChecks,      '',                          'Häkchen total')
+  +   '</div>'
+  + '</div>';
+}
+
+// "Heute"-Body — nur die Tagesaktion (was vorher renderLogbuchActive war)
+function renderLogbuchHeuteBody() {
+  var today     = getLogbuchToday();
+  var data      = getLogbuchData();
+  var comboName = data.free_combo_name || '';
+  
+  var html = ''
+  + '<div class="card" style="margin-top:14px;">'
+  +   '<h3 style="font-size:17px; color:#fff; margin-bottom:6px;">Was hast du heute trainiert?</h3>'
+  +   '<p class="muted" style="font-size:12.5px; margin-bottom:14px;">Tippe auf das Kästchen rechts wenn du die Übung heute geübt hast (links UND rechts!).</p>';
+  
+  html += renderSection('⚽', 'JONGLIEREN', 'jonglier', today);
+  html += renderSection('✨', 'TRICKS',     'trick',    today);
+  
+  html += '<h4 class="logbuch-section-title">💫 MEINE EIGENE COMBO</h4>';
+  html += '<p class="muted" style="font-size:12px; margin:-4px 0 8px;">Gib deiner Combo einen Namen — du kannst kreativ sein!</p>';
+  html += '<input type="text" id="combo-name-input" maxlength="40" value="' + esc(comboName) + '" placeholder="z.B. \'Mein Eren-Move\'" '
+       +  'style="width:100%; background:#1a1c23; border:1px solid var(--line); color:#fff; padding:10px 12px; border-radius:8px; font-size:14px; font-family:inherit; margin-bottom:8px;" '
+       +  'onblur="handleComboNameSave(this.value)" />';
+  var comboLabel = comboName ? comboName : 'Meine eigene Combo';
+  var comboDone  = isLogbuchEntryDone('free_combo', today);
+  html += renderLogbuchRow('free_combo', comboLabel, today, comboDone);
+  
+  html += '</div>';
+  return html;
+}
+
+// "Übersicht"-Body — Scroll-Grid 21 Tage × 28 Übungen
+function renderLogbuchUebersichtBody() {
+  var today  = getLogbuchToday();
+  var dates  = getLogbuchDateList();
+  var data   = getLogbuchData();
+  
+  // Wochentag-Kürzel pro Datum (Mo, Di, Mi, ...)
+  var weekdayShort = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  
+  var html = ''
+  + '<div class="card" style="margin-top:14px;">'
+  +   '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px;">'
+  +     '<h3 style="font-size:17px; color:#fff; margin:0;">📋 Übersicht — alle 21 Tage</h3>'
+  +     '<span style="font-size:11.5px; color:var(--muted);">← Horizontal scrollen →</span>'
+  +   '</div>'
+  +   '<p class="muted" style="font-size:12.5px; margin-bottom:14px;">Hier kannst du auch <b style="color:#f3d47a;">vergangene Tage nachtragen</b>. Tippe ein Kästchen an, um es zu setzen oder zu entfernen. Zukünftige Tage sind gesperrt.</p>'
+  +   '<div class="logbuch-grid-wrap">'
+  +     '<table class="logbuch-grid">'
+  +       '<thead><tr><th class="lg-name-col"></th>';
+  
+  // Datums-Header
+  for (var i = 0; i < dates.length; i++) {
+    var d  = new Date(dates[i] + 'T00:00:00');
+    var dd = ('0' + d.getDate()).slice(-2);
+    var wd = weekdayShort[d.getDay()];
+    var isToday = dates[i] === today;
+    html += '<th class="lg-day-col' + (isToday ? ' today' : '') + '"><div class="lg-day-wd">' + wd + '</div><div class="lg-day-num">' + dd + '</div></th>';
+  }
+  html += '</tr></thead><tbody>';
+  
+  // Sektionen mit Header-Reihen
+  var sections = [
+    { key: 'jonglier', emoji: '⚽', title: 'JONGLIEREN' },
+    { key: 'trick',    emoji: '✨', title: 'TRICKS' },
+    { key: 'free',     emoji: '💫', title: 'EIGENE COMBO' }
+  ];
+  
+  for (var s = 0; s < sections.length; s++) {
+    var sec = sections[s];
+    html += '<tr class="lg-section-row"><td colspan="' + (dates.length + 1) + '">' + sec.emoji + ' ' + sec.title + '</td></tr>';
+    
+    for (var i = 0; i < LOGBUCH_EXERCISES.length; i++) {
+      var ex = LOGBUCH_EXERCISES[i];
+      if (ex.section !== sec.key) continue;
+      var label = ex.label;
+      if (ex.id === 'free_combo' && data.free_combo_name) label = data.free_combo_name;
+      
+      html += '<tr><td class="lg-name-col" title="' + esc(label) + '">' + esc(label) + '</td>';
+      for (var j = 0; j < dates.length; j++) {
+        var dStr     = dates[j];
+        var done     = isLogbuchEntryDone(ex.id, dStr);
+        var isFuture = dStr > today;
+        var isToday  = dStr === today;
+        var classes  = ['logbuch-cell'];
+        if (done)    classes.push('done');
+        if (isToday) classes.push('today-col');
+        if (isFuture) classes.push('future');
+        var onclick  = isFuture ? '' : ' onclick="handleLogbuchCellToggle(\'' + ex.id + '\', \'' + dStr + '\')"';
+        var disabled = isFuture ? ' disabled' : '';
+        html += '<td><button id="cell-' + ex.id + '-' + dStr + '" class="' + classes.join(' ') + '"' + onclick + disabled + '>' + (done ? '✓' : '') + '</button></td>';
+      }
+      html += '</tr>';
+    }
+  }
+  
+  html += '</tbody></table></div>'
+  // Legende
+  +   '<div style="display:flex; gap:18px; margin-top:14px; flex-wrap:wrap; font-size:11.5px; color:var(--muted);">'
+  +     '<span><span style="display:inline-block; width:14px; height:14px; vertical-align:middle; background:var(--gold-grad); border-radius:3px;"></span> = trainiert</span>'
+  +     '<span><span style="display:inline-block; width:14px; height:14px; vertical-align:middle; border:1.5px solid var(--gold); border-radius:3px;"></span> = heute</span>'
+  +     '<span><span style="display:inline-block; width:14px; height:14px; vertical-align:middle; background:rgba(255,255,255,0.02); border:1px solid var(--line); border-radius:3px; opacity:0.3;"></span> = noch nicht möglich</span>'
+  +   '</div>'
+  + '</div>';
+  return html;
+}
+
+// Click-Handler für Übersichts-Zellen (analog handleLogbuchToggle)
+function handleLogbuchCellToggle(exerciseId, dateStr) {
+  var btn = el('cell-' + exerciseId + '-' + dateStr);
+  if (!btn) return;
+  
+  var wasDone = btn.classList.contains('done');
+  btn.classList.toggle('done');
+  btn.textContent = wasDone ? '' : '✓';
+  btn.disabled = true;
+  
+  toggleLogbuchEntry(exerciseId, dateStr, function(err, result) {
+    btn.disabled = false;
+    if (err) {
+      btn.classList.toggle('done');
+      btn.textContent = wasDone ? '✓' : '';
+      console.error('Cell-Toggle fehlgeschlagen:', err);
+      alert('Konnte den Eintrag nicht speichern: ' + (err.message || ''));
+      return;
+    }
+    var actuallyDone = result && result.is_done;
+    btn.classList.toggle('done', actuallyDone);
+    btn.textContent = actuallyDone ? '✓' : '';
+    updateLogbuchStatsHeader();
+  });
+}
+
+function statBlock(num, suffix, label) {
+  return ''
+  + '<div>'
+  +   '<div style="font-family:\'Sora\'; font-size:22px; font-weight:800; color:var(--gold); line-height:1;">' + num + '<span style="font-size:13px; color:var(--muted); font-weight:600; margin-left:3px;">' + suffix + '</span></div>'
+  +   '<div style="font-size:11px; color:var(--muted); margin-top:4px;">' + label + '</div>'
+  + '</div>';
+}
+
+function renderSection(emoji, title, sectionKey, today) {
+  var html = '<h4 class="logbuch-section-title">' + emoji + ' ' + title + '</h4>';
+  for (var i = 0; i < LOGBUCH_EXERCISES.length; i++) {
+    var ex = LOGBUCH_EXERCISES[i];
+    if (ex.section !== sectionKey) continue;
+    var done = isLogbuchEntryDone(ex.id, today);
+    html += renderLogbuchRow(ex.id, ex.label, today, done);
+  }
+  return html;
+}
+
+function renderLogbuchRow(exerciseId, label, today, done) {
+  return ''
+  + '<div class="logbuch-row" id="logbuch-row-' + exerciseId + '">'
+  +   '<span class="name">' + esc(label) + '</span>'
+  +   '<button class="logbuch-toggle' + (done ? ' done' : '') + '" '
+  +     'onclick="handleLogbuchToggle(\'' + exerciseId + '\', \'' + today + '\')" '
+  +     'aria-label="' + (done ? 'Häkchen entfernen' : 'Als geübt markieren') + '">'
+  +     '<span class="check-icon">' + (done ? '✓' : '') + '</span>'
+  +   '</button>'
+  + '</div>';
+}
+
+// Click-Handler für ✓-Buttons (optimistisches UI + RPC)
+function handleLogbuchToggle(exerciseId, dateStr) {
+  var rowEl   = el('logbuch-row-' + exerciseId);
+  var btnEl   = rowEl ? rowEl.querySelector('.logbuch-toggle') : null;
+  var iconEl  = btnEl ? btnEl.querySelector('.check-icon') : null;
+  if (!btnEl) return;
+  
+  // Optimistic Update (sofortiges visuelles Feedback)
+  var wasDone = btnEl.classList.contains('done');
+  btnEl.classList.toggle('done');
+  if (iconEl) iconEl.textContent = wasDone ? '' : '✓';
+  btnEl.disabled = true;
+  
+  toggleLogbuchEntry(exerciseId, dateStr, function(err, result) {
+    btnEl.disabled = false;
+    if (err) {
+      // Revert
+      btnEl.classList.toggle('done');
+      if (iconEl) iconEl.textContent = wasDone ? '✓' : '';
+      console.error('Logbuch-Toggle fehlgeschlagen:', err);
+      alert('Konnte den Eintrag nicht speichern. Bitte erneut versuchen.');
+      return;
+    }
+    // Server-Wahrheit übernehmen (falls Server anders entschieden hat)
+    var actuallyDone = result && result.is_done;
+    btnEl.classList.toggle('done', actuallyDone);
+    if (iconEl) iconEl.textContent = actuallyDone ? '✓' : '';
+    // Stats im Header refreshen
+    updateLogbuchStatsHeader();
+  });
+}
+
+// Combo-Name speichern (onblur)
+function handleComboNameSave(newName) {
+  newName = (newName || '').trim();
+  saveComboName(newName, function(err) {
+    if (err) {
+      console.error('Combo-Name speichern fehlgeschlagen:', err);
+      return;
+    }
+    // Label in der Combo-Row aktualisieren
+    var row = el('logbuch-row-free_combo');
+    if (row) {
+      var nameSpan = row.querySelector('.name');
+      if (nameSpan) nameSpan.textContent = newName || 'Meine eigene Combo';
+    }
+  });
+}
+
+// Statistik-Header neu rendern ohne ganze View zu refreshen
+function updateLogbuchStatsHeader() {
+  var stats = getLogbuchStats(PROFILE && PROFILE.skills ? PROFILE.skills : {});
+  var container = el('logbuch-stats-numbers');
+  if (!container) return;
+  container.innerHTML = ''
+    + statBlock(stats.daysActive,       '/ ' + stats.daysTotal,      'Tage aktiv')
+    + statBlock(stats.exercisesTouched, '/ ' + stats.exercisesTotal, 'Übungen angefasst')
+    + statBlock(stats.totalChecks,      '',                          'Häkchen total');
+}
+
+// --- NACH-PHASE: Challenge fertig -----------------------------------
+function renderLogbuchPost() {
+  var stats     = getLogbuchStats(PROFILE && PROFILE.skills ? PROFILE.skills : {});
+  var pct       = Math.round((stats.daysActive / stats.daysTotal) * 100);
+  var msg       = pct >= 80 ? '🏆 Phänomenal!' : (pct >= 50 ? '👏 Gut gemacht!' : '💪 Jeder Schritt zählt!');
+  
+  return ''
+  + '<div class="card" style="text-align:center; padding:30px 24px; background:linear-gradient(135deg, rgba(212,175,55,0.12) 0%, rgba(20,22,28,0.6) 100%); border-color:var(--gold);">'
+  +   '<p class="eyebrow" style="color:var(--gold);">Challenge abgeschlossen</p>'
+  +   '<h2 style="margin-top:6px; color:#fff; font-size:24px;">' + msg + '</h2>'
+  +   '<p style="margin-top:8px; font-size:14.5px;">Du hast <b style="color:var(--gold);">' + stats.daysActive + ' von ' + stats.daysTotal + '</b> Tagen trainiert.</p>'
+  +   '<div style="display:flex; gap:20px; justify-content:center; margin:20px 0; flex-wrap:wrap;">'
+  +     statBlock(stats.daysActive,       '/ ' + stats.daysTotal,      'Tage aktiv')
+  +     statBlock(stats.exercisesTouched, '/ ' + stats.exercisesTotal, 'Übungen angefasst')
+  +     statBlock(stats.totalChecks,      '',                          'Häkchen total')
+  +   '</div>'
+  +   '<button class="btn" style="margin-top:8px;" onclick="exportSkillsMasterPDF()">📄 Deine Sommer-PDF herunterladen</button>'
+  + '</div>';
+}
+
+/* ====================================================================
+   SOMMER-LOGBUCH 2026  (Phase 4 — Trainer-Dashboard)
+   ==================================================================== */
+
+// Cache aller Spielerprofile für die Trainer-Ansicht (id → profile)
+var STAFF_LOGBUCH_PLAYERS = {};
+
+// Hauptlader: Lädt alle Spieler und rendert die Übersichtstabelle
+function loadStaffLogbuch() {
+  var c = el('staff-logbuch-content');
+  if (!c) return;
+  c.innerHTML = '<div class="spinner"></div>';
+  
+  sb.from('profiles').select('id, display_name, player_nr, skills').eq('role', 'spieler').then(function(r) {
+    if (r.error) {
+      c.innerHTML = '<p class="muted">Fehler beim Laden: ' + esc(r.error.message) + '</p>';
+      return;
+    }
+    var players = (r.data || []).slice();
+    players.sort(function(a, b) { return (a.display_name || '').localeCompare(b.display_name || ''); });
+    
+    // Cache für Drill-Down
+    STAFF_LOGBUCH_PLAYERS = {};
+    players.forEach(function(p) { STAFF_LOGBUCH_PLAYERS[p.id] = p; });
+    
+    c.innerHTML = renderStaffLogbuchList(players);
+  });
+}
+
+// Übersichtstabelle: Wer hat wie viel trainiert?
+function renderStaffLogbuchList(players) {
+  var totalDays      = getLogbuchDateList().length; // 21
+  var totalExercises = LOGBUCH_EXERCISES.length;    // 28
+  var phase          = getLogbuchPhase();
+  var phaseLabel     = phase === 'before' ? 'Startet bald' : (phase === 'after' ? 'Abgeschlossen' : 'Läuft jetzt');
+  var phaseColor     = phase === 'active' ? 'var(--gold)' : 'var(--muted)';
+  
+  var html = ''
+  + '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px;">'
+  +   '<div>'
+  +     '<p class="eyebrow" style="color:var(--gold);">Trainer-Übersicht</p>'
+  +     '<h3 style="color:#fff; margin-top:4px;">🌞 Sommer-Logbuch 2026</h3>'
+  +     '<p class="muted" style="font-size:13px; margin-top:2px;">Zeitraum: 06.07. – 26.07.2026 · '
+  +       '<span style="color:' + phaseColor + '; font-weight:700;">' + phaseLabel + '</span>'
+  +     '</p>'
+  +   '</div>'
+  + '</div>';
+  
+  if (players.length === 0) {
+    html += '<p class="muted">Keine Spieler gefunden.</p>';
+    return html;
+  }
+  
+  html += '<table style="width:100%; border-collapse:collapse; font-size:13.5px;">'
+       +  '<thead><tr style="border-bottom:1px solid var(--line); text-align:left;">'
+       +  '<th style="padding:10px 8px;">Spieler</th>'
+       +  '<th style="padding:10px 8px; text-align:center;">Tage aktiv</th>'
+       +  '<th style="padding:10px 8px; text-align:center;">Übungen</th>'
+       +  '<th style="padding:10px 8px; text-align:center;">✓ total</th>'
+       +  '<th style="padding:10px 8px;">Combo-Name</th>'
+       +  '<th style="padding:10px 8px; text-align:right;">Aktionen</th>'
+       +  '</tr></thead><tbody>';
+  
+  for (var i = 0; i < players.length; i++) {
+    var p          = players[i];
+    var stats      = getLogbuchStats(p.skills || {});
+    var comboName  = (p.skills && p.skills[LOGBUCH_BLOCK_KEY] && p.skills[LOGBUCH_BLOCK_KEY].free_combo_name) || '';
+    var pct        = totalDays > 0 ? Math.round((stats.daysActive / totalDays) * 100) : 0;
+    var barColor   = pct >= 80 ? 'var(--gold)' : (pct >= 40 ? '#c8b673' : '#7a7a76');
+    var displayNr  = p.player_nr ? '#' + esc(p.player_nr) + ' · ' : '';
+    
+    html += '<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">'
+         +  '<td style="padding:12px 8px;">'
+         +    '<div style="font-weight:600; color:#fff;">' + esc(p.display_name || '–') + '</div>'
+         +    '<div style="font-size:11px; color:var(--muted); margin-top:2px;">' + displayNr + '</div>'
+         +  '</td>'
+         +  '<td style="padding:12px 8px; text-align:center;">'
+         +    '<div style="font-weight:700; color:#fff;">' + stats.daysActive + '<span style="color:var(--muted); font-weight:400;"> / ' + totalDays + '</span></div>'
+         +    '<div style="margin-top:4px; width:80px; height:4px; background:rgba(255,255,255,0.08); border-radius:2px; margin-left:auto; margin-right:auto; overflow:hidden;">'
+         +      '<div style="width:' + pct + '%; height:100%; background:' + barColor + ';"></div>'
+         +    '</div>'
+         +  '</td>'
+         +  '<td style="padding:12px 8px; text-align:center; color:#fff;">' + stats.exercisesTouched + '<span style="color:var(--muted);"> / ' + totalExercises + '</span></td>'
+         +  '<td style="padding:12px 8px; text-align:center; color:var(--gold); font-family:\'Sora\'; font-weight:700;">' + stats.totalChecks + '</td>'
+         +  '<td style="padding:12px 8px; color:var(--muted); font-size:12.5px;">' + (comboName ? esc(comboName) : '<span style="opacity:0.5;">—</span>') + '</td>'
+         +  '<td style="padding:12px 8px; text-align:right;">'
+         +    '<button class="btn-ghost" style="padding:6px 12px; font-size:12px; margin-right:6px;" onclick="openStaffPlayerLogbuch(\'' + p.id + '\')">📋 Ansehen</button>'
+         +    '<button class="btn" style="padding:6px 12px; font-size:12px;" onclick="exportPlayerLogbuchPDF(\'' + p.id + '\')">📄 PDF</button>'
+         +  '</td>'
+         +  '</tr>';
+  }
+  
+  html += '</tbody></table>';
+  return html;
+}
+
+// Drill-Down: Komplettes Logbuch eines Spielers ansehen (read-only)
+function openStaffPlayerLogbuch(playerId) {
+  var p = STAFF_LOGBUCH_PLAYERS[playerId];
+  if (!p) return;
+  scrollToTop();
+  el('staff-logbuch-content').innerHTML = renderStaffPlayerDetail(p);
+}
+
+// Zurück zur Übersicht
+function backToStaffLogbuch() {
+  loadStaffLogbuch();
+}
+
+// Detail-Render-Funktion für einen einzelnen Spieler (read-only Grid)
+function renderStaffPlayerDetail(player) {
+  var skills    = player.skills || {};
+  var data      = skills[LOGBUCH_BLOCK_KEY] || {};
+  var comboName = data.free_combo_name || '';
+  var stats     = getLogbuchStats(skills);
+  var totalDays = getLogbuchDateList().length;
+  var dates     = getLogbuchDateList();
+  var today     = getLogbuchToday();
+  var weekdayShort = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  
+  var html = ''
+  + '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:12px;">'
+  +   '<div>'
+  +     '<button class="btn-ghost" style="padding:6px 12px; font-size:12px; margin-bottom:8px;" onclick="backToStaffLogbuch()">← Zurück zur Übersicht</button>'
+  +     '<h3 style="color:#fff; margin:0;">' + esc(player.display_name || '–') + '</h3>'
+  +     '<p class="muted" style="font-size:12.5px; margin-top:2px;">'
+  +       (player.player_nr ? '#' + esc(player.player_nr) + ' · ' : '')
+  +       'Combo-Name: ' + (comboName ? '<b style="color:#f3d47a;">' + esc(comboName) + '</b>' : '<span style="opacity:0.5;">noch nicht festgelegt</span>')
+  +     '</p>'
+  +   '</div>'
+  +   '<button class="btn" onclick="exportPlayerLogbuchPDF(\'' + player.id + '\')">📄 PDF herunterladen</button>'
+  + '</div>'
+  
+  // Stats
+  + '<div style="display:flex; gap:18px; margin:12px 0 20px; flex-wrap:wrap; padding:14px; background:rgba(212,175,55,0.06); border-radius:10px; border:1px solid rgba(212,175,55,0.15);">'
+  +   statBlock(stats.daysActive,       '/ ' + stats.daysTotal,      'Tage aktiv')
+  +   statBlock(stats.exercisesTouched, '/ ' + stats.exercisesTotal, 'Übungen angefasst')
+  +   statBlock(stats.totalChecks,      '',                          'Häkchen total')
+  + '</div>'
+  
+  // Grid (read-only)
+  + '<div class="logbuch-grid-wrap">'
+  + '<table class="logbuch-grid"><thead><tr><th class="lg-name-col"></th>';
+  
+  for (var i = 0; i < dates.length; i++) {
+    var d  = new Date(dates[i] + 'T00:00:00');
+    var dd = ('0' + d.getDate()).slice(-2);
+    var wd = weekdayShort[d.getDay()];
+    var isToday = dates[i] === today;
+    html += '<th class="lg-day-col' + (isToday ? ' today' : '') + '"><div class="lg-day-wd">' + wd + '</div><div class="lg-day-num">' + dd + '</div></th>';
+  }
+  html += '</tr></thead><tbody>';
+  
+  var sections = [
+    { key: 'jonglier', emoji: '⚽', title: 'JONGLIEREN' },
+    { key: 'trick',    emoji: '✨', title: 'TRICKS' },
+    { key: 'free',     emoji: '💫', title: 'EIGENE COMBO' }
+  ];
+  
+  for (var s = 0; s < sections.length; s++) {
+    var sec = sections[s];
+    html += '<tr class="lg-section-row"><td colspan="' + (dates.length + 1) + '">' + sec.emoji + ' ' + sec.title + '</td></tr>';
+    
+    for (var i = 0; i < LOGBUCH_EXERCISES.length; i++) {
+      var ex = LOGBUCH_EXERCISES[i];
+      if (ex.section !== sec.key) continue;
+      var label = ex.label;
+      if (ex.id === 'free_combo' && comboName) label = comboName;
+      
+      html += '<tr><td class="lg-name-col" title="' + esc(label) + '">' + esc(label) + '</td>';
+      for (var j = 0; j < dates.length; j++) {
+        var dStr    = dates[j];
+        var dates2  = data[ex.id];
+        var done    = Array.isArray(dates2) && dates2.indexOf(dStr) !== -1;
+        var isToday = dStr === today;
+        var classes = ['logbuch-cell', 'readonly'];
+        if (done)    classes.push('done');
+        if (isToday) classes.push('today-col');
+        html += '<td><span class="' + classes.join(' ') + '">' + (done ? '✓' : '') + '</span></td>';
+      }
+      html += '</tr>';
+    }
+  }
+  
+  html += '</tbody></table></div>';
+  return html;
+}
+
+// PDF-Export pro Spieler (Trainer-seitig) — ruft das Skills-Master mit dem Spieler-Objekt auf
+function exportPlayerLogbuchPDF(playerId) {
+  var p = STAFF_LOGBUCH_PLAYERS[playerId];
+  if (!p) return;
+  exportSkillsMasterPDF(p);
+}
+
+/* ====================================================================
+   SOMMER-LOGBUCH 2026  (Phase 5 — PDF-Generierung mit echten Daten)
+   exportSkillsMasterPDF(player?) — wenn kein player übergeben wird,
+   wird PROFILE verwendet (Spieler exportiert sich selbst).
+   ==================================================================== */
+function exportSkillsMasterPDF(playerArg) {
+  var player      = playerArg || PROFILE || {};
+  var skills      = player.skills || {};
+  var logbuchData = skills[LOGBUCH_BLOCK_KEY] || {};
+  var comboName   = logbuchData.free_combo_name || '';
+  var stats       = getLogbuchStats(skills);
+  
+  // Name aufspalten: erstes Wort = Vorname, Rest = Nachname
+  var fullName  = player.display_name || '';
+  var nameParts = fullName.split(' ');
+  var firstName = nameParts[0] || '';
+  var lastName  = nameParts.slice(1).join(' ') || '';
+  
+  var birthDate = '';
+  if (player.geb) {
+    try { birthDate = new Date(player.geb).toLocaleDateString('de-CH'); } catch (e) {}
+  }
+  
   var { jsPDF } = window.jspdf;
   var doc = new jsPDF();
   
-  // Header Page 1
+  /* ========== SEITE 1: Portrait — Intro + Spielerdaten + Stats + Targets ========== */
+  
+  // Header
   doc.setFillColor(21, 23, 30);
   doc.rect(0, 0, 210, 45, "F");
-  
   doc.setFont("Helvetica", "bold");
   doc.setFontSize(22);
-  doc.setTextColor(212, 175, 55); // Gold
+  doc.setTextColor(212, 175, 55);
   doc.text("FE12 - OB Online", 14, 18);
   doc.setFontSize(16);
   doc.setTextColor(255, 255, 255);
   doc.text("SKILLS MASTER LEHRPLAN", 14, 28);
   doc.setFontSize(11);
   doc.setTextColor(180, 180, 180);
-  doc.text("Team Basel-Old Boys · DNA", 14, 37);
+  doc.text("Team Basel-Old Boys · DNA · Sommer 2026", 14, 37);
   
-  // Add circular logo to Page 1 header
+  // Rundes Logo
   if (typeof LOGO_BASE64 === "string" && LOGO_BASE64.indexOf("data:") === 0) {
     try {
       doc.saveGraphicsState();
@@ -2001,8 +2920,6 @@ function exportSkillsMasterPDF() {
       doc.clip();
       doc.addImage(LOGO_BASE64, "PNG", 165, 7, 30, 30);
       doc.restoreGraphicsState();
-      
-      // Draw golden circular border
       doc.setDrawColor(212, 175, 55);
       doc.setLineWidth(1);
       doc.circle(180, 22, 15, "D");
@@ -2011,138 +2928,239 @@ function exportSkillsMasterPDF() {
     }
   }
   
-  // Main Text
+  // === NEU: Spieler-Info Block ===
+  doc.setFillColor(245, 245, 245);
+  doc.rect(14, 50, 182, 24, "F");
+  doc.setDrawColor(212, 175, 55);
+  doc.setLineWidth(0.4);
+  doc.rect(14, 50, 182, 24, "S");
+  
   doc.setFont("Helvetica", "bold");
-  doc.setFontSize(12);
-  doc.setTextColor(12, 13, 16);
-  doc.text("Täglicher Trainingsplan (20 - 45 Minuten):", 14, 55);
+  doc.setFontSize(9);
+  doc.setTextColor(80, 80, 80);
+  doc.text("Vorname:", 17, 56);
+  doc.text("Nachname:", 80, 56);
+  doc.text("Geburtsdatum:", 143, 56);
   
   doc.setFont("Helvetica", "normal");
+  doc.setFontSize(12);
+  doc.setTextColor(12, 13, 16);
+  doc.text(firstName || "—", 17, 64);
+  doc.text(lastName  || "—", 80, 64);
+  doc.text(birthDate || "—", 143, 64);
+  
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(9);
+  doc.setTextColor(80, 80, 80);
+  doc.text("Combo-Name:", 17, 71);
+  doc.setFont("Helvetica", "italic");
+  doc.setTextColor(12, 13, 16);
   doc.setFontSize(10);
+  doc.text(comboName || "—", 47, 71);
+  
+  // === Training-Plan Text ===
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(12, 13, 16);
+  doc.text("Täglicher Trainingsplan (20 - 45 Minuten):", 14, 83);
+  
+  doc.setFont("Helvetica", "normal");
+  doc.setFontSize(9.5);
   doc.text([
     "Konstantes und fleißiges Üben führt zum Erfolg! Versuche jeden Tag einen Teil zu trainieren.",
     "• Jonglier-Einheit (10-15 Min): Übe die Juggling-Aufgaben. Ziel ist es, Gold-Werte zu brechen!",
     "• Trick-Einheit (15-20 Min): Nimm dir 2 Tricks vor. Trainiere links und rechts (L/R) gleichmäßig.",
     "• Combo-Einheit (10 Min): Übe die Combo 1 oder erfinde eigene Kombinationen am Ball."
-  ], 14, 62);
+  ], 14, 89);
   
-  // Motivational Message Box (Encouraging and constructive)
+  // Motivations-Box
   doc.setFillColor(245, 245, 245);
-  doc.rect(14, 88, 182, 36, "F");
+  doc.rect(14, 110, 182, 32, "F");
   doc.setFont("Helvetica", "bold");
-  doc.text("Wichtig für dich:", 18, 94);
+  doc.setFontSize(10);
+  doc.text("Wichtig für dich:", 18, 116);
   doc.setFont("Helvetica", "normal");
-  doc.setFontSize(9);
+  doc.setFontSize(8.5);
   doc.text([
     "Ferien und Zeit mit der Familie sind wichtig, um Kraft zu tanken! Erholung gehört zum Sport dazu.",
     "Wenn du wieder trainierst, bleib motiviert dabei. Du hast dir den Platz im Team Basel Old Boys durch",
     "deinen Fleiß verdient. Nutze diesen Sommer, um dich spielerisch vorzubereiten. Jeder Schritt bringt",
     "dich deinen Zielen - wie der FE13 oder dem FC Basel U13 - ein Stück näher! Wir glauben an dich!"
-  ], 18, 100);
+  ], 18, 122);
   
-  // Section 1: Juggling Table
+  // === STATS-BOX (NEU) ===
+  doc.setFillColor(21, 23, 30);
+  doc.rect(14, 148, 182, 24, "F");
   doc.setFont("Helvetica", "bold");
-  doc.setFontSize(12);
-  doc.text("1. JONGLIER-CHALLENGES", 14, 134);
+  doc.setFontSize(10);
+  doc.setTextColor(212, 175, 55);
+  doc.text("DEINE SOMMER-CHALLENGE STATISTIK", 18, 155);
+  
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(18);
+  doc.setTextColor(255, 255, 255);
+  doc.text(stats.daysActive + "/" + stats.daysTotal,             20,  166);
+  doc.text(stats.exercisesTouched + "/" + stats.exercisesTotal,  82,  166);
+  doc.text(String(stats.totalChecks),                            145, 166);
+  doc.setFont("Helvetica", "normal");
+  doc.setFontSize(7.5);
+  doc.setTextColor(180, 180, 180);
+  doc.text("Tage aktiv",          20,  170);
+  doc.text("Übungen angefasst",   82,  170);
+  doc.text("Häkchen total",       145, 170);
+  
+  // === Jonglier-Ziele Tabelle ===
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(12, 13, 16);
+  doc.text("1. JONGLIER-CHALLENGES (Ziel-Werte)", 14, 182);
   
   var jugData = [
-    ["Vollspann Rechts/Links", "50 Kontakte kontrolliert L/R", "50", "30", "15"],
-    ["Spann im Wechsel", "100 Kontakte abwechselnd R/L", "100", "60", "30"],
-    ["Oberschenkel L/R", "50 Kontakte mit Oberschenkel", "50", "30", "15"],
-    ["Oberschenkel abwechselnd", "100 Kontakte abwechselnd R/L", "100", "60", "30"],
-    ["Kopfball-Meister", "50 Kontakte mit dem Kopf", "50", "30", "15"],
-    ["Außenrist L/R", "20 Kontakte mit dem Außenrist L/R", "20", "12", "6"],
-    ["Innenrist L/R", "20 Kontakte mit dem Innenrist L/R", "20", "12", "6"],
-    ["Master: Kleine Weltreise", "R Spann -> R Oberschenkel -> Kopf -> L Oberschenkel -> L Spann (3 Runden)", "3 Runden", "2 Runden", "1 Runde"]
+    ["Vollspann Rechts/Links",   "50 Kontakte kontrolliert L/R",                                             "50",       "30",       "15"],
+    ["Spann im Wechsel",         "100 Kontakte abwechselnd R/L",                                             "100",      "60",       "30"],
+    ["Oberschenkel L/R",         "50 Kontakte mit Oberschenkel",                                             "50",       "30",       "15"],
+    ["Oberschenkel abwechselnd", "100 Kontakte abwechselnd R/L",                                             "100",      "60",       "30"],
+    ["Kopfball-Meister",         "50 Kontakte mit dem Kopf",                                                 "50",       "30",       "15"],
+    ["Außenrist L/R",            "20 Kontakte mit dem Außenrist L/R",                                        "20",       "12",       "6"],
+    ["Innenrist L/R",            "20 Kontakte mit dem Innenrist L/R",                                        "20",       "12",       "6"],
+    ["Master: Kleine Weltreise", "R Spann -> R Oberschenkel -> Kopf -> L Oberschenkel -> L Spann",           "3 Runden", "2 Runden", "1 Runde"]
   ];
   
   doc.autoTable({
-    startY: 138,
+    startY: 185,
     head: [["Herausforderung", "Beschreibung", "Gold", "Silber", "Bronze"]],
     body: jugData,
     theme: "striped",
-    headStyles: { fillColor: [212, 175, 55], textColor: [12, 13, 16], fontStyle: "bold" },
-    styles: { font: "Helvetica", fontSize: 9 }
+    headStyles: { fillColor: [212, 175, 55], textColor: [12, 13, 16], fontStyle: "bold", fontSize: 9 },
+    styles: { font: "Helvetica", fontSize: 8.5, cellPadding: 1.8 }
   });
   
-  // Add developer credit in footer Page 1
+  // Footer Seite 1
   doc.setFont("Helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(150, 150, 150);
   doc.text("System & Development by Dogus Kaplan", 14, 285);
+  doc.text("Seite 1", 196, 285, { align: "right" });
   
-  // Add a new page for Tricks list
-  doc.addPage();
+  /* ========== SEITE 2: LANDSCAPE — Volles 21×28 Logbuch-Grid ========== */
+  doc.addPage("a4", "landscape");
   
-  // Header page 2
+  // Header Seite 2 (landscape: 297×210)
   doc.setFillColor(21, 23, 30);
-  doc.rect(0, 0, 210, 25, "F");
+  doc.rect(0, 0, 297, 22, "F");
   doc.setFont("Helvetica", "bold");
-  doc.setFontSize(14);
+  doc.setFontSize(13);
   doc.setTextColor(212, 175, 55);
-  doc.text("FE12 - OB Online · SKILLS LEHRPLAN", 14, 16);
+  doc.text("FE12 - OB Online · SOMMER-LOGBUCH 2026", 14, 12);
+  doc.setFont("Helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(220, 220, 220);
+  doc.text(
+    (firstName + " " + lastName).trim() + (birthDate ? "  ·  geb. " + birthDate : "") + "  ·  Zeitraum: 06.07. – 26.07.2026",
+    14, 18
+  );
   
-  // Add smaller circular logo to Page 2 header
+  // Kleines Logo rechts
   if (typeof LOGO_BASE64 === "string" && LOGO_BASE64.indexOf("data:") === 0) {
     try {
       doc.saveGraphicsState();
-      doc.arc(187.5, 12.5, 7.5, 0, 2 * Math.PI);
+      doc.arc(282, 11, 7, 0, 2 * Math.PI);
       doc.clip();
-      doc.addImage(LOGO_BASE64, "PNG", 180, 5, 15, 15);
+      doc.addImage(LOGO_BASE64, "PNG", 275, 4, 14, 14);
       doc.restoreGraphicsState();
-      
-      // Draw golden border
       doc.setDrawColor(212, 175, 55);
       doc.setLineWidth(0.5);
-      doc.circle(187.5, 12.5, 7.5, "D");
-    } catch (e) {
-      doc.addImage(LOGO_BASE64, "PNG", 180, 5, 15, 15);
+      doc.circle(282, 11, 7, "D");
+    } catch (e) {}
+  }
+  
+  // === Grid-Daten aufbauen ===
+  var dates        = getLogbuchDateList();
+  var weekdayShort = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  
+  // Header-Reihe (Wochentag + Tag)
+  var headRow = ["Übung"];
+  for (var i = 0; i < dates.length; i++) {
+    var d = new Date(dates[i] + 'T00:00:00');
+    var dd = ('0' + d.getDate()).slice(-2);
+    var wd = weekdayShort[d.getDay()];
+    headRow.push(wd + "\n" + dd + ".");
+  }
+  
+  // Body-Reihen — mit Sektion-Headers als colSpan-Reihen
+  var body = [];
+  var sections = [
+    { key: 'jonglier', title: 'JONGLIER-CHALLENGES' },
+    { key: 'trick',    title: 'TRICKS' },
+    { key: 'free',     title: 'EIGENE COMBO' }
+  ];
+  
+  for (var s = 0; s < sections.length; s++) {
+    var sec = sections[s];
+    body.push([{
+      content: sec.title,
+      colSpan: 22,
+      styles: { fillColor: [212, 175, 55], textColor: [12, 13, 16], fontStyle: 'bold', halign: 'left', fontSize: 9, cellPadding: 1.8 }
+    }]);
+    for (var i = 0; i < LOGBUCH_EXERCISES.length; i++) {
+      var ex = LOGBUCH_EXERCISES[i];
+      if (ex.section !== sec.key) continue;
+      var label = ex.label;
+      if (ex.id === 'free_combo' && comboName) label = comboName;
+      var row = [label];
+      var datesForEx = logbuchData[ex.id] || [];
+      for (var j = 0; j < dates.length; j++) {
+        row.push(datesForEx.indexOf(dates[j]) !== -1 ? 'X' : '');
+      }
+      body.push(row);
     }
   }
   
-  doc.setFont("Helvetica", "bold");
-  doc.setFontSize(12);
-  doc.setTextColor(12, 13, 16);
-  doc.text("2. TRICK-CHALLENGES (Links & Rechts L/R)", 14, 35);
-  
-  var trickData = [
-    ["Samba Steps", "Schnelles Überrollen und Antäuschen über den Ball"],
-    ["Rabona", "Flanke oder Schuss durch Überkreuzen der Beine"],
-    ["Pass Fake", ""],
-    ["Back Rolls", ""],
-    ["360 Grad / Roulette", ""],
-    ["Cruyff-Turn", ""],
-    ["Around the World", ""],
-    ["Magnet", ""],
-    ["Neymar Trick", ""],
-    ["Ball Rubber", ""],
-    ["Rakitic Hacken", ""],
-    ["Ronaldo-Übersteiger", ""],
-    ["3fach-Übersteiger", ""],
-    ["Neymar1 Special", ""],
-    ["Zidane Drehung", ""],
-    ["CR7 Chop", ""],
-    ["The V", ""],
-    ["Okocha Flick", "Ball mit beiden Beinen einklemmen und über den Gegner heben"],
-    ["Combo 1", "Neymar1 - Zidane - 2fach-Übersteiger flüssig verbunden"]
-  ];
-  
   doc.autoTable({
-    startY: 40,
-    head: [["Trick / Challenge", "Beschreibung & Ausführung (L/R)"]],
-    body: trickData,
-    theme: "striped",
-    headStyles: { fillColor: [21, 23, 30], textColor: [255, 255, 255], fontStyle: "bold" },
-    styles: { font: "Helvetica", fontSize: 8 }
+    startY: 26,
+    head: [headRow],
+    body: body,
+    theme: 'grid',
+    headStyles: {
+      fillColor: [21, 23, 30], textColor: [255, 255, 255], fontStyle: 'bold',
+      halign: 'center', valign: 'middle', fontSize: 7.5, cellPadding: 1.2, minCellHeight: 8
+    },
+    styles: {
+      font: 'Helvetica', fontSize: 8, cellPadding: 1.2, halign: 'center', valign: 'middle',
+      minCellHeight: 5, lineColor: [180, 180, 180], lineWidth: 0.15, textColor: [80, 80, 80]
+    },
+    columnStyles: {
+      0: { halign: 'left', cellWidth: 50, fontStyle: 'bold', fontSize: 8.5, textColor: [12, 13, 16] }
+    },
+    didParseCell: function(d) {
+      // Trainierte Tage als kräftiges goldenes "X" stylen
+      if (d.column.index > 0 && d.cell.raw === 'X' && d.section === 'body') {
+        d.cell.styles.textColor = [212, 175, 55];
+        d.cell.styles.fontStyle = 'bold';
+        d.cell.styles.fontSize  = 11;
+        d.cell.styles.fillColor = [253, 248, 230]; // sehr helles Gold als Highlight
+      }
+    },
+    margin: { left: 8, right: 8 }
   });
   
-  // Add developer credit in footer Page 2
+  // Legende unter dem Grid
+  var endY = doc.lastAutoTable.finalY + 5;
+  doc.setFont("Helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(80, 80, 80);
+  doc.text("X = trainiert  ·  leer = nicht trainiert  ·  L/R = mit beiden Beinen üben!", 14, endY);
+  
+  // Footer Seite 2
   doc.setFont("Helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(150, 150, 150);
-  doc.text("System & Development by Dogus Kaplan", 14, 285);
+  doc.text("Team Basel-Old Boys DNA · System & Development by Dogus Kaplan", 14, 203);
+  doc.text("Seite 2", 283, 203, { align: "right" });
   
-  doc.save("Team_Basel_OB_FE12_Skills_Master.pdf");
+  // Dateiname mit Spielername
+  var safeName = (firstName + "_" + lastName).replace(/[^a-zA-Z0-9_äöüÄÖÜß-]/g, "") || "Spieler";
+  doc.save("Team_Basel_OB_FE12_" + safeName + "_Sommerplan.pdf");
 }
 
 var KADER_PLAYERS = [];
