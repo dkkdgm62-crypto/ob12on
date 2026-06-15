@@ -1682,7 +1682,8 @@ function formatLernstoffText(text){
 
 function launchQuiz(moduleId){
   var mod=null; for(var i=0;i<MODULES.length;i++) if(MODULES[i].module_id===moduleId)mod=MODULES[i];
-  if(!mod || (!mod.offen && !isStaff())) return;
+  var isQ1Open = mod && (mod.quartal === 1 && Q1_OPEN_MODULE_NR.indexOf(mod.modul_nr) > -1);
+  if(!mod || (!isQ1Open && !isStaff())) return;
   scrollToTop();
   only("view-quiz"); show("app-head"); if(!isStaff()) { show("player-nav"); hide("player-stats-card"); }
   el("quiz-q").innerHTML='<div class="spinner"></div>'; el("quiz-opts").innerHTML=""; el("quiz-fb").innerHTML=""; hide("quiz-next");
@@ -3679,12 +3680,13 @@ function changeRound(roundNr) {
       el("runden-msg").style.color = "var(--bad)";
       el("runden-msg").textContent = "Fehler beim Quartalswechsel: " + r.error.message;
     } else {
+      if (ACCESS) ACCESS.current_round = roundNr;
       el("runden-msg").style.color = "var(--good)";
-      el("runden-msg").textContent = "Erfolgreich in Quartal " + roundNr + " gewechselt. Leaderboard und Fortschritt wurden aktualisiert.";
-      refreshAccess(false);
-      setTimeout(function() {
+      el("runden-msg").textContent = "Erfolgreich in Quartal " + roundNr + " gewechselt.";
+      sb.rpc("get_access_state").then(function(a) {
+        if (a.data) ACCESS = a.data;
         showStaffTab("runden");
-      }, 1000);
+      });
     }
   });
 }
