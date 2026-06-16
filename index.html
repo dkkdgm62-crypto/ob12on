@@ -1585,11 +1585,11 @@ function formatExpiry(isoStr) {
   return d.toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit" }) + " " + d.toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" });
 }
 
-/* ===== QUARTAL 1 ZUGANG: Nur diese Modul-Nummern sind offen ===== */
-var Q1_OPEN_MODULE_NR = [1, 2, 4, 6];
+/* ===== QUARTAL 1 ZUGANG: Alle 6 Q1-Module sind immer offen ===== */
+var Q1_OPEN_MODULE_NR = [1, 2, 3, 4, 5, 6];
 
-/* ===== BONUS-MODUL Anzeige-Mapping (Gruppe 2 · 1v1-Masterclass) ===== */
-var MODULE_DISPLAY_NR = {17:'2.1', 18:'2.2', 19:'2.3', 20:'2.4', 21:'2.5', 22:'2.6'};
+/* ===== Optionales Display-Mapping (aktuell leer — Modul-Nr wird 1:1 angezeigt) ===== */
+var MODULE_DISPLAY_NR = {};
 function moduleDisplayNr(nr){ return MODULE_DISPLAY_NR[nr] || nr; }
 
 function renderModules(){
