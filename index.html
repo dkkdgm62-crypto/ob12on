@@ -1596,19 +1596,26 @@ function renderModules(){
     html+='<div class="quartal"><div class="qhead"><span class="qnum">Q'+q+'</span><h3>'+esc(CATEGORY_NAMES[q])+'</h3></div><div class="grid">';
     
     byQ[q].forEach(function(m){
-      /* Effektiver Zugang: NUR Q1-Module in der erlaubten Liste */
+      /* Effektiver Zugang: Q1-Module aus Liste ODER vom Trainer freigeschaltet */
       var isQ1Open = (m.quartal === 1 && Q1_OPEN_MODULE_NR.indexOf(m.modul_nr) > -1);
       var isExpired = m.expires_at ? new Date(m.expires_at) < new Date() : false;
-      var effectivelyOpen = isQ1Open;
+      var isUnlocked = (m.always_open === true) || (m.expires_at && !isExpired);
+      var effectivelyOpen = isQ1Open || isUnlocked;
       
       var state = m.passed ? "passed" : (effectivelyOpen ? "open" : "locked");
       
       var pillClass = "pill locked";
       var pillText = "🔒 Gesperrt";
       
-      if (m.passed && isQ1Open) {
+      if (m.passed && effectivelyOpen) {
         pillClass = "pill passed";
         pillText = "✓ Gemeistert";
+      } else if (m.always_open) {
+        pillClass = "pill always";
+        pillText = "🔓 Freigeschaltet";
+      } else if (m.expires_at && !isExpired) {
+        pillClass = "pill open";
+        pillText = "🔓 Freigeschaltet · " + formatExpiry(m.expires_at);
       } else if (effectivelyOpen) {
         pillClass = "pill open";
         pillText = "Offen";
@@ -1651,9 +1658,11 @@ function renderModules(){
 function startModule(moduleId){
   var mod=null; for(var i=0;i<MODULES.length;i++) if(MODULES[i].module_id===moduleId)mod=MODULES[i];
   if(!mod) return;
-  /* Zugangs-Schutz: Spieler dürfen nur Q1-Module 1,2,4,6 öffnen */
+  /* Zugangs-Schutz: Q1-Basis ODER vom Trainer freigeschaltet */
   var isQ1Open = (mod.quartal === 1 && Q1_OPEN_MODULE_NR.indexOf(mod.modul_nr) > -1);
-  if(!isQ1Open && !isStaff()) return;
+  var isExpired = mod.expires_at ? new Date(mod.expires_at) < new Date() : false;
+  var isUnlocked = (mod.always_open === true) || (mod.expires_at && !isExpired);
+  if(!isQ1Open && !isUnlocked && !isStaff()) return;
   scrollToTop();
   only("view-learn"); show("app-head"); if(!isStaff()) { show("player-nav"); hide("player-stats-card"); }
   el("learn-title").textContent = "Lernblock · Modul " + mod.modul_nr;
@@ -1682,8 +1691,11 @@ function formatLernstoffText(text){
 
 function launchQuiz(moduleId){
   var mod=null; for(var i=0;i<MODULES.length;i++) if(MODULES[i].module_id===moduleId)mod=MODULES[i];
-  var isQ1Open = mod && (mod.quartal === 1 && Q1_OPEN_MODULE_NR.indexOf(mod.modul_nr) > -1);
-  if(!mod || (!isQ1Open && !isStaff())) return;
+  if(!mod) return;
+  var isQ1Open = (mod.quartal === 1 && Q1_OPEN_MODULE_NR.indexOf(mod.modul_nr) > -1);
+  var isExpired = mod.expires_at ? new Date(mod.expires_at) < new Date() : false;
+  var isUnlocked = (mod.always_open === true) || (mod.expires_at && !isExpired);
+  if(!isQ1Open && !isUnlocked && !isStaff()) return;
   scrollToTop();
   only("view-quiz"); show("app-head"); if(!isStaff()) { show("player-nav"); hide("player-stats-card"); }
   el("quiz-q").innerHTML='<div class="spinner"></div>'; el("quiz-opts").innerHTML=""; el("quiz-fb").innerHTML=""; hide("quiz-next");
