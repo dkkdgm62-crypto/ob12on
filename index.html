@@ -1557,8 +1557,24 @@ function loadPlayerStats() {
 
 function loadModules(){
   el("view-modules").innerHTML='<div class="spinner"></div>';
-  sb.rpc("get_module_status").then(function(r){
-    MODULES = r.data || [];
+  Promise.all([
+    sb.rpc("get_module_status"),
+    sb.rpc("get_my_unlocks")
+  ]).then(function(results){
+    var modRes = results[0], unlockRes = results[1];
+    MODULES = modRes.data || [];
+    var unlocks = (unlockRes && unlockRes.data) || [];
+    /* Unlock-Daten in MODULES einmergen — überschreibt always_open/expires_at falls vorhanden */
+    var byMid = {};
+    unlocks.forEach(function(u){ byMid[u.module_id] = u; });
+    MODULES.forEach(function(m){
+      var u = byMid[m.module_id];
+      if(u){
+        /* unbegrenzter Unlock = always_open für diesen Spieler */
+        if(u.expires_at == null){ m.always_open = true; }
+        else { m.expires_at = u.expires_at; }
+      }
+    });
     renderModules();
   });
 }
@@ -1791,10 +1807,14 @@ function finishModule(){
     show("res-retry");
   }
   
-  // Im Hintergrund aktualisieren wir den Modulstatus in Supabase
-  sb.rpc("get_module_status").then(function(r){
-    if (r.data) MODULES = r.data;
-  });
+  // Im Hintergrund aktualisieren wir den Modulstatus in Supabase (mit Unlock-Merge)
+  if(!isStaff()) {
+    loadModules();
+  } else {
+    sb.rpc("get_module_status").then(function(r){
+      if (r.data) MODULES = r.data;
+    });
+  }
 }
 function retryModule(){ startModule(QZ.moduleId); }
 function exitQuiz(){ QZ=null; if(isStaff()) showStaffTab("vor"); else showPlayerTab("lernen"); }
