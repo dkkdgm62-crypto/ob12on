@@ -1588,6 +1588,10 @@ function formatExpiry(isoStr) {
 /* ===== QUARTAL 1 ZUGANG: Nur diese Modul-Nummern sind offen ===== */
 var Q1_OPEN_MODULE_NR = [1, 2, 4, 6];
 
+/* ===== BONUS-MODUL Anzeige-Mapping (Gruppe 2 · 1v1-Masterclass) ===== */
+var MODULE_DISPLAY_NR = {17:'2.1', 18:'2.2', 19:'2.3', 20:'2.4', 21:'2.5', 22:'2.6'};
+function moduleDisplayNr(nr){ return MODULE_DISPLAY_NR[nr] || nr; }
+
 function renderModules(){
   /* Nur Q1-offene Module für den Fortschritt zählen */
   var openCount = Q1_OPEN_MODULE_NR.length;
@@ -1660,7 +1664,7 @@ function renderModules(){
         ? '<div class="bar"><i style="width:'+prog+'%"></i></div><div class="mfoot"><small>'+m.mastered+'/'+m.total_q+' Fragen richtig</small>'+btn+'</div>'
         : '<div class="bar" style="background:#222630;"><i style="width:0%"></i></div><div class="mfoot" style="margin-top:auto;"><small style="font-size:11.5px; line-height:1.35; display:block; color:var(--muted); font-weight:500;">'+teaserMsg+'</small></div>';
       
-      html+='<div class="mod' + extraClass + '"><div class="mtop"><span class="mnr">MODUL '+m.modul_nr+'</span><span class="'+pillClass+'">'+pillText+'</span></div>'+
+      html+='<div class="mod' + extraClass + '"><div class="mtop"><span class="mnr">MODUL '+moduleDisplayNr(m.modul_nr)+'</span><span class="'+pillClass+'">'+pillText+'</span></div>'+
         '<h3 style="color:#fff; min-height: 48px; display: flex; align-items: center;">'+titleText+'</h3>'+
         descText+
         '</div>';
@@ -1681,7 +1685,7 @@ function startModule(moduleId){
   if(!isQ1Open && !isUnlocked && !isStaff()) return;
   scrollToTop();
   only("view-learn"); show("app-head"); if(!isStaff()) { show("player-nav"); hide("player-stats-card"); }
-  el("learn-title").textContent = "Lernblock · Modul " + mod.modul_nr;
+  el("learn-title").textContent = "Lernblock · Modul " + moduleDisplayNr(mod.modul_nr);
   el("learn-module-titel").textContent = mod.titel;
   el("learn-text").innerHTML = formatLernstoffText(mod.lernstoff);
   
@@ -1715,7 +1719,7 @@ function launchQuiz(moduleId){
   scrollToTop();
   only("view-quiz"); show("app-head"); if(!isStaff()) { show("player-nav"); hide("player-stats-card"); }
   el("quiz-q").innerHTML='<div class="spinner"></div>'; el("quiz-opts").innerHTML=""; el("quiz-fb").innerHTML=""; hide("quiz-next");
-  el("quiz-title").textContent = mod? ("Modul "+mod.modul_nr) : "Modul";
+  el("quiz-title").textContent = mod? ("Modul "+moduleDisplayNr(mod.modul_nr)) : "Modul";
   sb.rpc("get_module_questions",{p_module_id:moduleId}).then(function(r){
     if(r.error){
       if((r.error.message||"").indexOf("LERNFENSTER")>-1){onWindowClosed();} 
@@ -3581,7 +3585,7 @@ function loadActiveUnlocksList() {
       sb.rpc("get_module_status").then(function(mRes) {
         var modules = mRes.data || [];
         var moduleMap = {};
-        modules.forEach(function(m) { moduleMap[m.module_id] = "Modul " + m.modul_nr + " · " + m.titel.replace(/^.*?- /,""); });
+        modules.forEach(function(m) { moduleMap[m.module_id] = "Modul " + moduleDisplayNr(m.modul_nr) + " · " + m.titel.replace(/^.*?- /,""); });
         
         var h = "";
         unlocks.forEach(function(u) {
@@ -3754,7 +3758,7 @@ function loadStaffModules(){
       var roundBadge = m.ist_aktiv_in_runde ? '<span class="pill always">In M' + ACCESS.current_round + ' aktiv</span>' : '<span class="pill locked">Inaktiv</span>';
       if (m.always_open) roundBadge = '<span class="pill always">🔓 Immer offen</span>';
       
-      h+='<div class="mod open"><div class="mtop"><span class="mnr">MODUL '+m.modul_nr+'</span>' + roundBadge + '</div>'+
+      h+='<div class="mod open"><div class="mtop"><span class="mnr">MODUL '+moduleDisplayNr(m.modul_nr)+'</span>' + roundBadge + '</div>'+
          '<h3 style="color:#fff;">'+esc(m.titel.replace(/^.*?- /,""))+'</h3>'+
          '<div class="mfoot"><small>'+m.total_q+' Fragen</small>'+
          '<button class="btn" style="padding:9px 14px; font-size:13px" onclick="startModule(\''+m.module_id+'\')">Ansehen</button></div></div>';
