@@ -1171,9 +1171,9 @@
           <p id="reg-err" class="hidden" style="color:var(--bad); font-size:13px; margin-top:14px; text-align:center; font-weight:600;"></p>
         </div>
         <div id="reg-success" class="hidden" style="text-align:center; padding:20px;">
-          <div style="font-size:40px; margin-bottom:12px;">✅</div>
-          <h3 style="color:var(--good); margin-bottom:8px;">Registrierung erfolgreich!</h3>
-          <p class="muted" style="font-size:13px; margin-bottom:16px;">Du kannst dich jetzt mit deiner E-Mail und deinem Passwort einloggen.</p>
+          <div style="font-size:40px; margin-bottom:12px;">📧</div>
+          <h3 style="color:var(--good); margin-bottom:8px;">Fast geschafft!</h3>
+          <p class="muted" style="font-size:13px; margin-bottom:16px;">Dein Account wurde erstellt. Bitte bestätige zuerst die E-Mail, die wir dir geschickt haben — danach kannst du dich einloggen.</p>
           <button class="btn" style="padding:10px 24px;" onclick="location.href=location.origin+location.pathname">Zum Login</button>
         </div>
       </div>
@@ -2905,6 +2905,7 @@ function doRegister() {
   var email = el("reg-email").value;
   var pass = el("reg-pass").value;
   var pass2 = el("reg-pass2").value;
+  var displayName = (el("reg-player-name").textContent || "").trim();
   hide("reg-err");
 
   if (!pass || pass.length < 6) {
@@ -2916,16 +2917,41 @@ function doRegister() {
     show("reg-err"); return;
   }
 
-  sb.auth.signUp({email: email, password: pass}).then(function(r) {
+  var btn = event && event.target ? event.target : null;
+  if (btn) { btn.disabled = true; btn.textContent = "Wird erstellt..."; }
+
+  sb.auth.signUp({
+    email: email,
+    password: pass,
+    options: { data: { display_name: displayName } }
+  }).then(function(r) {
     if (r.error) {
+      if (btn) { btn.disabled = false; btn.textContent = "Registrieren & Starten"; }
       el("reg-err").textContent = "Fehler: " + r.error.message;
       show("reg-err"); return;
     }
-    // Einladung als benutzt markieren
-    sb.rpc("mark_invitation_used", {p_code: CURRENT_INVITE_CODE}).then(function() {
-      hide("reg-form");
-      show("reg-success");
-    });
+
+    // Einladung als benutzt markieren (nicht blockierend)
+    sb.rpc("mark_invitation_used", {p_code: CURRENT_INVITE_CODE});
+
+    // FALL 1: Session vorhanden (E-Mail-Bestätigung AUS) → direkt rein
+    if (r.data && r.data.session) {
+      ME = r.data.session.user;
+      // Profil garantiert anlegen/aktualisieren, dann direkt einloggen
+      sb.rpc("ensure_profile", {p_display_name: displayName}).then(function() {
+        // URL säubern (?invite=... entfernen) damit Reload sauber ist
+        try { history.replaceState(null, "", location.pathname); } catch(e) {}
+        sb.rpc("log_login_event", {p_event: "login"});
+        hideAllChrome();
+        afterLogin();
+      });
+      return;
+    }
+
+    // FALL 2: Keine Session (E-Mail-Bestätigung AN) → Hinweis zeigen
+    if (btn) { btn.disabled = false; btn.textContent = "Registrieren & Starten"; }
+    hide("reg-form");
+    show("reg-success");
   });
 }
 
