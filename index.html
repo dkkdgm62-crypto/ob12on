@@ -2980,68 +2980,95 @@ function doRegister() {
   });
 }
 
+var PLAYERS_CACHE = []; // für Edit-Modal
+
 function loadInvitations() {
   var tbody = el("inv-tbody");
   tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;"><div class="spinner"></div></td></tr>';
-  sb.rpc("get_invitations").then(function(r) {
-    var invs = r.data || [];
-    if (invs.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" class="muted" style="text-align:center;">Noch keine Einladungen erstellt.</td></tr>';
+  // Neue RPC: get_all_players liefert ALLE Spieler + offene Einladungen
+  sb.rpc("get_all_players").then(function(r) {
+    if (r.error) {
+      // Fallback auf alte Funktion falls SQL noch nicht ausgeführt
+      tbody.innerHTML = '<tr><td colspan="5" class="muted" style="text-align:center; color:var(--bad);">Fehler: SQL-Update fehlt (get_all_players). Bitte spieler_verwaltung_fix.sql ausführen.</td></tr>';
       el("inv-info").textContent = "";
       return;
     }
+    var rows = r.data || [];
+    PLAYERS_CACHE = rows;
+
+    if (rows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="muted" style="text-align:center;">Noch keine Spieler oder Einladungen.</td></tr>';
+      el("inv-info").textContent = "";
+      return;
+    }
+
     var html = "";
-    invs.forEach(function(inv) {
-      var expired = new Date(inv.expires_at) < new Date();
+    var countPlayers = 0, countOpenInv = 0;
+
+    rows.forEach(function(row, idx) {
+      var isPlayer  = row.player_id != null;
+      var hasInvite = row.has_invite === true;
+      var inviteExpired = hasInvite && row.invite_expires_at && (new Date(row.invite_expires_at) < new Date());
+      var isActive  = row.is_active !== false;
+
+      if (isPlayer) countPlayers++;
+      else if (hasInvite && !row.invite_used && !inviteExpired) countOpenInv++;
+
+      // ── Status-Badge
       var statusHtml = "";
-      if (inv.registered) {
+      if (isPlayer) {
         statusHtml = '<span class="tag" style="color:var(--good); border-color:var(--good);">✓ Registriert</span>';
-      } else if (inv.used) {
-        statusHtml = '<span class="tag" style="color:var(--muted);">Benutzt</span>';
-      } else if (expired) {
+      } else if (hasInvite && row.invite_used) {
+        statusHtml = '<span class="tag" style="color:var(--muted);">Link benutzt</span>';
+      } else if (inviteExpired) {
         statusHtml = '<span class="tag" style="color:var(--bad); border-color:var(--bad);">Abgelaufen</span>';
       } else {
-        statusHtml = '<span class="tag" style="color:var(--gold); border-color:var(--gold);">Offen</span>';
+        statusHtml = '<span class="tag" style="color:var(--gold); border-color:var(--gold);">Link offen</span>';
       }
 
-      var activeHtml = "";
-      if (inv.registered) {
-        var isAct = inv.is_active !== false;
-        activeHtml = isAct
-          ? '<span style="color:var(--good); font-weight:700;">Aktiv</span>'
-          : '<span style="color:var(--bad); font-weight:700;">Gesperrt</span>';
-      } else {
-        activeHtml = '<span class="muted">–</span>';
-      }
+      // ── Aktiv/Gesperrt
+      var activeHtml = isPlayer
+        ? (isActive
+            ? '<span style="color:var(--good); font-weight:700;">Aktiv</span>'
+            : '<span style="color:var(--bad); font-weight:700;">Gesperrt</span>')
+        : '<span class="muted">–</span>';
 
+      // ── Aktionen
       var actionsHtml = '';
-      if (!inv.registered && (expired || inv.used)) {
-        actionsHtml += '<button class="btn" style="padding:4px 10px; font-size:11px;" onclick="reInvite(\'' + esc(inv.email) + '\',\'' + esc(inv.display_name) + '\')">Neuer Link</button>';
-      } else if (!inv.registered && !expired && !inv.used) {
-        var link = location.origin + location.pathname + "?invite=" + inv.invite_code;
-        actionsHtml += '<button class="btn-ghost" style="padding:4px 10px; font-size:11px;" onclick="copyInviteLink(\'' + esc(inv.invite_code) + '\', this)">Link kopieren</button>';
-      }
-      if (inv.registered) {
-        var isAct2 = inv.is_active !== false;
-        if (isAct2) {
-          actionsHtml += '<button class="btn-ghost" style="padding:4px 10px; font-size:11px; color:var(--bad); border-color:var(--bad);" onclick="togglePlayerActive(\'' + esc(inv.email) + '\', false)">Sperren</button> ';
+
+      if (isPlayer) {
+        // Bearbeiten
+        actionsHtml += '<button class="btn-ghost" style="padding:4px 10px; font-size:11px;" onclick="openEditPlayer(' + idx + ')">Bearbeiten</button> ';
+        // Sperren/Aktivieren
+        if (isActive) {
+          actionsHtml += '<button class="btn-ghost" style="padding:4px 10px; font-size:11px; color:var(--bad); border-color:var(--bad);" onclick="togglePlayerActiveById(\'' + row.player_id + '\', false)">Sperren</button> ';
         } else {
-          actionsHtml += '<button class="btn" style="padding:4px 10px; font-size:11px;" onclick="togglePlayerActive(\'' + esc(inv.email) + '\', true)">Aktivieren</button> ';
+          actionsHtml += '<button class="btn" style="padding:4px 10px; font-size:11px;" onclick="togglePlayerActiveById(\'' + row.player_id + '\', true)">Aktivieren</button> ';
         }
-        actionsHtml += '<button class="btn-ghost" style="padding:4px 10px; font-size:11px; color:#ff4444; border-color:#ff4444;" onclick="deletePlayer(\'' + esc(inv.email) + '\',\'' + esc(inv.display_name) + '\')">Löschen</button>';
+        // Löschen
+        actionsHtml += '<button class="btn-ghost" style="padding:4px 10px; font-size:11px; color:#ff4444; border-color:#ff4444;" onclick="deletePlayerById(\'' + row.player_id + '\',\'' + esc(row.display_name) + '\',\'' + esc(row.email) + '\')">Löschen</button>';
+      } else {
+        // Offene Einladung
+        if (inviteExpired || row.invite_used) {
+          actionsHtml += '<button class="btn" style="padding:4px 10px; font-size:11px;" onclick="reInvite(\'' + esc(row.email) + '\',\'' + esc(row.display_name) + '\')">Neuer Link</button> ';
+        } else {
+          actionsHtml += '<button class="btn-ghost" style="padding:4px 10px; font-size:11px;" onclick="copyInviteLink(\'' + esc(row.invite_code) + '\', this)">Link kopieren</button> ';
+        }
+        // Einladung kann auch gelöscht werden
+        actionsHtml += '<button class="btn-ghost" style="padding:4px 10px; font-size:11px; color:#ff4444; border-color:#ff4444;" onclick="deleteInviteByEmail(\'' + esc(row.email) + '\',\'' + esc(row.display_name) + '\')">Löschen</button>';
       }
 
       html += '<tr>' +
-        '<td>' + esc(inv.display_name) + '</td>' +
-        '<td style="font-size:12px;">' + esc(inv.email) + '</td>' +
+        '<td>' + esc(row.display_name || '—') + '</td>' +
+        '<td style="font-size:12px;">' + esc(row.email || '—') + '</td>' +
         '<td style="text-align:center;">' + statusHtml + '</td>' +
         '<td style="text-align:center;">' + activeHtml + '</td>' +
         '<td style="text-align:center; white-space:nowrap;">' + actionsHtml + '</td>' +
         '</tr>';
     });
+
     tbody.innerHTML = html;
-    var regCount = invs.filter(function(i){return i.registered;}).length;
-    el("inv-info").textContent = regCount + " registriert · " + invs.length + " Einladungen total";
+    el("inv-info").textContent = countPlayers + " Spieler · " + countOpenInv + " offene Einladungen";
   });
 }
 
@@ -3100,21 +3127,124 @@ function copyInviteLink(code, btn) {
 }
 
 function togglePlayerActive(email, active) {
-  // Player-ID über auth.users.email finden — wir nutzen profiles
-  sb.from("profiles").select("id").eq("id",
-    sb.from("profiles").select("id") // Workaround: suche via invitations
-  );
-  // Einfacher: direkt via SQL über E-Mail
+  // Legacy: über E-Mail (Fallback)
   sb.rpc("toggle_player_by_email", {p_email: email, p_active: active}).then(function(r) {
     if (r.error) { alert("Fehler: " + r.error.message); return; }
     loadInvitations();
   });
 }
 
+function togglePlayerActiveById(playerId, active) {
+  sb.rpc("toggle_player_active", {p_player_id: playerId, p_active: active}).then(function(r) {
+    if (r.error) {
+      // Fallback auf Email-Variante
+      var row = PLAYERS_CACHE.find(function(p){ return p.player_id === playerId; });
+      if (row && row.email) {
+        return togglePlayerActive(row.email, active);
+      }
+      alert("Fehler: " + r.error.message); return;
+    }
+    loadInvitations();
+  });
+}
+
 function deletePlayer(email, displayName) {
-  if (!confirm("Spieler \"" + displayName + "\" (" + email + ") KOMPLETT löschen?\n\nAlle Daten (Profil, Quiz-Antworten, Logbuch, Logins) werden unwiderruflich entfernt.\n\nBist du sicher?")) return;
+  // Legacy: über E-Mail
+  if (!confirm("Spieler \"" + displayName + "\" (" + email + ") KOMPLETT löschen?\n\nAlle Daten werden unwiderruflich entfernt.\n\nBist du sicher?")) return;
   sb.rpc("delete_player_by_email", {p_email: email}).then(function(r) {
     if (r.error) { alert("Fehler beim Löschen: " + r.error.message); return; }
+    loadInvitations();
+  });
+}
+
+function deletePlayerById(playerId, displayName, email) {
+  if (!confirm("Spieler \"" + displayName + "\" KOMPLETT löschen?\n\nAlle Daten (Profil, Quiz-Antworten, Logbuch, Logins, Login-Account) werden unwiderruflich entfernt.\n\nBist du sicher?")) return;
+  sb.rpc("delete_player", {p_player_id: playerId}).then(function(r) {
+    if (r.error) {
+      // Fallback per E-Mail
+      if (email) { return sb.rpc("delete_player_by_email", {p_email: email}).then(function(r2){
+        if (r2.error) { alert("Fehler: " + r2.error.message); return; }
+        loadInvitations();
+      });}
+      alert("Fehler beim Löschen: " + r.error.message); return;
+    }
+    loadInvitations();
+  });
+}
+
+function deleteInviteByEmail(email, displayName) {
+  if (!confirm("Einladung für \"" + displayName + "\" (" + email + ") löschen?")) return;
+  sb.rpc("delete_player_by_email", {p_email: email}).then(function(r) {
+    if (r.error) { alert("Fehler: " + r.error.message); return; }
+    loadInvitations();
+  });
+}
+
+// ── EDIT PLAYER ─────────────────────────────────────────────
+function openEditPlayer(idx) {
+  var row = PLAYERS_CACHE[idx];
+  if (!row) return;
+  var existing = document.getElementById("edit-player-modal");
+  if (existing) existing.remove();
+
+  var modal = document.createElement("div");
+  modal.id = "edit-player-modal";
+  modal.style.cssText = "position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px;";
+  modal.innerHTML =
+    '<div class="card" style="max-width:440px; width:100%; padding:0; overflow:hidden;">' +
+      '<div style="background:var(--gold-grad); padding:16px; text-align:center;">' +
+        '<h3 style="color:#0c0d10; font-family:Sora; font-weight:800; margin:0;">Spieler bearbeiten</h3>' +
+      '</div>' +
+      '<div style="padding:20px;">' +
+        '<div style="margin-bottom:14px;">' +
+          '<label>Name</label>' +
+          '<input type="text" id="edit-name" value="' + esc(row.display_name || '') + '" />' +
+        '</div>' +
+        '<div style="margin-bottom:18px;">' +
+          '<label>E-Mail</label>' +
+          '<input type="email" id="edit-email" value="' + esc(row.email || '') + '" />' +
+          '<p class="muted" style="font-size:11px; margin-top:6px;">Achtung: Bei E-Mail-Änderung loggt sich der Spieler ab sofort mit der neuen E-Mail ein. Passwort bleibt gleich.</p>' +
+        '</div>' +
+        '<p id="edit-err" class="hidden" style="color:var(--bad); font-size:13px; margin-bottom:12px; font-weight:600; text-align:center;"></p>' +
+        '<div style="display:flex; gap:10px;">' +
+          '<button class="btn-ghost" style="flex:1;" onclick="closeEditPlayer()">Abbrechen</button>' +
+          '<button class="btn" style="flex:1;" onclick="saveEditPlayer(\'' + row.player_id + '\')">Speichern</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(modal);
+}
+
+function closeEditPlayer() {
+  var m = document.getElementById("edit-player-modal");
+  if (m) m.remove();
+}
+
+function saveEditPlayer(playerId) {
+  var name = (el("edit-name").value || "").trim();
+  var email = (el("edit-email").value || "").trim().toLowerCase();
+  var errEl = el("edit-err");
+  errEl.classList.add("hidden");
+
+  if (!name) {
+    errEl.textContent = "Name darf nicht leer sein.";
+    errEl.classList.remove("hidden"); return;
+  }
+  if (!email || email.indexOf("@") < 0) {
+    errEl.textContent = "Bitte eine gültige E-Mail eingeben.";
+    errEl.classList.remove("hidden"); return;
+  }
+
+  sb.rpc("update_player", {
+    p_player_id: playerId,
+    p_display_name: name,
+    p_email: email
+  }).then(function(r) {
+    if (r.error) {
+      errEl.textContent = "Fehler: " + r.error.message;
+      errEl.classList.remove("hidden"); return;
+    }
+    closeEditPlayer();
     loadInvitations();
   });
 }
