@@ -1171,9 +1171,9 @@
           <p id="reg-err" class="hidden" style="color:var(--bad); font-size:13px; margin-top:14px; text-align:center; font-weight:600;"></p>
         </div>
         <div id="reg-success" class="hidden" style="text-align:center; padding:20px;">
-          <div style="font-size:40px; margin-bottom:12px;">📧</div>
-          <h3 style="color:var(--good); margin-bottom:8px;">Fast geschafft!</h3>
-          <p class="muted" style="font-size:13px; margin-bottom:16px;">Dein Account wurde erstellt. Bitte bestätige zuerst die E-Mail, die wir dir geschickt haben — danach kannst du dich einloggen.</p>
+          <div style="font-size:40px; margin-bottom:12px;">⚠️</div>
+          <h3 style="color:var(--accent-o); margin-bottom:8px;">Account erstellt — aber Login noch nicht möglich!</h3>
+          <p class="muted" style="font-size:13px; margin-bottom:16px;">Die E-Mail-Bestätigung ist in Supabase noch <b>eingeschaltet</b>. Bitte deinen Trainer, diese in Supabase unter <em>Authentication → Email → Confirm email</em> auszuschalten. Danach kannst du dich mit deinem Passwort einloggen.</p>
           <button class="btn" style="padding:10px 24px;" onclick="location.href=location.origin+location.pathname">Zum Login</button>
         </div>
       </div>
@@ -3024,10 +3024,11 @@ function loadInvitations() {
       if (inv.registered) {
         var isAct2 = inv.is_active !== false;
         if (isAct2) {
-          actionsHtml += '<button class="btn-ghost" style="padding:4px 10px; font-size:11px; color:var(--bad); border-color:var(--bad);" onclick="togglePlayerActive(\'' + esc(inv.email) + '\', false)">Sperren</button>';
+          actionsHtml += '<button class="btn-ghost" style="padding:4px 10px; font-size:11px; color:var(--bad); border-color:var(--bad);" onclick="togglePlayerActive(\'' + esc(inv.email) + '\', false)">Sperren</button> ';
         } else {
-          actionsHtml += '<button class="btn" style="padding:4px 10px; font-size:11px;" onclick="togglePlayerActive(\'' + esc(inv.email) + '\', true)">Aktivieren</button>';
+          actionsHtml += '<button class="btn" style="padding:4px 10px; font-size:11px;" onclick="togglePlayerActive(\'' + esc(inv.email) + '\', true)">Aktivieren</button> ';
         }
+        actionsHtml += '<button class="btn-ghost" style="padding:4px 10px; font-size:11px; color:#ff4444; border-color:#ff4444;" onclick="deletePlayer(\'' + esc(inv.email) + '\',\'' + esc(inv.display_name) + '\')">Löschen</button>';
       }
 
       html += '<tr>' +
@@ -3106,6 +3107,14 @@ function togglePlayerActive(email, active) {
   // Einfacher: direkt via SQL über E-Mail
   sb.rpc("toggle_player_by_email", {p_email: email, p_active: active}).then(function(r) {
     if (r.error) { alert("Fehler: " + r.error.message); return; }
+    loadInvitations();
+  });
+}
+
+function deletePlayer(email, displayName) {
+  if (!confirm("Spieler \"" + displayName + "\" (" + email + ") KOMPLETT löschen?\n\nAlle Daten (Profil, Quiz-Antworten, Logbuch, Logins) werden unwiderruflich entfernt.\n\nBist du sicher?")) return;
+  sb.rpc("delete_player_by_email", {p_email: email}).then(function(r) {
+    if (r.error) { alert("Fehler beim Löschen: " + r.error.message); return; }
     loadInvitations();
   });
 }
