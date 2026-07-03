@@ -1554,15 +1554,12 @@ function formatExpiry(isoStr) {
   return d.toLocaleDateString("de-CH", { day: "2-digit", month: "2-digit" }) + " " + d.toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" });
 }
 
-/* ===== QUARTAL 1 ZUGANG: Nur diese Modul-Nummern sind offen ===== */
-var Q1_OPEN_MODULE_NR = [1, 2, 4, 6];
-
 function renderModules(){
   /* Nur Q1-offene Module für den Fortschritt zählen */
-  var openCount = Q1_OPEN_MODULE_NR.length;
+  var openCount = MODULES.filter(function(m){ return m.offen; }).length || 1;
   var passedOpen = 0;
   for(var i=0;i<MODULES.length;i++){
-    if(MODULES[i].quartal===1 && Q1_OPEN_MODULE_NR.indexOf(MODULES[i].modul_nr)>-1 && MODULES[i].passed) passedOpen++;
+    if(MODULES[i].offen && MODULES[i].passed) passedOpen++;
   }
   
   var html='<div class="card" style="margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; gap:16px; background:linear-gradient(135deg, #16181f 0%, #0d0f13 100%);">'+
@@ -1582,16 +1579,14 @@ function renderModules(){
     
     byQ[q].forEach(function(m){
       /* Effektiver Zugang: NUR Q1-Module in der erlaubten Liste */
-      var isQ1Open = (m.quartal === 1 && Q1_OPEN_MODULE_NR.indexOf(m.modul_nr) > -1);
-      var isExpired = m.expires_at ? new Date(m.expires_at) < new Date() : false;
-      var effectivelyOpen = isQ1Open;
+      var effectivelyOpen = !!m.offen;
       
       var state = m.passed ? "passed" : (effectivelyOpen ? "open" : "locked");
       
       var pillClass = "pill locked";
       var pillText = "🔒 Gesperrt";
       
-      if (m.passed && isQ1Open) {
+      if (m.passed && effectivelyOpen) {
         pillClass = "pill passed";
         pillText = "✓ Gemeistert";
       } else if (effectivelyOpen) {
@@ -1636,9 +1631,8 @@ function renderModules(){
 function startModule(moduleId){
   var mod=null; for(var i=0;i<MODULES.length;i++) if(MODULES[i].module_id===moduleId)mod=MODULES[i];
   if(!mod) return;
-  /* Zugangs-Schutz: Spieler dürfen nur Q1-Module 1,2,4,6 öffnen */
-  var isQ1Open = (mod.quartal === 1 && Q1_OPEN_MODULE_NR.indexOf(mod.modul_nr) > -1);
-  if(!isQ1Open && !isStaff()) return;
+  /* Zugangs-Schutz: Nur freigeschaltete Module (mod.offen aus DB) */
+  if(!mod.offen && !isStaff()) return;
   scrollToTop();
   only("view-learn"); show("app-head"); if(!isStaff()) { show("player-nav"); hide("player-stats-card"); }
   el("learn-title").textContent = "Lernblock · Modul " + mod.modul_nr;
