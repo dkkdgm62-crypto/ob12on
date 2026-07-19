@@ -4437,7 +4437,7 @@ var CE = (function(){
     var box = document.getElementById("ce-module-list");
     if(!box) return;
     box.innerHTML = '<div class="spinner"></div>';
-    ceSb("modules").select("module_id,modul_nr,titel,quartal,offen,bonus").order("quartal").order("modul_nr").then(function(r){
+    sb.rpc("get_module_status").then(function(r){
       if(r.error){ box.innerHTML='<p style="color:var(--bad)">Fehler: '+esc(r.error.message)+'</p>'; return; }
       var modules = r.data || [];
       if(!modules.length){ box.innerHTML='<p class="muted" style="text-align:center;padding:20px;">Noch keine Module vorhanden.</p>'; return; }
@@ -4500,10 +4500,10 @@ var CE = (function(){
     var offen=document.getElementById("ce-mod-offen").checked;
     var bonus=document.getElementById("ce-mod-bonus").checked;
     if(!nr||!titel){ showErr("ce-mod-err","Nummer und Titel sind Pflichtfelder."); return; }
-    ceSb("modules").insert({
-      modul_nr:parseInt(nr), titel:titel, quartal:parseInt(q),
-      lerninhalt:lern, offen:offen, bonus:bonus
-    }).select().then(function(r){
+    sb.rpc("ce_create_module",{
+      p_modul_nr:parseInt(nr), p_titel:titel, p_quartal:parseInt(q),
+      p_lerninhalt:lern, p_offen:offen, p_bonus:bonus
+    }).then(function(r){
       if(r.error){ showErr("ce-mod-err","Fehler: "+r.error.message); return; }
       document.getElementById("ce-mod-modal").remove();
       load();
@@ -4512,9 +4512,10 @@ var CE = (function(){
 
   /* ── Modul bearbeiten ────────────────────────────────────── */
   function editModule(moduleId){
-    ceSb("modules").select("*").eq("module_id",moduleId).single().then(function(r){
-      if(r.error){ alert("Fehler: "+r.error.message); return; }
-      var m = r.data;
+    sb.rpc("get_module_status").then(function(r0){
+      var m=(r0.data||[]).find(function(x){return x.module_id===moduleId;});
+      if(!m){ alert("Modul nicht gefunden"); return; }
+      var r={data:m};
       ceModal("ce-edit-modal","✏️ Modul bearbeiten",
         errBox("ce-edit-err")+
         inp("ce-edit-nr","Modul-Nummer",m.modul_nr,"number")+
@@ -4536,10 +4537,10 @@ var CE = (function(){
     var offen=document.getElementById("ce-edit-offen").checked;
     var bonus=document.getElementById("ce-edit-bonus").checked;
     if(!nr||!titel){ showErr("ce-edit-err","Nummer und Titel sind Pflichtfelder."); return; }
-    ceSb("modules").update({
-      modul_nr:parseInt(nr), titel:titel, quartal:parseInt(q),
-      lerninhalt:lern, offen:offen, bonus:bonus
-    }).eq("module_id",moduleId).then(function(r){
+    sb.rpc("ce_update_module",{
+      p_module_id:moduleId, p_modul_nr:parseInt(nr), p_titel:titel, p_quartal:parseInt(q),
+      p_lerninhalt:lern, p_offen:offen, p_bonus:bonus
+    }).then(function(r){
       if(r.error){ showErr("ce-edit-err","Fehler: "+r.error.message); return; }
       document.getElementById("ce-edit-modal").remove();
       load();
@@ -4549,7 +4550,7 @@ var CE = (function(){
   /* ── Modul löschen ───────────────────────────────────────── */
   function deleteModule(moduleId, titel){
     if(!confirm("Modul \""+titel+"\" wirklich löschen?\nAlle Fragen und Antworten werden ebenfalls gelöscht!")) return;
-    ceSb("modules").delete().eq("module_id",moduleId).then(function(r){
+    sb.rpc("ce_delete_module",{p_module_id:moduleId}).then(function(r){
       if(r.error){ alert("Fehler: "+r.error.message); return; }
       load();
     });
@@ -4570,7 +4571,7 @@ var CE = (function(){
   function _loadQuestions(moduleId, moduleTitel){
     var box = document.getElementById("ce-q-list");
     if(!box) return;
-    ceSb("questions").select("question_id,frage_nr,frage_text").eq("module_id",moduleId).order("frage_nr").then(function(r){
+    sb.rpc("ce_get_questions",{p_module_id:moduleId}).then(function(r){
       if(r.error){ box.innerHTML='<p style="color:var(--bad)">'+esc(r.error.message)+'</p>'; return; }
       var qs = r.data||[];
       if(!qs.length){ box.innerHTML='<p class="muted" style="text-align:center;padding:12px;">Noch keine Fragen. Klicke "+ Neue Frage".</p>'; return; }
@@ -4594,8 +4595,8 @@ var CE = (function(){
   function newQuestion(moduleId, moduleTitel){
     document.getElementById("ce-q-modal").remove();
     // Count existing questions for auto-numbering
-    ceSb("questions").select("frage_nr").eq("module_id",moduleId).order("frage_nr",{ascending:false}).limit(1).then(function(r){
-      var nextNr = r.data && r.data.length ? (r.data[0].frage_nr+1) : 1;
+    sb.rpc("ce_get_questions",{p_module_id:moduleId}).then(function(r){
+      var nextNr = r.data && r.data.length ? (r.data[r.data.length-1].frage_nr+1) : 1;
       _questionEditor(null, moduleId, moduleTitel, nextNr, null, [
         {key:"A",text:"",correct:true},{key:"B",text:"",correct:false},
         {key:"C",text:"",correct:false},{key:"D",text:"",correct:false}
@@ -4606,16 +4607,11 @@ var CE = (function(){
   /* ── Frage bearbeiten ────────────────────────────────────── */
   function editQuestion(questionId, moduleId, moduleTitel){
     document.getElementById("ce-q-modal").remove();
-    // Load question + options
-    Promise.all([
-      ceSb("questions").select("*").eq("question_id",questionId).single(),
-      ceSb("options").select("*").eq("question_id",questionId).order("option_key")
-    ]).then(function(results){
-      var qRes=results[0], oRes=results[1];
-      if(qRes.error){ alert("Fehler: "+qRes.error.message); return; }
-      var q=qRes.data, opts=oRes.data||[];
-      _questionEditor(questionId, moduleId, moduleTitel, q.frage_nr, q.frage_text, opts.map(function(o){
-        return {id:o.option_id, key:o.option_key, text:o.option_text, correct:o.is_correct};
+    sb.rpc("ce_get_question_detail",{p_question_id:questionId}).then(function(r){
+      if(r.error){ alert("Fehler: "+r.error.message); return; }
+      var d=r.data;
+      _questionEditor(questionId, moduleId, moduleTitel, d.frage_nr, d.frage_text, (d.options||[]).map(function(o){
+        return {id:o.id, key:o.key, text:o.text, correct:o.correct};
       }));
     });
   }
@@ -4669,32 +4665,23 @@ var CE = (function(){
     }
 
     var isNew = !questionId;
-    function saveOptions(qId){
-      // Delete old options if editing
-      var doSave = function(){
-        var inserts = optTexts.map(function(o){
-          return {question_id:qId, option_key:o.key, option_text:o.text, is_correct:o.correct};
-        });
-        ceSb("options").insert(inserts).then(function(or){
-          if(or.error){ showErr("ce-qedit-err","Optionen-Fehler: "+or.error.message); return; }
-          var m=document.getElementById("ce-qedit-modal"); if(m) m.remove();
-          manageQuestions(moduleId, moduleTitel);
-        });
-      };
-      if(!isNew){
-        ceSb("options").delete().eq("question_id",qId).then(doSave);
-      } else { doSave(); }
-    }
-
     if(isNew){
-      ceSb("questions").insert({module_id:moduleId, frage_nr:nr, frage_text:frageText}).select("question_id").single().then(function(r){
+      sb.rpc("ce_create_question",{
+        p_module_id:moduleId, p_frage_nr:nr, p_frage_text:frageText,
+        p_options:JSON.stringify(optTexts.map(function(o){return {key:o.key,text:o.text,correct:o.correct};}))
+      }).then(function(r){
         if(r.error){ showErr("ce-qedit-err","Fehler: "+r.error.message); return; }
-        saveOptions(r.data.question_id);
+        var m=document.getElementById("ce-qedit-modal"); if(m) m.remove();
+        manageQuestions(moduleId, moduleTitel);
       });
     } else {
-      ceSb("questions").update({frage_nr:nr, frage_text:frageText}).eq("question_id",questionId).then(function(r){
+      sb.rpc("ce_update_question",{
+        p_question_id:questionId, p_frage_nr:nr, p_frage_text:frageText,
+        p_options:JSON.stringify(optTexts.map(function(o){return {key:o.key,text:o.text,correct:o.correct};}))
+      }).then(function(r){
         if(r.error){ showErr("ce-qedit-err","Fehler: "+r.error.message); return; }
-        saveOptions(questionId);
+        var m=document.getElementById("ce-qedit-modal"); if(m) m.remove();
+        manageQuestions(moduleId, moduleTitel);
       });
     }
   }
@@ -4702,11 +4689,9 @@ var CE = (function(){
   /* ── Frage löschen ───────────────────────────────────────── */
   function deleteQuestion(questionId, moduleId, moduleTitel){
     if(!confirm("Frage wirklich löschen? Alle Antwortoptionen werden ebenfalls gelöscht.")) return;
-    ceSb("options").delete().eq("question_id",questionId).then(function(){
-      ceSb("questions").delete().eq("question_id",questionId).then(function(r){
-        if(r.error){ alert("Fehler: "+r.error.message); return; }
-        _loadQuestions(moduleId, moduleTitel);
-      });
+    sb.rpc("ce_delete_question",{p_question_id:questionId}).then(function(r){
+      if(r.error){ alert("Fehler: "+r.error.message); return; }
+      _loadQuestions(moduleId, moduleTitel);
     });
   }
 
