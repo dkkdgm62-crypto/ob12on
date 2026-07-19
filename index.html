@@ -1483,7 +1483,7 @@ function hide(id){el(id).classList.add("hidden");}
 function esc(s){var d=document.createElement("div");d.textContent=(s==null?"":s);return d.innerHTML;}
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
 function only(id){
-  var v=["view-setup","view-login","view-closed","view-modules","view-learn","view-quiz","view-result","view-rang","view-skills","view-staff","view-register"];
+  var v=["view-setup","view-login","view-closed","view-modules","view-learn","view-quiz","view-result","view-rang","view-skills","view-staff","view-register","view-schach"];
   for(var i=0;i<v.length;i++) hide(v[i]);
   show(id);
 }
