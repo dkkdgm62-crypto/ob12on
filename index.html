@@ -381,6 +381,7 @@ label {
   display: block; font-size: var(--text-xs); font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.8px;
   color: var(--text-3); margin-bottom: var(--sp-2);
+  text-align: left;
 }
 
 /* Tables */
@@ -726,25 +727,28 @@ footer {
 
   <!-- LOGIN -->
   <div id="view-login" class="hidden" style="min-height:100vh; display:flex; align-items:flex-start; justify-content:center; padding:8vh var(--sp-4) 0;">
-    <div class="card" style="max-width:440px; width:100%; padding:0; overflow:hidden; flex-shrink:0;">
-      <img src="Fussball SpielZ.jpeg" alt="" style="width:100%; height:140px; object-fit:cover; border-bottom:1px solid rgba(212,175,55,0.2);" />
-      <div style="padding:24px;">
-        <div style="text-align:center; margin-bottom:28px">
-          <img id="login-logo" src="" alt="Logo" style="width:100px; height:100px; border-radius:20px; object-fit:cover; border:1px solid rgba(212,175,55,0.3); box-shadow:0 8px 28px rgba(0,0,0,0.6); margin:-70px auto 16px; display:block; position:relative; z-index:2; background:#000;"/>
+    <div class="card" style="max-width:400px; width:100%; padding:0; overflow:hidden; flex-shrink:0;">
+      <img src="Fussball SpielZ.jpeg" alt="" style="width:100%; height:140px; object-fit:cover; border-bottom:1px solid rgba(168,85,247,0.2);" />
+      <div style="padding:28px 28px 32px;">
+        <!-- Logo + Titel -->
+        <div style="text-align:center; margin-bottom:32px;">
+          <img id="login-logo" src="" alt="Logo" style="width:100px; height:100px; border-radius:20px; object-fit:cover; border:1px solid rgba(168,85,247,0.3); box-shadow:0 8px 28px rgba(0,0,0,0.6); margin:-70px auto 16px; display:block; position:relative; z-index:2; background:#000;"/>
           <h2 style="font-size:24px; font-family:'Sora'; font-weight:800; color:#fff;">FE12 - OB Online</h2>
-          <p class="muted" style="font-size:12px; letter-spacing:0.15em; text-transform:uppercase; margin-top:4px; font-weight:600; color:var(--gold);">Team Basel-Old Boys · DNA</p>
+          <p style="font-size:12px; letter-spacing:0.15em; text-transform:uppercase; margin-top:4px; font-weight:600; color:var(--accent);">Team Basel-Old Boys · DNA</p>
         </div>
-        
-        <div style="margin-bottom:14px">
-          <label>Benutzername</label>
+        <!-- Benutzername -->
+        <div style="margin-bottom:14px;">
+          <p style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-3); margin-bottom:6px;">Benutzername</p>
           <input id="in-user" autocomplete="username" placeholder="z.B. noah" onkeydown="if(event.key==='Enter') doLogin()" />
         </div>
-        <div style="margin-bottom:20px">
-          <label>Passwort</label>
+        <!-- Passwort -->
+        <div style="margin-bottom:24px;">
+          <p style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-3); margin-bottom:6px;">Passwort</p>
           <input id="in-pass" type="password" autocomplete="current-password" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()" />
         </div>
-        
-        <button class="btn" style="width:100%" onclick="doLogin()">Einloggen</button>
+        <div style="text-align:center;">
+          <button class="btn" style="width:100%; justify-content:center;" onclick="doLogin()">Einloggen</button>
+        </div>
         <p id="login-err" class="hidden" style="color:var(--bad); font-size:13px; margin-top:14px; text-align:center; font-weight:600;"></p>
       </div>
     </div>
@@ -1729,15 +1733,23 @@ function showPlayerTab(t){
   el("tab-lernen").className = t==="lernen"?"active":"btn-ghost";
   var tabS = el("tab-skills"); if(tabS) tabS.className = t==="skills"?"active":"btn-ghost";
   el("tab-rang").className   = t==="rang"?"active":"btn-ghost";
+  var tabSchach = el("tab-schach"); if(tabSchach) tabSchach.className = t==="schach"?"active":"btn-ghost";
   if(t==="lernen"){
+    if(CHESS.board) chessCleanup();
     only("view-modules"); show("app-head"); show("player-nav");
     loadPlayerStats();
     loadModules();
   } else if(t==="skills") {
+    if(CHESS.board) chessCleanup();
     only("view-skills"); show("app-head"); show("player-nav");
     loadPlayerStats();
     renderPlayerSkills();
+  } else if(t==="schach") {
+    only("view-schach"); show("app-head"); show("player-nav");
+    loadPlayerStats();
+    initChessView();
   } else {
+    if(CHESS.board) chessCleanup();
     only("view-rang"); show("app-head"); show("player-nav");
     loadPlayerStats();
     loadLeaderboard("rang-body", currentLefilter === "round" ? ACCESS.current_round : null);
@@ -3689,25 +3701,6 @@ var CHESS = {
   mpRole: null  // 'white' | 'black'
 };
 
-// ── showPlayerTab hook ──────────────────────────────────────
-var _origShowPlayerTab = showPlayerTab;
-showPlayerTab = function(t) {
-  var tabSchach = el("tab-schach");
-  if (tabSchach) tabSchach.className = t === "schach" ? "active" : "btn-ghost";
-  if (t === "schach") {
-    scrollToTop();
-    playerTab = t;
-    only("view-schach"); show("app-head"); show("player-nav");
-    loadPlayerStats();
-    initChessView();
-  } else {
-    if (CHESS.board && t !== "schach") {
-      chessCleanup();
-    }
-    _origShowPlayerTab(t);
-  }
-};
-
 function initChessView() {
   if (CHESS.board) return; // already initialised
   var boardSize = Math.min(440, window.innerWidth - 80);
@@ -3863,13 +3856,18 @@ function startChessAI(depth) {
 
 function initStockfish() {
   try {
-    CHESS.stockfish = new Worker("https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js");
+    // Blob-Worker umgeht CORS-Einschränkungen auf GitHub Pages
+    var workerCode = 'importScripts("https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js");';
+    var blob = new Blob([workerCode], { type: "application/javascript" });
+    var blobUrl = URL.createObjectURL(blob);
+    CHESS.stockfish = new Worker(blobUrl);
+    URL.revokeObjectURL(blobUrl);
     CHESS.stockfish.onmessage = function(e) {
       var msg = e.data;
       if (typeof msg === "string" && msg.indexOf("bestmove") === 0) {
         var parts = msg.split(" ");
         var move  = parts[1];
-        if (!move || move === "(none)") return;
+        if (!move || move === "(none)") { hide("schach-thinking"); CHESS.aiThinking = false; return; }
         hide("schach-thinking");
         CHESS.aiThinking = false;
         var result = CHESS.game.move({ from: move.slice(0,2), to: move.slice(2,4), promotion: move[4] || "q" });
@@ -3879,17 +3877,47 @@ function initStockfish() {
         }
       }
     };
+    CHESS.stockfish.onerror = function(e) {
+      console.warn("Stockfish Worker Fehler:", e);
+      CHESS.stockfish = null;
+      hide("schach-thinking");
+      CHESS.aiThinking = false;
+      // Fallback: random legal move
+      chessRandomMove();
+    };
     CHESS.stockfish.postMessage("uci");
     CHESS.stockfish.postMessage("isready");
   } catch(e) {
     console.warn("Stockfish nicht verfügbar:", e);
+    CHESS.stockfish = null;
+  }
+}
+
+function chessRandomMove() {
+  // Fallback wenn Stockfish nicht lädt
+  var moves = CHESS.game.moves();
+  if (moves.length === 0) return;
+  var move = moves[Math.floor(Math.random() * moves.length)];
+  var result = CHESS.game.move(move);
+  if (result) {
+    CHESS.board.position(CHESS.game.fen());
+    chessAfterMove(result);
   }
 }
 
 function chessAIMove() {
-  if (!CHESS.stockfish) return;
+  if (!CHESS.game || CHESS.game.game_over()) return;
   CHESS.aiThinking = true;
   show("schach-thinking");
+  if (!CHESS.stockfish) {
+    // Fallback: zufälliger Zug nach kurzer Verzögerung
+    setTimeout(function() {
+      hide("schach-thinking");
+      CHESS.aiThinking = false;
+      chessRandomMove();
+    }, 400 + Math.random() * 600);
+    return;
+  }
   CHESS.stockfish.postMessage("position fen " + CHESS.game.fen());
   CHESS.stockfish.postMessage("go depth " + CHESS.aiDepth);
 }
