@@ -9,530 +9,699 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<!-- Schach-Bibliotheken -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css" />
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
 <style>
-  /* ═══════════════════════════════════════════════════════════════════
-     FOOTECO × MIDNIGHT COURT — FUSION DESIGN SYSTEM
-     ═══════════════════════════════════════════════════════════════════ */
-  :root {
-    /* MC Deep Background */
-    --carbon-bg:      #08061a;
-    --navy:           #08061a;
-    --card:           #100d2e;
-    --card-gradient:  linear-gradient(135deg, #140f35 0%, #0d0a24 100%);
-    --line:           #2a1f5a;
+/* ╔═══════════════════════════════════════════════════════════════════╗
+   ║  FOOTECO LERN-AKADEMIE · GLASS DESIGN SYSTEM                      ║
+   ║  Theme: FE12 Purple-Navy · by Dogus Kaplan                        ║
+   ╚═══════════════════════════════════════════════════════════════════╝ */
 
-    /* MC Sidebar */
-    --sidebar-bg:     #0d0a24;
-    --item-bg:        #1a1540;
+/* ═══ § 0 · RESET & BASE ═══════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Sora', 'DM Sans', system-ui, sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+  overflow-x: hidden;
+  background: var(--bg-deep);
+  color: var(--text-1);
+  font-size: var(--text-base);
+  position: relative;
+}
+::selection { background: var(--accent-30); color: #fff; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--accent-30); border-radius: 99px; }
 
-    /* MC Accent Purple (ersetzt Silver) */
-    --silver-light:   #d4b8ff;
-    --silver-dark:    #9b6bdb;
-    --silver-grad:    linear-gradient(135deg, #b446ff 0%, #6b1fa0 100%);
+/* ═══ § 1 · DESIGN TOKENS — FE12 PURPLE/NAVY ═══════════════════════ */
+:root {
+  /* FE12 Purple Accent */
+  --accent:      #a855f7;
+  --accent2:     #7c3aed;
+  --accent3:     #6d28d9;
+  --accent-10:   rgba(168,85,247,0.10);
+  --accent-18:   rgba(168,85,247,0.18);
+  --accent-28:   rgba(168,85,247,0.28);
+  --accent-30:   rgba(168,85,247,0.30);
+  --accent-rgb:  168,85,247;
 
-    /* Gold bleibt — aber leuchtet jetzt auf MC-Hintergrund */
-    --gold:           #d4af37;
-    --gold-hover:     #e8c45a;
-    --gold-grad:      linear-gradient(135deg, #d4af37 0%, #a38020 100%);
+  /* Gold accent (kept for compatibility) */
+  --gold:        #c084fc;
+  --gold-light:  #e9d5ff;
 
-    /* MC Orange Accent (secondary) */
-    --accent-o:       #ff6b35;
+  /* Neon Status */
+  --neon-green:  #22c97a;
+  --neon-cyan:   #00f0ff;
+  --neon-rose:   #ff4488;
+  --neon-amber:  #f59e0b;
+  --neon-blue:   #818cf8;
+  --good:        #22c97a;
+  --bad:         #ff4488;
+  --warn-color:  #f59e0b;
 
-    /* Text */
-    --text:           #f0eaff;
-    --muted:          #a89ec4;
-    --muted-lo:       #5c5080;
+  /* Background layers — Deep Navy */
+  --bg-deep:     #08061a;
+  --bg-mid:      #0d0a24;
+  --bg-card:     #100d2e;
 
-    /* Status */
-    --good:           #2fb56a;
-    --bad:            #e0563b;
+  /* Legacy compat */
+  --carbon-bg:   #08061a;
+  --navy:        #08061a;
+  --card:        #100d2e;
+  --card-gradient: linear-gradient(135deg,#140f35 0%,#0d0a24 100%);
+  --line:        rgba(168,85,247,0.18);
+  --sidebar-bg:  #0d0a24;
+  --item-bg:     rgba(168,85,247,0.08);
+  --silver-light: #e9d5ff;
+  --silver-dark:  #a855f7;
+  --silver-mid:   #c084fc;
 
-    /* Glows */
-    --glow-gold:      0 0 20px rgba(212, 175, 55, 0.25);
-    --glow-purple:    0 0 16px rgba(180, 70, 255, 0.4);
-    --glow-orange:    0 0 14px rgba(255, 107, 53, 0.4);
-  }
+  /* Text */
+  --text-1:      #f0e8ff;
+  --text-2:      #d4b8ff;
+  --text-3:      #8b7aaa;
+  --text-dim:    #3d3058;
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  /* Glass System */
+  --glass-bg:       rgba(255,255,255,0.042);
+  --glass-bg-2:     rgba(255,255,255,0.065);
+  --glass-bg-3:     rgba(255,255,255,0.09);
+  --glass-border:   rgba(168,85,247,0.18);
+  --glass-border-2: rgba(168,85,247,0.32);
+  --glass-blur:     blur(20px);
+  --glass-blur-sm:  blur(10px);
+  --glass-blur-lg:  blur(32px);
 
-  body {
-    font-family: 'Sora', system-ui, sans-serif;
-    background-color: var(--carbon-bg);
-    color: var(--text);
-    min-height: 100vh;
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
-    /* MC Subtle dot grid */
-    background-image: radial-gradient(circle, #1a1540 1px, transparent 1px);
-    background-size: 28px 28px;
-  }
+  /* Glows */
+  --glow-accent: 0 0 32px rgba(168,85,247,0.28);
+  --glow-sm:     0 0 14px rgba(168,85,247,0.22);
+  --glow-lg:     0 0 60px rgba(168,85,247,0.35);
 
-  h1, h2, h3, h4, .display {
-    font-family: 'Space Grotesk', sans-serif;
-    letter-spacing: -.02em;
-  }
+  /* Spacing */
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px;
+  --sp-5:20px; --sp-6:24px; --sp-8:32px; --sp-10:40px; --sp-12:48px;
 
-  .wrap { max-width: 940px; margin: 0 auto; padding: 20px 16px 80px; }
-  .hidden { display: none !important; }
+  /* Radius */
+  --r-xs:6px; --r-sm:8px; --r-md:12px; --r-lg:16px;
+  --r-xl:20px; --r-2xl:24px; --r-full:9999px;
 
-  button {
-    font-family: inherit;
-    cursor: pointer;
-    border: none;
-    border-radius: 10px;
-    font-weight: 700;
-    transition: all 0.15s ease;
-  }
+  /* Type */
+  --font-body:  'Sora', system-ui, sans-serif;
+  --font-head:  'Space Grotesk', 'Sora', system-ui, sans-serif;
+  --font-mono:  'JetBrains Mono', monospace;
+  --text-xs:11px; --text-sm:12.5px; --text-base:14px;
+  --text-md:16px; --text-lg:18px;   --text-xl:22px;
+  --text-2xl:28px; --text-3xl:36px; --text-4xl:48px;
 
-  /* Primary — Gold */
-  .btn {
-    background: var(--gold-grad);
-    color: #08061a;
-    padding: 13px 20px;
-    font-size: 15px;
-    box-shadow: var(--glow-gold);
-    font-family: 'Space Grotesk', sans-serif;
-  }
-  .btn:hover:not(:disabled) {
-    background: linear-gradient(135deg, var(--gold-hover) 0%, var(--gold) 100%);
-    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
-    transform: translateY(-1px);
-  }
-  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  /* Motion */
+  --ease-out:    cubic-bezier(0.22,1,0.36,1);
+  --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
+  --dur-fast:120ms; --dur-base:220ms; --dur-slow:400ms;
 
-  /* Ghost — MC Border style */
-  .btn-ghost {
-    background: transparent;
-    color: var(--muted);
-    border: 1px solid var(--line);
-    padding: 12px 18px;
-  }
-  .btn-ghost:hover:not(:disabled) {
-    color: var(--text);
-    border-color: var(--silver-dark);
-    background: var(--item-bg);
-    box-shadow: inset 0 0 0 1px rgba(180, 70, 255, 0.2);
-  }
+  /* Aurora */
+  --aurora-1: rgba(168,85,247,0.14);
+  --aurora-2: rgba(109,40,217,0.09);
+  --aurora-3: rgba(79,70,229,0.07);
+}
 
-  /* Silver/Purple */
-  .btn-blue {
-    background: var(--silver-grad);
-    color: #08061a;
-    padding: 13px 20px;
-    font-family: 'Space Grotesk', sans-serif;
-  }
-  .btn-blue:hover:not(:disabled) {
-    background: linear-gradient(135deg, #c084ff 0%, #9333ea 100%);
-    box-shadow: var(--glow-purple);
-  }
+/* ═══ § 2 · AURORA BACKGROUND ═══════════════════════════════════════ */
+/* Repurpose existing .field-bg div as Aurora container */
+.field-bg {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none; overflow: hidden;
+  background: transparent;
+}
+.field-line { display: none; } /* hide old field lines */
 
-  input, select, textarea {
-    width: 100%;
-    background: rgba(13, 10, 36, 0.8);
-    border: 1px solid var(--line);
-    color: var(--text);
-    padding: 13px 14px;
-    border-radius: 10px;
-    font-size: 15px;
-    font-family: inherit;
-    transition: border-color 0.15s;
-  }
-  input:focus, select:focus, textarea:focus {
-    outline: none;
-    border-color: var(--gold);
-    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
-  }
+/* Aurora blobs via pseudo-elements on field-bg children */
+.field-center-line,
+.field-center-circle,
+.field-penalty-box-left,
+.field-penalty-box-right {
+  display: block !important;
+  position: absolute; border-radius: 50%;
+  filter: blur(80px); will-change: transform;
+}
+.field-center-line {
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, var(--aurora-1) 0%, transparent 70%);
+  top: -200px; left: -150px;
+  animation: g-drift1 14s ease-in-out infinite alternate;
+}
+.field-center-circle {
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, var(--aurora-2) 0%, transparent 70%);
+  bottom: -100px; right: -100px;
+  animation: g-drift2 17s ease-in-out infinite alternate;
+}
+.field-penalty-box-left {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, var(--aurora-3) 0%, transparent 70%);
+  top: 45%; left: 38%;
+  animation: g-drift3 20s ease-in-out infinite alternate;
+}
+.field-penalty-box-right {
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(168,85,247,0.06) 0%, transparent 70%);
+  top: 20%; right: 20%;
+  animation: g-drift1 23s ease-in-out infinite alternate-reverse;
+}
+@keyframes g-drift1 { from{transform:translate(0,0) scale(1)} to{transform:translate(90px,70px) scale(1.25)} }
+@keyframes g-drift2 { from{transform:translate(0,0) scale(1)} to{transform:translate(-70px,-50px) scale(1.18)} }
+@keyframes g-drift3 { from{transform:translate(-50%,-50%) scale(1)} to{transform:translate(-38%,-62%) scale(1.12)} }
 
-  label {
-    display: block;
-    font-size: 11px;
-    color: var(--muted);
-    margin: 0 0 6px 2px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: .08em;
-  }
+/* ═══ § 3 · LAYOUT WRAPPER ═════════════════════════════════════════ */
+.wrap {
+  position: relative; z-index: 1;
+  min-height: 100vh;
+}
 
-  /* MC Card */
-  .card {
-    background: var(--card-gradient);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
-  }
+/* ═══ § 4 · GLASS CORE COMPONENTS ══════════════════════════════════ */
 
-  .eyebrow {
-    font-size: 11px;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    color: var(--gold);
-    font-weight: 700;
-    font-family: 'Sora', sans-serif;
-  }
+/* Glass Card */
+.g-card, .card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-xl);
+  padding: var(--sp-6);
+  position: relative; overflow: hidden;
+  transition: border-color var(--dur-base) var(--ease-out),
+              box-shadow var(--dur-base) var(--ease-out),
+              transform var(--dur-base) var(--ease-spring);
+}
+.g-card::before, .card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--glass-border-2), transparent);
+}
+.g-card:hover, .card:hover {
+  border-color: var(--glass-border-2);
+  box-shadow: var(--glow-accent);
+}
+.g-card-sm  { padding: var(--sp-4); border-radius: var(--r-lg); }
+.g-card-lg  { padding: var(--sp-8); border-radius: var(--r-2xl); }
+.g-card-glow { box-shadow: var(--glow-accent); border-color: var(--glass-border-2); }
 
-  .muted { color: var(--muted); }
-  .center { text-align: center; }
+/* Buttons */
+.g-btn, .btn {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  padding: 9px 18px;
+  border-radius: var(--r-md);
+  font-family: var(--font-body);
+  font-size: var(--text-sm); font-weight: 600;
+  cursor: pointer; border: none;
+  transition: all var(--dur-fast) var(--ease-out);
+  white-space: nowrap; position: relative;
+  text-decoration: none; line-height: 1;
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(var(--accent-rgb),0.35);
+}
+.g-btn:hover, .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 28px rgba(var(--accent-rgb),0.5);
+}
+.g-btn:active, .btn:active { transform: scale(0.97) translateY(0); }
+.g-btn:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-  /* ── Header / Topbar ── */
-  .topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 24px;
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 10px 16px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-  }
+/* Ghost Button */
+.g-btn-ghost, .btn-ghost {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  color: var(--text-2) !important;
+  backdrop-filter: var(--glass-blur-sm);
+  box-shadow: none !important;
+}
+.g-btn-ghost:hover, .btn-ghost:hover {
+  background: var(--glass-bg-2) !important;
+  border-color: var(--glass-border-2) !important;
+  color: var(--text-1) !important;
+  transform: none;
+}
 
-  .brand { display: flex; align-items: center; gap: 12px; }
-  .brand-logo {
-    width: 38px;
-    height: 38px;
-    border-radius: 8px;
-    object-fit: cover;
-    border: 1px solid rgba(212, 175, 55, 0.4);
-    background: #000;
-    box-shadow: var(--glow-gold);
-  }
-  .brand b {
-    font-family: 'Space Grotesk';
-    font-weight: 800;
-    font-size: 16px;
-    display: block;
-    color: var(--text);
-    letter-spacing: 0.5px;
-  }
-  .brand span {
-    font-size: 10px;
-    color: var(--gold);
-    font-weight: 600;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-  }
+/* Blue button (mapped to accent outline) */
+.btn-blue {
+  background: rgba(129,140,248,0.15) !important;
+  border: 1px solid rgba(129,140,248,0.4) !important;
+  color: var(--neon-blue) !important;
+  box-shadow: 0 0 14px rgba(129,140,248,0.2) !important;
+}
+.btn-blue:hover {
+  background: rgba(129,140,248,0.25) !important;
+  transform: translateY(-1px);
+}
 
-  /* Clock */
-  .clock {
-    font-family: 'Space Grotesk';
-    font-weight: 700;
-    font-size: 13px;
-    background: var(--item-bg);
-    border: 1px solid var(--line);
-    padding: 7px 14px;
-    border-radius: 8px;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--muted);
-  }
-  .clock .dot {
-    display: inline-block;
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--good);
-    box-shadow: 0 0 8px var(--good);
-  }
-  .clock.warn { border-color: var(--bad); color: var(--bad); }
-  .clock.warn .dot { background: var(--bad); animation: pulse 1s infinite alternate; box-shadow: 0 0 8px var(--bad); }
-  @keyframes pulse { to { opacity: 0.3; } }
+/* Badges */
+.g-badge, .badge-container .pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 9px; border-radius: var(--r-full);
+  font-size: var(--text-xs); font-weight: 700; border: 1px solid;
+}
+.g-badge-accent { background: var(--accent-10); color: var(--accent); border-color: var(--accent-28); box-shadow: 0 0 10px rgba(var(--accent-rgb),0.18); }
+.g-badge-green  { background: rgba(34,201,122,0.1); color: var(--neon-green); border-color: rgba(34,201,122,0.3); }
+.g-badge-rose   { background: rgba(255,68,136,0.1); color: var(--neon-rose);  border-color: rgba(255,68,136,0.3); }
+.g-badge-amber  { background: rgba(245,158,11,0.1); color: var(--neon-amber); border-color: rgba(245,158,11,0.3); }
 
-  .banner {
-    background: rgba(224, 86, 59, 0.1);
-    border: 1px solid rgba(224, 86, 59, 0.4);
-    color: #fca5a5;
-    padding: 12px 16px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    font-size: 14px;
-    font-weight: 600;
-  }
+/* Tags / Pills */
+.tag {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px; border-radius: var(--r-full);
+  font-size: var(--text-xs); font-weight: 600;
+  background: var(--accent-10); color: var(--accent);
+  border: 1px solid var(--accent-18);
+}
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: var(--r-full);
+  font-size: var(--text-xs); font-weight: 700;
+  background: var(--glass-bg-2);
+  border: 1px solid var(--glass-border);
+  color: var(--text-2);
+  transition: all var(--dur-base) var(--ease-out);
+}
+.pill.active, .pill.open {
+  background: var(--accent-10); color: var(--accent);
+  border-color: var(--accent-28); box-shadow: var(--glow-sm);
+}
+.pill.locked {
+  background: rgba(255,255,255,0.03);
+  color: var(--text-dim); border-color: rgba(255,255,255,0.06);
+}
 
-  /* ── Module Map ── */
-  .quartal { margin-bottom: 28px; }
-  .qhead {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 0 2px 14px;
-    border-bottom: 1px solid var(--line);
-    padding-bottom: 8px;
-  }
-  .qnum {
-    font-family: 'Space Grotesk';
-    font-weight: 800;
-    font-size: 11px;
-    color: var(--gold);
-    background: rgba(212, 175, 55, 0.1);
-    border: 1px solid rgba(212, 175, 55, 0.3);
-    border-radius: 6px;
-    padding: 3px 10px;
-    letter-spacing: .05em;
-  }
+/* Topbar */
+.topbar, .g-topbar {
+  background: rgba(8,6,26,0.82);
+  backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
+  border-bottom: 1px solid var(--glass-border);
+  height: 60px;
+  display: flex; align-items: center;
+  padding: 0 var(--sp-6); gap: var(--sp-4);
+  position: sticky; top: 0; z-index: 100;
+}
+.brand {
+  display: flex; align-items: center; gap: var(--sp-3); flex: 1;
+  font-family: var(--font-head);
+}
+.brand b { font-size: var(--text-md); color: var(--text-1); }
+.brand span { font-size: 11px; color: var(--accent); font-weight: 600; letter-spacing: 0.05em; display: block; }
+.brand-logo {
+  width: 36px; height: 36px; border-radius: var(--r-md);
+  object-fit: cover;
+  border: 1px solid var(--glass-border-2);
+  box-shadow: var(--glow-sm);
+}
 
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  @media(max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+/* Navigation */
+.nav {
+  display: flex; gap: 2px;
+  padding: var(--sp-3) var(--sp-4) 0;
+  overflow-x: auto;
+}
+.nav button, .nav .g-tab {
+  flex-shrink: 0; padding: 8px 16px;
+  border-radius: var(--r-md) var(--r-md) 0 0;
+  font-size: var(--text-sm); font-weight: 500;
+  cursor: pointer; border: 1px solid transparent;
+  background: transparent; color: var(--text-3);
+  font-family: var(--font-body);
+  transition: all var(--dur-base) var(--ease-out);
+}
+.nav button:hover, .nav .g-tab:hover {
+  color: var(--text-1); background: var(--glass-bg);
+  border-color: var(--glass-border);
+}
+.nav button.active, .nav .g-tab.active {
+  background: var(--accent-10); color: var(--accent);
+  border-color: var(--accent-28) var(--accent-28) transparent;
+  box-shadow: var(--glow-sm);
+}
 
-  .mod {
-    position: relative;
-    background: var(--card-gradient);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    transition: all 0.15s ease;
-  }
-  .mod:hover {
-    transform: translateY(-2px);
-    border-color: rgba(212, 175, 55, 0.4);
-    box-shadow: var(--glow-gold);
-  }
-  .mod.open  { border-color: rgba(212, 175, 55, 0.3); }
-  .mod.passed { border-color: rgba(47, 181, 106, 0.4); box-shadow: 0 0 16px rgba(47,181,106,0.1); }
-  .mod.locked { opacity: 0.45; }
-  .mod.inactive-round { border-color: var(--line); background: rgba(8, 6, 26, 0.7); }
+/* Tabs (inline pill style) */
+.g-tabs { display: flex; gap: 2px; background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 3px; border-radius: var(--r-lg); }
+.g-tab {
+  flex: 1; padding: 7px 16px; border-radius: var(--r-md);
+  font-size: var(--text-sm); font-weight: 500; cursor: pointer;
+  border: none; background: none; color: var(--text-3);
+  font-family: var(--font-body); text-align: center;
+  transition: all var(--dur-base) var(--ease-out);
+}
+.g-tab:hover { color: var(--text-1); background: var(--glass-bg-2); }
+.g-tab.active { background: var(--accent-10); color: var(--accent); border: 1px solid var(--accent-28); box-shadow: var(--glow-sm); }
 
-  .mod .mtop { display: flex; align-items: center; justify-content: space-between; }
-  .mod .mnr  { font-family: 'Space Grotesk'; font-weight: 700; font-size: 11px; color: var(--muted-lo); letter-spacing: .06em; }
-  .mod h3    { font-size: 15px; line-height: 1.3; font-weight: 700; color: var(--text); font-family: 'Space Grotesk'; }
+/* Form Controls */
+input, select, textarea, .g-input, .g-select, .g-textarea {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-md);
+  color: var(--text-1);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  padding: 9px 13px;
+  backdrop-filter: var(--glass-blur-sm);
+  transition: border-color var(--dur-base), box-shadow var(--dur-base);
+  outline: none;
+  width: 100%;
+  -webkit-appearance: none;
+}
+input::placeholder, textarea::placeholder { color: var(--text-dim); }
+input:focus, select:focus, textarea:focus {
+  border-color: rgba(var(--accent-rgb),0.5);
+  box-shadow: 0 0 0 3px var(--accent-10);
+}
+select option { background: var(--bg-card); color: var(--text-1); }
+label {
+  display: block; font-size: var(--text-xs); font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.8px;
+  color: var(--text-3); margin-bottom: var(--sp-2);
+}
 
-  .pill {
-    font-size: 10px;
-    font-weight: 700;
-    padding: 3px 9px;
-    border-radius: 20px;
-    letter-spacing: .04em;
-    text-transform: uppercase;
-    font-family: 'Sora';
-  }
-  .pill.open   { background: rgba(212, 175, 55, 0.12); color: #f3d47a; border: 1px solid rgba(212,175,55,0.2); }
-  .pill.passed { background: rgba(47, 181, 106, 0.12); color: #86e0ad; border: 1px solid rgba(47,181,106,0.2); }
-  .pill.locked { background: var(--item-bg); color: var(--muted); border: 1px solid var(--line); }
-  .pill.inactive { background: var(--item-bg); color: #f87171; border: 1px solid rgba(220,38,38,0.25); }
-  .pill.always  { background: rgba(180, 70, 255, 0.12); color: #d4b8ff; border: 1px solid rgba(180,70,255,0.3); }
+/* Tables */
+.table-container {
+  overflow-x: auto;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur-sm);
+}
+.trainer-table, .g-table {
+  width: 100%; border-collapse: collapse;
+}
+.trainer-table th, .g-table th {
+  font-size: var(--text-xs); font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.8px;
+  color: var(--text-3); padding: var(--sp-3) var(--sp-4);
+  text-align: left; border-bottom: 1px solid var(--glass-border);
+  background: var(--glass-bg-2);
+}
+.trainer-table td, .g-table td {
+  padding: 10px var(--sp-4);
+  font-size: var(--text-sm); color: var(--text-2);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.trainer-table tr:hover td, .g-table tr:hover td {
+  background: var(--glass-bg);
+}
+.trainer-table tr:last-child td, .g-table tr:last-child td { border-bottom: none; }
 
-  .bar { height: 6px; background: var(--item-bg); border-radius: 4px; overflow: hidden; }
-  .bar > i {
-    display: block; height: 100%;
-    background: linear-gradient(90deg, #6b1fa0, var(--gold));
-    border-radius: 4px;
-    transition: width 0.4s ease;
-  }
+/* Status badges */
+.ok    { color: var(--neon-green); }
+.no    { color: var(--neon-rose); }
+.warn  { color: var(--neon-amber); }
 
-  .mod .mfoot { display: flex; align-items: center; justify-content: space-between; margin-top: auto; gap: 8px; }
-  .mod .mfoot small { color: var(--muted); font-size: 12px; font-weight: 500; }
-  .mod button { padding: 8px 14px; font-size: 13px; border-radius: 8px; }
+/* Spinner */
+.spinner {
+  width: 32px; height: 32px;
+  border: 2.5px solid var(--glass-border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 40px auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ── Quiz ── */
-  .qmeta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-  .qprog { height: 6px; background: var(--item-bg); border-radius: 4px; overflow: hidden; margin-bottom: 24px; }
-  .qprog > i { display: block; height: 100%; background: var(--gold-grad); transition: width 0.3s ease; border-radius: 4px; }
-  .qtext { font-family: 'Space Grotesk'; font-weight: 700; font-size: 20px; line-height: 1.4; margin-bottom: 22px; color: var(--text); }
+/* Clock / Countdown */
+.clock {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--glass-bg-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-lg);
+  font-family: var(--font-mono);
+  font-size: var(--text-lg); font-weight: 700;
+  color: var(--text-1);
+}
+.clock.warn { border-color: rgba(245,158,11,0.4); color: var(--neon-amber); }
 
-  .opt {
-    width: 100%;
-    text-align: left;
-    background: var(--item-bg);
-    border: 1px solid var(--line);
-    color: var(--text);
-    padding: 14px 18px;
-    border-radius: 10px;
-    margin-bottom: 10px;
-    font-size: 15px;
-    display: flex;
-    gap: 14px;
-    align-items: flex-start;
-    transition: all 0.15s ease;
-  }
-  .opt:hover:not(:disabled) { border-color: var(--gold); box-shadow: 0 0 0 1px rgba(212,175,55,0.2); }
-  .opt .key { font-family: 'Space Grotesk'; font-weight: 800; color: var(--gold); flex-shrink: 0; }
-  .opt.correct { border-color: var(--good); background: rgba(47, 181, 106, 0.1); }
-  .opt.correct .key { color: var(--good); }
-  .opt.wrong   { border-color: var(--bad);  background: rgba(224, 86, 59, 0.1); }
-  .opt.wrong .key { color: var(--bad); }
+/* Typography helpers */
+.eyebrow, .g-eyebrow {
+  font-size: var(--text-xs); font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.1px;
+  color: var(--text-3); margin-bottom: var(--sp-1);
+}
+.muted, .g-text-muted { color: var(--text-3); font-size: var(--text-sm); }
+h1, h2, h3, h4 {
+  font-family: var(--font-head); color: var(--text-1);
+  line-height: 1.2;
+}
+h1 { font-size: var(--text-3xl); font-weight: 800; }
+h2 { font-size: var(--text-xl); font-weight: 700; }
+h3 { font-size: var(--text-md); font-weight: 700; }
+p  { color: var(--text-2); font-size: var(--text-sm); line-height: 1.6; }
 
-  .fb { border-radius: 10px; padding: 16px; margin: 10px 0 20px; font-size: 14px; line-height: 1.5; }
-  .fb.ok { background: rgba(47, 181, 106, 0.08); border: 1px solid rgba(47,181,106,0.3); color: #a7f3d0; }
-  .fb.no { background: rgba(224, 86, 59, 0.08); border: 1px solid rgba(224,86,59,0.3); color: #fecaca; }
-  .fb b { font-family: 'Space Grotesk'; }
+/* Layout helpers */
+.center { display: flex; align-items: center; justify-content: center; flex-direction: column; }
+.grid { display: grid; gap: var(--sp-4); }
+.hidden { display: none !important; }
+.g-flex { display: flex; align-items: center; gap: var(--sp-3); }
+.g-flex-between { display: flex; align-items: center; justify-content: space-between; }
 
-  /* ── Leaderboard ── */
-  .trophy {
-    font-size: 68px; text-align: center; margin-bottom: 12px;
-    filter: drop-shadow(0 0 14px rgba(212, 175, 55, 0.5));
-    animation: bounce 1s infinite alternate;
-  }
-  @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+/* Banner / Alert */
+.banner {
+  background: var(--glass-bg-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-3) var(--sp-5);
+  display: flex; align-items: center; gap: var(--sp-3);
+  font-size: var(--text-sm);
+}
 
-  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-  th, td { text-align: left; padding: 12px 12px; border-bottom: 1px solid var(--line); font-size: 14px; }
-  th { color: var(--muted-lo); font-size: 10px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; font-family: 'Sora'; }
-  tr.me { background: rgba(212, 175, 55, 0.07); }
-  tr:hover { background: rgba(26, 21, 64, 0.6); }
-  .rank { font-family: 'Space Grotesk'; font-weight: 800; width: 44px; font-size: 16px; }
-  .rank.r1 { color: var(--gold); text-shadow: var(--glow-gold); }
-  .rank.r2 { color: var(--silver-light); }
-  .rank.r3 { color: #cc7a3a; }
-  .tag {
-    font-size: 10px;
-    background: var(--item-bg);
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    padding: 2px 8px;
-    color: var(--gold);
-    font-weight: 700;
-    font-family: 'Sora';
-  }
-  .pts { font-family: 'Space Grotesk'; font-weight: 700; color: var(--gold); }
+/* Dot indicator */
+.dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  background: var(--neon-green); box-shadow: 0 0 6px var(--neon-green);
+  display: inline-block;
+}
 
-  /* ── Tab Navigation ── */
-  .nav { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
-  .nav button { padding: 9px 16px; font-size: 13px; }
-  .nav .active {
-    background: var(--item-bg);
-    border: 1px solid rgba(212, 175, 55, 0.5);
-    color: var(--text);
-    box-shadow: inset 0 0 0 1px rgba(212,175,55,0.15), var(--glow-gold);
-  }
+/* Trophy / Rank display */
+.trophy { font-size: 24px; }
+.rank { font-family: var(--font-mono); font-weight: 800; font-size: var(--text-xl); color: var(--accent); }
+.pts {
+  background: var(--accent-10); color: var(--accent);
+  border: 1px solid var(--accent-28); border-radius: var(--r-full);
+  padding: 2px 8px; font-size: var(--text-xs); font-weight: 800;
+  font-family: var(--font-mono);
+}
+.me { font-weight: 700; color: var(--accent) !important; }
 
-  footer {
-    text-align: center;
-    color: var(--muted-lo);
-    font-size: 11px;
-    margin-top: 40px;
-    padding-top: 20px;
-    border-top: 1px solid var(--line);
-    letter-spacing: .05em;
-  }
+/* Module cards */
+.mod {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4);
+  cursor: pointer;
+  transition: all var(--dur-base) var(--ease-out);
+  position: relative; overflow: hidden;
+}
+.mod:hover { border-color: var(--glass-border-2); box-shadow: var(--glow-accent); transform: translateY(-2px); }
+.mod.locked { opacity: 0.5; cursor: default; }
+.mod.locked:hover { transform: none; box-shadow: none; }
+.mod.open { border-color: var(--accent-28); }
+.mod.passed { border-color: rgba(34,201,122,0.3); }
+.mtop { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-3); }
+.mfoot { display: flex; align-items: center; justify-content: space-between; margin-top: var(--sp-3); padding-top: var(--sp-2); border-top: 1px solid var(--glass-border); }
+.mnr {
+  width: 28px; height: 28px; border-radius: var(--r-sm);
+  background: var(--accent-10); color: var(--accent);
+  border: 1px solid var(--accent-18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--text-xs); font-weight: 800; font-family: var(--font-mono);
+}
+.inactive-round .mnr { background: rgba(255,255,255,0.04); color: var(--text-dim); border-color: rgba(255,255,255,0.06); }
 
-  .spinner {
-    width: 28px; height: 28px;
-    border: 2px solid var(--line);
-    border-top-color: var(--gold);
-    border-radius: 50%;
-    animation: spin .7s linear infinite;
-    margin: 40px auto;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+/* Quartal / Badge Container */
+.quartal {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px; border-radius: var(--r-sm);
+  font-size: var(--text-xs); font-weight: 700;
+  background: var(--glass-bg-2); color: var(--text-3);
+  border: 1px solid var(--glass-border);
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.badge-container { display: flex; flex-wrap: wrap; gap: 6px; }
 
-  .unlock-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--item-bg);
-    border: 1px solid var(--line);
-    padding: 10px 14px;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    font-size: 13px;
-  }
+/* Quiz elements */
+.qhead { margin-bottom: var(--sp-4); }
+.qmeta { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--text-xs); color: var(--text-3); margin-bottom: var(--sp-2); }
+.qnum { font-family: var(--font-mono); font-weight: 800; color: var(--accent); }
+.qtext { font-size: var(--text-md); font-weight: 600; color: var(--text-1); line-height: 1.5; margin-bottom: var(--sp-5); }
+.qprog { height: 3px; border-radius: var(--r-full); background: rgba(255,255,255,0.07); overflow: hidden; margin-bottom: var(--sp-4); }
+.qprog-fill { height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent)); border-radius: var(--r-full); transition: width 0.4s var(--ease-out); }
 
-  .badge-container {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(212, 175, 55, 0.08);
-    border: 1px solid rgba(212, 175, 55, 0.2);
-    border-radius: 20px;
-    padding: 4px 12px;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--gold);
-    margin-top: 8px;
-    font-family: 'Space Grotesk';
-  }
+/* Answer options */
+.opt {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  cursor: pointer; font-size: var(--text-sm);
+  color: var(--text-2);
+  transition: all var(--dur-base) var(--ease-out);
+  margin-bottom: var(--sp-2);
+}
+.opt:hover { border-color: var(--glass-border-2); background: var(--glass-bg-2); color: var(--text-1); }
+.opt.correct { border-color: rgba(34,201,122,0.5); background: rgba(34,201,122,0.08); color: var(--neon-green); }
+.opt.wrong   { border-color: rgba(255,68,136,0.5);  background: rgba(255,68,136,0.08);  color: var(--neon-rose); }
+.key {
+  width: 24px; height: 24px; border-radius: var(--r-sm);
+  background: var(--glass-bg-2); border: 1px solid var(--glass-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--text-xs); font-weight: 800; font-family: var(--font-mono);
+  color: var(--text-3); flex-shrink: 0;
+}
 
-  /* Table containers */
-  .table-container {
-    overflow-x: auto;
-    border-radius: 10px;
-    border: 1px solid var(--line);
-    background: rgba(13, 10, 36, 0.5);
-  }
-  .trainer-table th { background: var(--item-bg); }
-  .trainer-table tr:hover td { background: rgba(26,21,64,0.5); }
+/* Progress bar */
+.g-progress { margin-bottom: var(--sp-3); }
+.g-progress-track { height: 5px; border-radius: var(--r-full); background: rgba(255,255,255,0.07); overflow: hidden; }
+.g-progress-fill { height: 100%; border-radius: var(--r-full); background: linear-gradient(90deg, var(--accent2), var(--accent)); transition: width 0.8s var(--ease-spring); }
+.bar { height: 6px; border-radius: var(--r-full); background: linear-gradient(90deg, var(--accent2), var(--accent)); transition: width 0.6s var(--ease-spring); }
 
-  /* ── Trainer Table override ── */
-  .trainer-table th, .trainer-table td {
-    padding: 10px 12px;
-    border-bottom: 1px solid var(--line);
-    font-size: 13px;
-  }
+/* Modal / Overlay */
+.g-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--sp-6);
+  animation: g-fadein var(--dur-base) var(--ease-out) both;
+}
+.g-modal {
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border-2);
+  border-radius: var(--r-2xl);
+  padding: var(--sp-8);
+  max-width: 560px; width: 100%;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.6), var(--glow-accent);
+  animation: g-slideup var(--dur-slow) var(--ease-spring) both;
+  position: relative; overflow: hidden;
+}
+.g-modal::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--glass-border-2), transparent);
+}
+@keyframes g-fadein  { from{opacity:0} to{opacity:1} }
+@keyframes g-slideup { from{opacity:0;transform:translateY(24px) scale(0.97)} to{opacity:1;transform:none} }
 
-  /* ── MC Sidebar (for app-head) ── */
-  #app-head {
-    background: var(--card);
-    border-bottom: 1px solid var(--line);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    margin-bottom: 0;
-  }
-  #app-head .topbar {
-    margin-bottom: 0;
-    border: none;
-    border-radius: 0;
-    padding: 10px 16px;
-    background: transparent;
-    box-shadow: none;
-  }
+/* Toast */
+.g-toast {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4); border-radius: var(--r-lg);
+  background: var(--glass-bg-3); backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border); font-size: var(--text-sm); color: var(--text-1);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  animation: g-slideup var(--dur-base) var(--ease-spring) both;
+}
+.g-toast.success { border-color: rgba(34,201,122,0.4); }
+.g-toast.error   { border-color: rgba(255,68,136,0.4); }
 
-  /* ── Player nav bar ── */
-  #player-nav {
-    background: var(--sidebar-bg);
-    border-bottom: 1px solid var(--line);
-    position: sticky;
-    top: 60px;
-    z-index: 99;
-  }
-  #player-nav .nav {
-    margin: 0;
-    padding: 8px 16px;
-    gap: 4px;
-  }
-  #player-nav .nav button {
-    padding: 8px 14px;
-    font-size: 13px;
-    border-radius: 8px;
-  }
+/* Logbuch */
+.logbuch-day-btn {
+  width: 40px; height: 40px; border-radius: var(--r-md);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg); color: var(--text-3);
+  cursor: pointer; font-size: var(--text-sm); font-weight: 700;
+  transition: all var(--dur-base) var(--ease-out);
+  display: flex; align-items: center; justify-content: center;
+}
+.logbuch-day-btn:hover { border-color: var(--glass-border-2); color: var(--text-1); }
+.logbuch-day-btn.active { background: var(--accent-10); border-color: var(--accent-28); color: var(--accent); box-shadow: var(--glow-sm); }
 
-  /* ── Player Stats Card ── */
-  #player-stats-card {
-    background: linear-gradient(135deg, #140f35 0%, #0d0a24 100%);
-    border-bottom: 1px solid var(--line);
-    padding: 12px 16px;
-  }
+/* Unlock item */
+.unlock-item {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  transition: all var(--dur-base) var(--ease-out);
+}
+.unlock-item:hover { border-color: var(--glass-border-2); background: var(--glass-bg-2); }
 
-  /* ── MC Accent hover glow on cards ── */
-  .card:hover { border-color: rgba(180, 70, 255, 0.15); }
+/* Skill display */
+.fb { font-family: var(--font-mono); font-weight: 800; color: var(--accent); }
+.r1, .r2, .r3 { font-size: var(--text-xs); color: var(--text-3); }
 
-  /* ── Logbuch specific ── */
-  .logbuch-day-btn {
-    border-radius: 8px !important;
-    transition: all 0.15s ease !important;
-  }
-  .logbuch-day-btn.active {
-    box-shadow: 0 0 12px rgba(212, 175, 55, 0.4) !important;
-  }
+/* Display (large number) */
+.display {
+  font-family: var(--font-head); font-size: var(--text-4xl); font-weight: 800;
+  color: #fff; line-height: 1;
+  background: linear-gradient(135deg, var(--text-1), var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
 
-  /* ── MC Subtle field overlay ── */
-  .field-bg {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    pointer-events: none;
-    z-index: -1;
-    opacity: 0.03;
-    background:
-      radial-gradient(ellipse at 50% 50%, rgba(180,70,255,0.15) 0%, transparent 70%),
-      radial-gradient(ellipse at 20% 80%, rgba(212,175,55,0.1) 0%, transparent 50%);
-  }
-  .field-line, .field-center-line, .field-center-circle,
-  .field-penalty-box-left, .field-penalty-box-right { display: none; }
+/* Inactive / Always */
+.inactive { opacity: 0.45; }
+.always   { opacity: 1 !important; }
+
+/* Stat card (KPI) */
+.g-stat {
+  background: var(--glass-bg); backdrop-filter: var(--glass-blur-sm);
+  border: 1px solid var(--glass-border); border-radius: var(--r-lg);
+  padding: var(--sp-5); position: relative; overflow: hidden;
+  transition: transform var(--dur-base) var(--ease-spring), border-color var(--dur-base), box-shadow var(--dur-base);
+}
+.g-stat:hover { transform: translateY(-3px); border-color: var(--glass-border-2); box-shadow: 0 10px 36px rgba(var(--accent-rgb),0.14); }
+.g-stat-value { font-family: var(--font-head); font-size: var(--text-3xl); font-weight: 700; color: #fff; line-height: 1; }
+.g-stat-label { font-size: var(--text-xs); color: var(--text-3); text-transform: uppercase; letter-spacing: 0.7px; font-weight: 600; margin-top: 4px; }
+.g-stat-stripe { position: absolute; bottom: 0; left: 0; right: 0; height: 2.5px; border-radius: 0 0 var(--r-lg) var(--r-lg); background: linear-gradient(90deg, var(--accent2), var(--accent)); }
+
+/* Entrance animations */
+@media(prefers-reduced-motion:no-preference) {
+  .g-anim-up   { animation: g-slideup var(--dur-slow) var(--ease-spring) both; }
+  .g-anim-fade { animation: g-fadein var(--dur-base) var(--ease-out) both; }
+}
+
+/* Responsive */
+@media(max-width:980px) { .g-grid-3,.g-grid-4 { grid-template-columns: 1fr 1fr; } }
+@media(max-width:640px) {
+  .g-grid-2,.g-grid-3,.g-grid-4 { grid-template-columns: 1fr; }
+  .topbar { padding: 0 var(--sp-4); }
+  h1 { font-size: var(--text-2xl); }
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: var(--sp-6) var(--sp-4);
+  font-size: var(--text-xs);
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+}
+
+/* ── Schachbrett-Overrides ── */
+#schach-board .board-b72b1 { border-radius: var(--r-md); overflow: hidden; }
+.white-1e1d7 { background-color: #e8d5ff !important; }
+.black-3c85d { background-color: #6b2fa0 !important; }
+.highlight-white { background: rgba(168,85,247,0.5) !important; box-shadow: inset 0 0 0 3px var(--accent) !important; }
+.highlight-black { background: rgba(168,85,247,0.5) !important; box-shadow: inset 0 0 0 3px var(--accent) !important; }
+.selected-87a28 { background: rgba(255,220,0,0.6) !important; }
+#schach-board { user-select: none; }
+@media(max-width:520px) { #schach-board { width: calc(100vw - 64px) !important; } }
+
+/* Utility */
+.g-text-accent { color: var(--accent); }
+.g-text-green  { color: var(--neon-green); }
+.g-text-rose   { color: var(--neon-rose); }
+.g-text-amber  { color: var(--neon-amber); }
+.g-text-muted  { color: var(--text-3); }
+.g-mono        { font-family: var(--font-mono); }
+.g-heading     { font-family: var(--font-head); font-weight: 700; }
+.g-gradient-text { background: linear-gradient(135deg,var(--accent2),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.g-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); }
+.g-grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: var(--sp-4); }
+.g-grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: var(--sp-4); }
+.g-divider { height: 1px; background: var(--glass-border); margin: var(--sp-4) 0; }
+.g-stack   { display: flex; flex-direction: column; gap: var(--sp-3); }
 </style>
 </head>
 <body>
@@ -556,8 +725,8 @@
   </div>
 
   <!-- LOGIN -->
-  <div id="view-login" class="hidden">
-    <div class="card" style="max-width:440px; margin:8vh auto 0; padding:0; overflow:hidden;">
+  <div id="view-login" class="hidden" style="min-height:100vh; display:flex; align-items:flex-start; justify-content:center; padding:8vh var(--sp-4) 0;">
+    <div class="card" style="max-width:440px; width:100%; padding:0; overflow:hidden; flex-shrink:0;">
       <img src="Fussball SpielZ.jpeg" alt="" style="width:100%; height:140px; object-fit:cover; border-bottom:1px solid rgba(212,175,55,0.2);" />
       <div style="padding:24px;">
         <div style="text-align:center; margin-bottom:28px">
@@ -632,6 +801,7 @@
     <button id="tab-lernen" class="active" onclick="showPlayerTab('lernen')">📖 Lernen</button>
     <button id="tab-skills" class="btn-ghost" onclick="showPlayerTab('skills')">🎯 Skill-Challenges</button>
     <button id="tab-rang" class="btn-ghost" onclick="showPlayerTab('rang')">🏆 Rangliste</button>
+    <button id="tab-schach" class="btn-ghost" onclick="showPlayerTab('schach')">♟ Schach</button>
   </div>
 
   <!-- SPIELER: PERSONAL HEADER CARD -->
@@ -757,6 +927,65 @@
         </div>
       </div>
       <div id="rang-body"></div>
+    </div>
+  </div>
+
+  <!-- ♟ SCHACH-MODUL -->
+  <div id="view-schach" class="hidden">
+    <div class="card" style="max-width:900px; margin:0 auto;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+        <div>
+          <p class="eyebrow">Gehirn-Training</p>
+          <h2 style="margin:0; color:#fff;">♟ Schach-Arena</h2>
+        </div>
+        <div id="schach-mode-select" style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn" onclick="startChessAI(1)">😊 Einfach</button>
+          <button class="btn-ghost" onclick="startChessAI(3)">🤔 Mittel</button>
+          <button class="btn-ghost" onclick="startChessAI(6)">😤 Schwer</button>
+          <button class="btn-ghost" onclick="startChessAI(10)">🔥 Weltklasse</button>
+          <button class="btn-ghost" onclick="startChessAI(20)">👑 Legende</button>
+          <button class="btn-ghost" style="border-color:var(--accent); color:var(--accent);" onclick="openMultiplayerLobby()">⚡ vs. Spieler</button>
+        </div>
+      </div>
+
+      <!-- Status Bar -->
+      <div id="schach-status" style="display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+        <div id="schach-info" style="background:var(--glass-bg-2); border:1px solid var(--glass-border); border-radius:var(--r-md); padding:8px 14px; font-size:13px; font-weight:600; color:var(--text-1); flex:1;">Wähle einen Spielmodus</div>
+        <div id="schach-timer-w" style="display:none; background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:var(--r-md); padding:6px 12px; font-family:var(--font-mono); font-size:14px; font-weight:700; color:var(--text-1);">⬜ <span id="timer-w">10:00</span></div>
+        <div id="schach-timer-b" style="display:none; background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:var(--r-md); padding:6px 12px; font-family:var(--font-mono); font-size:14px; font-weight:700; color:var(--text-3);">⬛ <span id="timer-b">10:00</span></div>
+        <button id="schach-resign-btn" class="btn-ghost" style="display:none; font-size:12px; padding:6px 12px; color:var(--neon-rose); border-color:var(--neon-rose);" onclick="resignChess()">🏳 Aufgeben</button>
+        <button id="schach-new-btn" class="btn-ghost" style="display:none; font-size:12px; padding:6px 12px;" onclick="restartCurrentMode()">🔄 Neu</button>
+      </div>
+
+      <!-- Board + Sidebar -->
+      <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start;">
+        <div style="flex-shrink:0;">
+          <div id="schach-board" style="width:min(440px, calc(100vw - 80px));"></div>
+        </div>
+        <div style="flex:1; min-width:200px; display:flex; flex-direction:column; gap:12px;">
+          <!-- Move history -->
+          <div class="card g-card-sm" style="max-height:320px; overflow-y:auto;">
+            <p class="eyebrow" style="margin-bottom:8px;">Züge</p>
+            <div id="schach-moves" style="font-family:var(--font-mono); font-size:12px; color:var(--text-2); line-height:1.8;"></div>
+          </div>
+          <!-- Captured pieces -->
+          <div class="card g-card-sm">
+            <p class="eyebrow" style="margin-bottom:6px;">Geschlagene Figuren</p>
+            <div id="schach-captured" style="font-size:16px; line-height:1.6; min-height:28px;"></div>
+          </div>
+          <!-- AI depth indicator -->
+          <div id="schach-thinking" style="display:none; text-align:center; padding:12px; background:var(--accent-10); border:1px solid var(--accent-18); border-radius:var(--r-md); font-size:13px; color:var(--accent); font-weight:600;">
+            🤖 KI denkt nach...
+          </div>
+          <!-- Multiplayer lobby -->
+          <div id="schach-lobby" style="display:none;">
+            <div class="card g-card-sm">
+              <p class="eyebrow" style="margin-bottom:8px;">⚡ Online-Spiel</p>
+              <div id="lobby-state"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1092,37 +1321,30 @@
 
     <!-- Trainer-Tab: Spieler verwalten -->
     <div id="staff-spieler" class="card hidden">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+      <!-- Header -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
         <div>
           <p class="eyebrow">Zugriffskontrolle</p>
-          <h3 style="color:#fff;">🔐 Spieler verwalten & Einladen</h3>
+          <h3 style="color:#fff; margin:0;">🔐 Spieler verwalten</h3>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span id="player-count-badge" style="background:var(--accent-10); color:var(--accent); border:1px solid var(--accent-28); border-radius:var(--r-full); padding:4px 14px; font-size:12px; font-weight:800; font-family:var(--font-mono);">0 / 25</span>
+          <button class="btn" style="padding:8px 16px; font-size:13px;" onclick="openCreatePlayerModal()">+ Spieler erstellen</button>
+          <button class="btn-ghost" style="padding:8px 14px; font-size:13px;" onclick="openInviteModal()">📨 Einladen</button>
         </div>
       </div>
 
-      <!-- Neuen Spieler einladen -->
-      <div class="card" style="background:rgba(0,0,0,0.3); border:1px solid var(--gold); margin-bottom:20px; padding:16px;">
-        <h4 style="color:var(--gold); font-family:'Sora'; margin-bottom:12px; font-size:14px;">Neuen Spieler einladen</h4>
-        <div style="display:grid; grid-template-columns: 1fr 1fr auto; gap:10px; align-items:end;">
-          <div>
-            <label style="font-size:11px;">Spielername</label>
-            <input type="text" id="inv-name" placeholder="z.B. Noah" style="padding:8px;" />
-          </div>
-          <div>
-            <label style="font-size:11px;">E-Mail</label>
-            <input type="email" id="inv-email" placeholder="z.B. noah@email.ch" style="padding:8px;" />
-          </div>
-          <button class="btn" style="padding:8px 16px; font-size:13px; height:40px;" onclick="createInvitation()">Einladen</button>
-        </div>
-        <p id="inv-status" class="hidden" style="font-size:12px; margin-top:10px; font-weight:600;"></p>
-      </div>
-
-      <!-- Einladungs-Liste -->
+      <!-- Spieler-Tabelle -->
       <div class="table-container">
         <table class="trainer-table" id="inv-table">
           <thead>
             <tr>
+              <th style="width:32px;">#</th>
               <th>Name</th>
-              <th>E-Mail</th>
+              <th>Login-Email</th>
+              <th style="text-align:center;">Nr</th>
+              <th style="text-align:center;">Jg.</th>
+              <th style="text-align:center;">Fuss</th>
               <th style="text-align:center;">Status</th>
               <th style="text-align:center;">Aktiv</th>
               <th style="text-align:center;">Aktionen</th>
@@ -1132,6 +1354,9 @@
         </table>
       </div>
       <p id="inv-info" class="muted" style="margin-top:10px; font-size:12px;"></p>
+      <p id="inv-status" class="hidden" style="font-size:12px; margin-top:10px; font-weight:600;"></p>
+      <!-- hidden inputs kept for backward compat with createInvitation() -->
+      <input type="hidden" id="inv-name" /><input type="hidden" id="inv-email" />
     </div>
   </div>
 
@@ -3052,9 +3277,17 @@ function loadInvitations() {
         actionsHtml += '<button class="btn-ghost" style="padding:4px 10px; font-size:11px; color:#ff4444; border-color:#ff4444;" onclick="deleteInviteByEmail(\'' + esc(row.email) + '\',\'' + esc(row.display_name) + '\')">Löschen</button>';
       }
 
+        var nr   = isPlayer && row.player_nr ? row.player_nr : '–';
+      var jg   = isPlayer && row.geb       ? row.geb       : '–';
+      var fuss = isPlayer && row.fuss      ? row.fuss      : '–';
+
       html += '<tr>' +
-        '<td>' + esc(row.display_name || '—') + '</td>' +
-        '<td style="font-size:12px;">' + esc(row.email || '—') + '</td>' +
+        '<td style="color:var(--text-dim); font-family:var(--font-mono); font-size:11px;">' + (idx+1) + '</td>' +
+        '<td style="font-weight:600;">' + esc(row.display_name || '—') + '</td>' +
+        '<td style="font-size:11px; color:var(--text-3);">' + esc(row.email || '—') + '</td>' +
+        '<td style="text-align:center; font-family:var(--font-mono); font-size:12px;">' + nr + '</td>' +
+        '<td style="text-align:center; font-size:12px;">' + jg + '</td>' +
+        '<td style="text-align:center; font-size:12px;">' + fuss + '</td>' +
         '<td style="text-align:center;">' + statusHtml + '</td>' +
         '<td style="text-align:center;">' + activeHtml + '</td>' +
         '<td style="text-align:center; white-space:nowrap;">' + actionsHtml + '</td>' +
@@ -3063,6 +3296,9 @@ function loadInvitations() {
 
     tbody.innerHTML = html;
     el("inv-info").textContent = countPlayers + " Spieler · " + countOpenInv + " offene Einladungen";
+    // Update counter badge
+    var badge = document.getElementById("player-count-badge");
+    if (badge) badge.textContent = countPlayers + " / 25";
   });
 }
 
@@ -3174,49 +3410,237 @@ function deleteInviteByEmail(email, displayName) {
   });
 }
 
+// ── MODAL HELPERS ────────────────────────────────────────────
+function closeModal(id) {
+  var m = document.getElementById(id);
+  if (m) m.remove();
+}
+function closeEditPlayer()       { closeModal("edit-player-modal"); }
+function closeCreatePlayerModal(){ closeModal("create-player-modal"); }
+function closeInviteModal()      { closeModal("invite-modal"); }
+
+function makeGlassModal(id, title, bodyHtml) {
+  var existing = document.getElementById(id);
+  if (existing) existing.remove();
+  var overlay = document.createElement("div");
+  overlay.id = id;
+  overlay.style.cssText = "position:fixed; inset:0; background:rgba(0,0,0,0.72); backdrop-filter:blur(6px); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px;";
+  overlay.innerHTML =
+    '<div style="background:var(--bg-card); border:1px solid var(--glass-border-2); border-radius:var(--r-2xl); padding:var(--sp-8); max-width:480px; width:100%; box-shadow:0 24px 64px rgba(0,0,0,0.6), var(--glow-accent); position:relative; overflow:hidden;">' +
+      '<div style="position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,var(--glass-border-2),transparent);"></div>' +
+      '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--sp-6);">' +
+        '<h3 style="font-family:var(--font-head); font-size:var(--text-lg); font-weight:700; color:#fff; margin:0;">' + title + '</h3>' +
+        '<button onclick="closeModal(\'' + id + '\')" style="background:none; border:none; color:var(--text-3); cursor:pointer; font-size:20px; line-height:1; padding:4px; transition:color .15s;" onmouseover="this.style.color=\'var(--text-1)\'" onmouseout="this.style.color=\'var(--text-3)\'">✕</button>' +
+      '</div>' +
+      bodyHtml +
+    '</div>';
+  document.body.appendChild(overlay);
+}
+
+// ── INVITE (Einladungslink) ───────────────────────────────────
+function openInviteModal() {
+  makeGlassModal("invite-modal", "📨 Spieler einladen",
+    '<div style="margin-bottom:14px;">' +
+      '<label>Spielername</label>' +
+      '<input type="text" id="im-name" placeholder="z.B. Noah" />' +
+    '</div>' +
+    '<div style="margin-bottom:20px;">' +
+      '<label>E-Mail</label>' +
+      '<input type="email" id="im-email" placeholder="z.B. noah@fe12.local" />' +
+      '<p style="font-size:11px; color:var(--text-dim); margin-top:5px;">Tipp: @fe12.local Adressen werden automatisch akzeptiert.</p>' +
+    '</div>' +
+    '<p id="im-err" class="hidden" style="color:var(--bad); font-size:13px; margin-bottom:12px; font-weight:600; text-align:center;"></p>' +
+    '<div style="display:flex; gap:10px;">' +
+      '<button class="btn-ghost" style="flex:1;" onclick="closeInviteModal()">Abbrechen</button>' +
+      '<button class="btn" style="flex:1;" onclick="doInviteFromModal()">Einladungslink erstellen</button>' +
+    '</div>'
+  );
+}
+
+function doInviteFromModal() {
+  var name  = (document.getElementById("im-name").value  || "").trim();
+  var email = (document.getElementById("im-email").value || "").trim().toLowerCase();
+  var errEl = document.getElementById("im-err");
+  errEl.classList.add("hidden");
+  if (!name || !email) { errEl.textContent = "Name und E-Mail erforderlich."; errEl.classList.remove("hidden"); return; }
+  // copy to legacy hidden inputs so createInvitation() works
+  el("inv-name").value  = name;
+  el("inv-email").value = email;
+  sb.rpc("create_invitation", {p_email: email, p_display_name: name}).then(function(r) {
+    if (r.error) { errEl.textContent = "Fehler: " + r.error.message; errEl.classList.remove("hidden"); return; }
+    var link = location.origin + location.pathname + "?invite=" + r.data.code;
+    navigator.clipboard.writeText(link).then(function() {
+      closeInviteModal();
+      var s = el("inv-status");
+      s.textContent = "✓ Einladungslink für " + name + " kopiert!";
+      s.style.color = "var(--good)";
+      s.classList.remove("hidden");
+      setTimeout(function(){ s.classList.add("hidden"); }, 4000);
+      loadInvitations();
+    }, function() {
+      errEl.textContent = "Link erstellt: " + link;
+      errEl.classList.remove("hidden");
+      loadInvitations();
+    });
+  });
+}
+
+// ── CREATE PLAYER DIRECT ──────────────────────────────────────
+function openCreatePlayerModal() {
+  // Check limit
+  var badge = document.getElementById("player-count-badge");
+  if (badge) {
+    var cur = parseInt(badge.textContent.split("/")[0].trim()) || 0;
+    if (cur >= 25) { alert("Maximum von 25 Spielern erreicht."); return; }
+  }
+  makeGlassModal("create-player-modal", "⚽ Neuer Spieler",
+    '<div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:4px;">' +
+      '<div>' +
+        '<label>Name</label>' +
+        '<input type="text" id="cp-name" placeholder="z.B. Noah" />' +
+      '</div>' +
+      '<div>' +
+        '<label>E-Mail <span style="color:var(--text-dim); font-weight:400; text-transform:none; letter-spacing:0;">(@fe12.local)</span></label>' +
+        '<div style="display:flex; align-items:center; gap:0;">' +
+          '<input type="text" id="cp-email-user" placeholder="noah" style="border-radius:var(--r-md) 0 0 var(--r-md); border-right:none;" />' +
+          '<span style="background:var(--glass-bg-2); border:1px solid var(--glass-border); border-left:none; border-radius:0 var(--r-md) var(--r-md) 0; padding:9px 10px; font-size:12px; color:var(--text-3); white-space:nowrap; line-height:1.5;">@fe12.local</span>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">' +
+      '<div>' +
+        '<label>Passwort</label>' +
+        '<input type="password" id="cp-pass" placeholder="mind. 6 Zeichen" />' +
+      '</div>' +
+      '<div>' +
+        '<label>Passwort bestätigen</label>' +
+        '<input type="password" id="cp-pass2" placeholder="••••••••" />' +
+      '</div>' +
+    '</div>' +
+    '<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:20px;">' +
+      '<div>' +
+        '<label>Trikotnummer</label>' +
+        '<input type="number" id="cp-nr" placeholder="z.B. 9" min="1" max="99" />' +
+      '</div>' +
+      '<div>' +
+        '<label>Jahrgang</label>' +
+        '<input type="number" id="cp-jg" placeholder="z.B. 2012" min="2010" max="2015" />' +
+      '</div>' +
+      '<div>' +
+        '<label>Starker Fuss</label>' +
+        '<select id="cp-fuss">' +
+          '<option value="">–</option>' +
+          '<option value="Rechts">Rechts</option>' +
+          '<option value="Links">Links</option>' +
+          '<option value="Beide">Beide</option>' +
+        '</select>' +
+      '</div>' +
+    '</div>' +
+    '<p id="cp-err" class="hidden" style="color:var(--bad); font-size:13px; margin-bottom:12px; font-weight:600; text-align:center;"></p>' +
+    '<p id="cp-loading" class="hidden" style="color:var(--accent); font-size:13px; margin-bottom:12px; text-align:center;">Spieler wird erstellt...</p>' +
+    '<div style="display:flex; gap:10px;">' +
+      '<button class="btn-ghost" style="flex:1;" onclick="closeCreatePlayerModal()">Abbrechen</button>' +
+      '<button class="btn" style="flex:1;" id="cp-submit-btn" onclick="doCreatePlayer()">Spieler erstellen</button>' +
+    '</div>'
+  );
+}
+
+function doCreatePlayer() {
+  var name     = (document.getElementById("cp-name").value || "").trim();
+  var userpart = (document.getElementById("cp-email-user").value || "").trim().toLowerCase().replace(/[^a-z0-9._-]/g, "");
+  var email    = userpart + "@fe12.local";
+  var pass     = (document.getElementById("cp-pass").value  || "");
+  var pass2    = (document.getElementById("cp-pass2").value || "");
+  var nr       = (document.getElementById("cp-nr").value   || "").trim();
+  var jg       = (document.getElementById("cp-jg").value   || "").trim();
+  var fuss     = (document.getElementById("cp-fuss").value  || "");
+  var errEl    = document.getElementById("cp-err");
+  errEl.classList.add("hidden");
+
+  if (!name)         { errEl.textContent = "Name erforderlich."; errEl.classList.remove("hidden"); return; }
+  if (!userpart)     { errEl.textContent = "E-Mail-Teil erforderlich."; errEl.classList.remove("hidden"); return; }
+  if (pass.length < 6) { errEl.textContent = "Passwort mind. 6 Zeichen."; errEl.classList.remove("hidden"); return; }
+  if (pass !== pass2){ errEl.textContent = "Passwörter stimmen nicht überein."; errEl.classList.remove("hidden"); return; }
+
+  var btn = document.getElementById("cp-submit-btn");
+  btn.disabled = true;
+  document.getElementById("cp-loading").classList.remove("hidden");
+
+  // Use Supabase Admin API via RPC to create the user + profile
+  sb.rpc("create_player_direct", {
+    p_email:        email,
+    p_password:     pass,
+    p_display_name: name,
+    p_team_id:      "fe12",
+    p_player_nr:    nr   ? parseInt(nr)  : null,
+    p_geb:          jg   ? parseInt(jg)  : null,
+    p_fuss:         fuss || null
+  }).then(function(r) {
+    document.getElementById("cp-loading").classList.add("hidden");
+    btn.disabled = false;
+    if (r.error) {
+      errEl.textContent = "Fehler: " + r.error.message;
+      errEl.classList.remove("hidden"); return;
+    }
+    closeCreatePlayerModal();
+    var s = el("inv-status");
+    s.textContent = "✓ Spieler " + name + " (" + email + ") erstellt!";
+    s.style.color = "var(--good)";
+    s.classList.remove("hidden");
+    setTimeout(function(){ s.classList.add("hidden"); }, 4000);
+    loadInvitations();
+  });
+}
+
 // ── EDIT PLAYER ─────────────────────────────────────────────
 function openEditPlayer(idx) {
   var row = PLAYERS_CACHE[idx];
   if (!row) return;
-  var existing = document.getElementById("edit-player-modal");
-  if (existing) existing.remove();
-
-  var modal = document.createElement("div");
-  modal.id = "edit-player-modal";
-  modal.style.cssText = "position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px;";
-  modal.innerHTML =
-    '<div class="card" style="max-width:440px; width:100%; padding:0; overflow:hidden;">' +
-      '<div style="background:var(--gold-grad); padding:16px; text-align:center;">' +
-        '<h3 style="color:#0c0d10; font-family:Sora; font-weight:800; margin:0;">Spieler bearbeiten</h3>' +
+  makeGlassModal("edit-player-modal", "✏️ Spieler bearbeiten",
+    '<div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:4px;">' +
+      '<div>' +
+        '<label>Name</label>' +
+        '<input type="text" id="edit-name" value="' + esc(row.display_name || '') + '" />' +
       '</div>' +
-      '<div style="padding:20px;">' +
-        '<div style="margin-bottom:14px;">' +
-          '<label>Name</label>' +
-          '<input type="text" id="edit-name" value="' + esc(row.display_name || '') + '" />' +
+      '<div>' +
+        '<label>E-Mail</label>' +
+        '<input type="email" id="edit-email" value="' + esc(row.email || '') + '" />' +
         '</div>' +
-        '<div style="margin-bottom:18px;">' +
-          '<label>E-Mail</label>' +
-          '<input type="email" id="edit-email" value="' + esc(row.email || '') + '" />' +
-          '<p class="muted" style="font-size:11px; margin-top:6px;">Achtung: Bei E-Mail-Änderung loggt sich der Spieler ab sofort mit der neuen E-Mail ein. Passwort bleibt gleich.</p>' +
-        '</div>' +
-        '<p id="edit-err" class="hidden" style="color:var(--bad); font-size:13px; margin-bottom:12px; font-weight:600; text-align:center;"></p>' +
-        '<div style="display:flex; gap:10px;">' +
-          '<button class="btn-ghost" style="flex:1;" onclick="closeEditPlayer()">Abbrechen</button>' +
-          '<button class="btn" style="flex:1;" onclick="saveEditPlayer(\'' + row.player_id + '\')">Speichern</button>' +
-        '</div>' +
+    '</div>' +
+    '<p style="font-size:11px; color:var(--text-dim); margin-bottom:14px; margin-top:-6px;">E-Mail-Änderung: Spieler loggt sich ab sofort mit neuer Adresse ein.</p>' +
+    '<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:20px;">' +
+      '<div>' +
+        '<label>Trikotnummer</label>' +
+        '<input type="number" id="edit-nr" value="' + esc(row.player_nr != null ? String(row.player_nr) : '') + '" placeholder="–" min="1" max="99" />' +
       '</div>' +
-    '</div>';
-  document.body.appendChild(modal);
-}
-
-function closeEditPlayer() {
-  var m = document.getElementById("edit-player-modal");
-  if (m) m.remove();
+      '<div>' +
+        '<label>Jahrgang</label>' +
+        '<input type="number" id="edit-jg" value="' + esc(row.geb != null ? String(row.geb) : '') + '" placeholder="–" min="2010" max="2015" />' +
+      '</div>' +
+      '<div>' +
+        '<label>Starker Fuss</label>' +
+        '<select id="edit-fuss">' +
+          '<option value="">–</option>' +
+          '<option value="Rechts"' + (row.fuss==='Rechts'?' selected':'') + '>Rechts</option>' +
+          '<option value="Links"'  + (row.fuss==='Links' ?' selected':'') + '>Links</option>'  +
+          '<option value="Beide"'  + (row.fuss==='Beide' ?' selected':'') + '>Beide</option>'  +
+        '</select>' +
+      '</div>' +
+    '</div>' +
+    '<p id="edit-err" class="hidden" style="color:var(--bad); font-size:13px; margin-bottom:12px; font-weight:600; text-align:center;"></p>' +
+    '<div style="display:flex; gap:10px;">' +
+      '<button class="btn-ghost" style="flex:1;" onclick="closeEditPlayer()">Abbrechen</button>' +
+      '<button class="btn" style="flex:1;" onclick="saveEditPlayer(\'' + row.player_id + '\')">Speichern</button>' +
+    '</div>'
+  );
 }
 
 function saveEditPlayer(playerId) {
-  var name = (el("edit-name").value || "").trim();
+  var name  = (el("edit-name").value  || "").trim();
   var email = (el("edit-email").value || "").trim().toLowerCase();
+  var nr    = (el("edit-nr").value    || "").trim();
+  var jg    = (el("edit-jg").value    || "").trim();
+  var fuss  = (el("edit-fuss").value  || "");
   var errEl = el("edit-err");
   errEl.classList.add("hidden");
 
@@ -3230,9 +3654,12 @@ function saveEditPlayer(playerId) {
   }
 
   sb.rpc("update_player", {
-    p_player_id: playerId,
+    p_player_id:    playerId,
     p_display_name: name,
-    p_email: email
+    p_email:        email,
+    p_player_nr:    nr   ? parseInt(nr)  : null,
+    p_geb:          jg   ? parseInt(jg)  : null,
+    p_fuss:         fuss || null
   }).then(function(r) {
     if (r.error) {
       errEl.textContent = "Fehler: " + r.error.message;
@@ -3241,6 +3668,341 @@ function saveEditPlayer(playerId) {
     closeEditPlayer();
     loadInvitations();
   });
+}
+
+/* ════════════════════════════════════════════════════════════
+   ♟  SCHACH-MODUL
+   ════════════════════════════════════════════════════════════ */
+var CHESS = {
+  game: null,       // chess.js instance
+  board: null,      // chessboard.js instance
+  mode: null,       // 'ai' | 'multiplayer'
+  aiDepth: 1,
+  playerColor: 'w',
+  aiThinking: false,
+  stockfish: null,
+  moveHistory: [],
+  timerInterval: null,
+  timeW: 600, timeB: 600,  // 10 min each
+  realtimeChannel: null,
+  roomId: null,
+  mpRole: null  // 'white' | 'black'
+};
+
+// ── showPlayerTab hook ──────────────────────────────────────
+var _origShowPlayerTab = showPlayerTab;
+showPlayerTab = function(t) {
+  var tabSchach = el("tab-schach");
+  if (tabSchach) tabSchach.className = t === "schach" ? "active" : "btn-ghost";
+  if (t === "schach") {
+    scrollToTop();
+    playerTab = t;
+    only("view-schach"); show("app-head"); show("player-nav");
+    loadPlayerStats();
+    initChessView();
+  } else {
+    if (CHESS.board && t !== "schach") {
+      chessCleanup();
+    }
+    _origShowPlayerTab(t);
+  }
+};
+
+function initChessView() {
+  if (CHESS.board) return; // already initialised
+  var boardSize = Math.min(440, window.innerWidth - 80);
+  el("schach-board").style.width = boardSize + "px";
+  CHESS.game = new Chess();
+  CHESS.board = Chessboard("schach-board", {
+    draggable: true,
+    position: "start",
+    pieceTheme: "https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/img/chesspieces/wikipedia/{piece}.png",
+    onDragStart: chessOnDragStart,
+    onDrop: chessOnDrop,
+    onSnapEnd: chessOnSnapEnd
+  });
+}
+
+function chessCleanup() {
+  if (CHESS.timerInterval) clearInterval(CHESS.timerInterval);
+  if (CHESS.stockfish) { CHESS.stockfish.terminate(); CHESS.stockfish = null; }
+  if (CHESS.realtimeChannel) {
+    sb.removeChannel(CHESS.realtimeChannel);
+    CHESS.realtimeChannel = null;
+  }
+  if (CHESS.board) { CHESS.board.destroy(); CHESS.board = null; }
+  CHESS.game = null;
+  CHESS.mode = null;
+}
+
+// ── DRAG & DROP ─────────────────────────────────────────────
+function chessOnDragStart(source, piece) {
+  if (!CHESS.game || CHESS.game.game_over()) return false;
+  if (CHESS.aiThinking) return false;
+  // In AI mode only player's pieces
+  if (CHESS.mode === "ai") {
+    if ((CHESS.playerColor === 'w' && piece.search(/^b/) !== -1) ||
+        (CHESS.playerColor === 'b' && piece.search(/^w/) !== -1)) return false;
+    if (CHESS.game.turn() !== CHESS.playerColor) return false;
+  }
+  // In multiplayer only own pieces + correct turn
+  if (CHESS.mode === "multiplayer") {
+    var myColor = CHESS.mpRole === "white" ? "w" : "b";
+    if (CHESS.game.turn() !== myColor) return false;
+    if ((myColor === 'w' && piece.search(/^b/) !== -1) ||
+        (myColor === 'b' && piece.search(/^w/) !== -1)) return false;
+  }
+}
+
+function chessOnDrop(source, target) {
+  var move = CHESS.game.move({ from: source, to: target, promotion: "q" });
+  if (move === null) return "snapback";
+  chessAfterMove(move);
+  if (CHESS.mode === "multiplayer") {
+    sendMultiplayerMove(move.san);
+  }
+  if (CHESS.mode === "ai" && !CHESS.game.game_over()) {
+    chessAIMove();
+  }
+}
+
+function chessOnSnapEnd() {
+  if (CHESS.board) CHESS.board.position(CHESS.game.fen());
+}
+
+function chessAfterMove(move) {
+  CHESS.moveHistory.push(move.san);
+  renderMoveHistory();
+  renderCaptured();
+  updateChessStatus();
+}
+
+// ── RENDER HELPERS ──────────────────────────────────────────
+function renderMoveHistory() {
+  var html = "";
+  for (var i = 0; i < CHESS.moveHistory.length; i++) {
+    if (i % 2 === 0) html += '<span style="color:var(--text-dim);">' + (Math.floor(i/2)+1) + '. </span>';
+    html += '<span>' + CHESS.moveHistory[i] + '</span> ';
+    if (i % 2 === 1) html += '<br>';
+  }
+  var box = el("schach-moves");
+  if (box) { box.innerHTML = html; box.scrollTop = box.scrollHeight; }
+}
+
+function renderCaptured() {
+  var pieceEmoji = { p:'♟', n:'♞', b:'♝', r:'♜', q:'♛', P:'♙', N:'♘', B:'♗', R:'♖', Q:'♕' };
+  var history = CHESS.game.history({ verbose: true });
+  var capturedW = [], capturedB = [];
+  history.forEach(function(m) {
+    if (m.captured) {
+      if (m.color === 'w') capturedB.push(pieceEmoji[m.captured] || '?');
+      else capturedW.push(pieceEmoji[m.captured.toUpperCase()] || '?');
+    }
+  });
+  var box = el("schach-captured");
+  if (box) box.innerHTML =
+    '<div>⬜ ' + (capturedW.join('') || '–') + '</div>' +
+    '<div>⬛ ' + (capturedB.join('') || '–') + '</div>';
+}
+
+function updateChessStatus() {
+  var info = el("schach-info");
+  if (!info || !CHESS.game) return;
+  var g = CHESS.game;
+  if (g.in_checkmate()) {
+    var winner = g.turn() === 'w' ? '⬛ Schwarz' : '⬜ Weiss';
+    info.textContent = "🏆 Schachmatt! " + winner + " gewinnt!";
+    info.style.color = "var(--neon-amber)";
+    chessStopTimer();
+    show("schach-new-btn"); hide("schach-resign-btn");
+  } else if (g.in_draw()) {
+    info.textContent = "🤝 Remis!";
+    info.style.color = "var(--neon-cyan)";
+    chessStopTimer();
+    show("schach-new-btn"); hide("schach-resign-btn");
+  } else if (g.in_check()) {
+    info.textContent = "⚠️ Schach! " + (g.turn() === 'w' ? '⬜ Weiss' : '⬛ Schwarz') + " ist im Schach.";
+    info.style.color = "var(--neon-rose)";
+  } else {
+    var turn = g.turn() === 'w' ? '⬜ Weiss' : '⬛ Schwarz';
+    if (CHESS.mode === "ai") {
+      turn = g.turn() === CHESS.playerColor ? "🙋 Du bist dran" : "🤖 KI denkt...";
+    }
+    info.textContent = turn + " ist am Zug.";
+    info.style.color = "var(--text-1)";
+  }
+}
+
+// ── AI MODE ─────────────────────────────────────────────────
+function startChessAI(depth) {
+  chessCleanup();
+  CHESS.mode = "ai";
+  CHESS.aiDepth = depth;
+  CHESS.playerColor = "w";
+  CHESS.moveHistory = [];
+  CHESS.timeW = 600; CHESS.timeB = 600;
+  initChessView();
+  CHESS.game.reset();
+  CHESS.board.position("start");
+  CHESS.board.orientation("white");
+
+  var labels = {1:"😊 Einfach", 3:"🤔 Mittel", 6:"😤 Schwer", 10:"🔥 Weltklasse", 20:"👑 Legende"};
+  var info = el("schach-info");
+  info.textContent = "KI-Modus: " + (labels[depth]||"KI") + " · Du spielst Weiss.";
+  info.style.color = "var(--text-1)";
+  show("schach-resign-btn"); show("schach-new-btn");
+  show("schach-timer-w"); show("schach-timer-b");
+  hide("schach-lobby");
+  el("schach-moves").innerHTML = "";
+  renderCaptured();
+
+  // Init Stockfish
+  initStockfish();
+  chessStartTimer();
+}
+
+function initStockfish() {
+  try {
+    CHESS.stockfish = new Worker("https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js");
+    CHESS.stockfish.onmessage = function(e) {
+      var msg = e.data;
+      if (typeof msg === "string" && msg.indexOf("bestmove") === 0) {
+        var parts = msg.split(" ");
+        var move  = parts[1];
+        if (!move || move === "(none)") return;
+        hide("schach-thinking");
+        CHESS.aiThinking = false;
+        var result = CHESS.game.move({ from: move.slice(0,2), to: move.slice(2,4), promotion: move[4] || "q" });
+        if (result) {
+          CHESS.board.position(CHESS.game.fen());
+          chessAfterMove(result);
+        }
+      }
+    };
+    CHESS.stockfish.postMessage("uci");
+    CHESS.stockfish.postMessage("isready");
+  } catch(e) {
+    console.warn("Stockfish nicht verfügbar:", e);
+  }
+}
+
+function chessAIMove() {
+  if (!CHESS.stockfish) return;
+  CHESS.aiThinking = true;
+  show("schach-thinking");
+  CHESS.stockfish.postMessage("position fen " + CHESS.game.fen());
+  CHESS.stockfish.postMessage("go depth " + CHESS.aiDepth);
+}
+
+// ── TIMER ───────────────────────────────────────────────────
+function chessStartTimer() {
+  chessStopTimer();
+  CHESS.timerInterval = setInterval(function() {
+    if (!CHESS.game || CHESS.game.game_over()) { chessStopTimer(); return; }
+    if (CHESS.game.turn() === "w") {
+      CHESS.timeW = Math.max(0, CHESS.timeW - 1);
+      el("timer-w").textContent = fmtTime(CHESS.timeW);
+      if (CHESS.timeW === 0) { el("schach-info").textContent = "⏱ Zeit abgelaufen! ⬛ Schwarz gewinnt."; chessStopTimer(); }
+    } else {
+      CHESS.timeB = Math.max(0, CHESS.timeB - 1);
+      el("timer-b").textContent = fmtTime(CHESS.timeB);
+      if (CHESS.timeB === 0) { el("schach-info").textContent = "⏱ Zeit abgelaufen! ⬜ Weiss gewinnt."; chessStopTimer(); }
+    }
+  }, 1000);
+}
+function chessStopTimer() { if (CHESS.timerInterval) { clearInterval(CHESS.timerInterval); CHESS.timerInterval = null; } }
+function fmtTime(s) { return String(Math.floor(s/60)).padStart(2,"0") + ":" + String(s%60).padStart(2,"0"); }
+
+function resignChess() {
+  if (!confirm("Wirklich aufgeben?")) return;
+  var info = el("schach-info");
+  info.textContent = "🏳 Aufgegeben. Gutes Spiel!";
+  info.style.color = "var(--neon-amber)";
+  chessStopTimer();
+  if (CHESS.stockfish) { CHESS.stockfish.postMessage("stop"); }
+  hide("schach-resign-btn"); show("schach-new-btn");
+}
+
+function restartCurrentMode() {
+  if (CHESS.mode === "ai") startChessAI(CHESS.aiDepth);
+  else if (CHESS.mode === "multiplayer") openMultiplayerLobby();
+  else initChessView();
+}
+
+// ── MULTIPLAYER via Supabase Realtime ───────────────────────
+function openMultiplayerLobby() {
+  chessCleanup();
+  CHESS.mode = "multiplayer";
+  CHESS.moveHistory = [];
+  initChessView();
+  CHESS.game.reset();
+  CHESS.board.position("start");
+  hide("schach-resign-btn"); hide("schach-new-btn");
+  hide("schach-timer-w"); hide("schach-timer-b");
+  show("schach-lobby");
+  hide("schach-thinking");
+  el("schach-moves").innerHTML = "";
+
+  var playerName = PROFILE ? (PROFILE.display_name || "Anonym") : "Anonym";
+  var roomCode   = prompt("Raum-Code eingeben (oder leer lassen um neuen zu erstellen):");
+  if (roomCode === null) { hide("schach-lobby"); return; }
+  roomCode = (roomCode || "").trim().toUpperCase();
+
+  if (!roomCode) {
+    // Erstelle neuen Raum
+    CHESS.roomId  = "chess-" + Math.random().toString(36).slice(2,8).toUpperCase();
+    CHESS.mpRole  = "white";
+    el("lobby-state").innerHTML =
+      '<p style="color:var(--accent); font-weight:700; margin-bottom:8px;">Raum erstellt!</p>' +
+      '<p style="font-size:13px; margin-bottom:6px;">Dein Code:</p>' +
+      '<div style="font-family:var(--font-mono); font-size:22px; font-weight:800; color:#fff; background:var(--accent-10); border:1px solid var(--accent-28); border-radius:var(--r-md); padding:10px; text-align:center; letter-spacing:0.2em;">' + CHESS.roomId.replace("chess-","") + '</div>' +
+      '<p style="font-size:12px; color:var(--text-3); margin-top:8px;">Teile diesen Code mit einem Mitspieler. Du spielst ⬜ Weiss.</p>';
+    mpJoinChannel(playerName);
+  } else {
+    // Trete bestehendem Raum bei
+    CHESS.roomId = "chess-" + roomCode;
+    CHESS.mpRole = "black";
+    el("lobby-state").innerHTML =
+      '<p style="color:var(--neon-green); font-weight:700;">Verbinde mit Raum ' + roomCode + '...</p>';
+    mpJoinChannel(playerName);
+  }
+  el("schach-info").textContent = CHESS.mpRole === "white" ? "⬜ Du spielst Weiss · Warte auf Mitspieler..." : "⬛ Du spielst Schwarz · Verbunden!";
+  CHESS.board.orientation(CHESS.mpRole === "white" ? "white" : "black");
+}
+
+function mpJoinChannel(playerName) {
+  if (CHESS.realtimeChannel) { sb.removeChannel(CHESS.realtimeChannel); }
+  CHESS.realtimeChannel = sb.channel(CHESS.roomId, { config: { broadcast: { self: false } } });
+
+  CHESS.realtimeChannel
+    .on("broadcast", { event: "move" }, function(payload) {
+      var san = payload.payload.san;
+      var move = CHESS.game.move(san);
+      if (move) {
+        CHESS.board.position(CHESS.game.fen());
+        chessAfterMove(move);
+      }
+    })
+    .on("broadcast", { event: "join" }, function(payload) {
+      if (CHESS.mpRole === "white") {
+        var lob = el("lobby-state");
+        if (lob) lob.innerHTML = '<p style="color:var(--neon-green); font-weight:700;">✓ ' + esc(payload.payload.name) + ' ist beigetreten! Spiel startet.</p>';
+        el("schach-info").textContent = "⬜ Du bist dran. Viel Spass!";
+        show("schach-resign-btn"); show("schach-new-btn");
+      }
+    })
+    .subscribe(function(status) {
+      if (status === "SUBSCRIBED" && CHESS.mpRole === "black") {
+        CHESS.realtimeChannel.send({ type:"broadcast", event:"join", payload:{ name: playerName } });
+        el("schach-info").textContent = "⬛ Du spielst Schwarz · Warte auf Weiss...";
+        show("schach-resign-btn"); show("schach-new-btn");
+      }
+    });
+}
+
+function sendMultiplayerMove(san) {
+  if (!CHESS.realtimeChannel) return;
+  CHESS.realtimeChannel.send({ type: "broadcast", event: "move", payload: { san: san } });
 }
 </script>
 </body>
