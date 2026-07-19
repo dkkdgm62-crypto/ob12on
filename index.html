@@ -4595,8 +4595,10 @@ var CE = (function(){
   function newQuestion(moduleId, moduleTitel){
     document.getElementById("ce-q-modal").remove();
     // Count existing questions for auto-numbering
-    sb.rpc("ce_get_questions",{p_module_id:moduleId}).then(function(r){
-      var nextNr = r.data && r.data.length ? (r.data[r.data.length-1].frage_nr+1) : 1;
+    sb.rpc("get_module_questions",{p_module_id:moduleId}).then(function(r){
+      var rows=r.data||[], ids=[], seen={};
+      rows.forEach(function(row){ if(!seen[row.question_id]){seen[row.question_id]=true;ids.push(row.frage_nr);} });
+      var nextNr = ids.length ? (Math.max.apply(null,ids)+1) : 1;
       _questionEditor(null, moduleId, moduleTitel, nextNr, null, [
         {key:"A",text:"",correct:true},{key:"B",text:"",correct:false},
         {key:"C",text:"",correct:false},{key:"D",text:"",correct:false}
@@ -4605,15 +4607,26 @@ var CE = (function(){
   }
 
   /* ── Frage bearbeiten ────────────────────────────────────── */
-  function editQuestion(questionId, moduleId, moduleTitel){
+  function editQuestion(questionId, moduleId, moduleTitel, cachedQ){
     document.getElementById("ce-q-modal").remove();
-    sb.rpc("ce_get_question_detail",{p_question_id:questionId}).then(function(r){
-      if(r.error){ alert("Fehler: "+r.error.message); return; }
-      var d=r.data;
-      _questionEditor(questionId, moduleId, moduleTitel, d.frage_nr, d.frage_text, (d.options||[]).map(function(o){
-        return {id:o.id, key:o.key, text:o.text, correct:o.correct};
-      }));
-    });
+    // Nutze gecachte Daten aus _loadQuestions (kein extra RPC-Call nötig)
+    var q = cachedQ || CE._cachedQ[questionId];
+    if(q){
+      _questionEditor(questionId, moduleId, moduleTitel, q.nr, q.text, q.options);
+    } else {
+      // Fallback: Fragen neu laden
+      sb.rpc("get_module_questions",{p_module_id:moduleId}).then(function(r){
+        if(r.error){ alert("Fehler: "+r.error.message); return; }
+        var rows=r.data||[], byQ={};
+        rows.forEach(function(row){
+          if(!byQ[row.question_id]) byQ[row.question_id]={id:row.question_id,nr:row.frage_nr,text:row.frage_text,options:[]};
+          byQ[row.question_id].options.push({id:row.option_id,key:row.option_key,text:row.option_text,correct:!!row.is_correct});
+        });
+        var q2=byQ[questionId];
+        if(!q2){ alert("Frage nicht gefunden"); return; }
+        _questionEditor(questionId, moduleId, moduleTitel, q2.nr, q2.text, q2.options);
+      });
+    }
   }
 
   function _questionEditor(questionId, moduleId, moduleTitel, nr, frageText, options){
@@ -4696,7 +4709,11 @@ var CE = (function(){
   }
 
   /* ── Public ──────────────────────────────────────────────── */
+  // Cache für Frage-Daten (gefüllt von _loadQuestions)
+  var _cachedQStore = {};
+
   return {
+    _cachedQ: _cachedQStore,
     load: load,
     newModule: newModule,
     editModule: editModule,
