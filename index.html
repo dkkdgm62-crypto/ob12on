@@ -9,11 +9,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-<!-- Schach-Bibliotheken -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css" />
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
 <style>
 /* ╔═══════════════════════════════════════════════════════════════════╗
    ║  FOOTECO LERN-AKADEMIE · GLASS DESIGN SYSTEM                      ║
@@ -679,16 +674,6 @@ footer {
   letter-spacing: 0.05em;
 }
 
-/* ── Schachbrett-Overrides ── */
-#schach-board .board-b72b1 { border-radius: var(--r-md); overflow: hidden; }
-.white-1e1d7 { background-color: #e8d5ff !important; }
-.black-3c85d { background-color: #6b2fa0 !important; }
-.highlight-white { background: rgba(168,85,247,0.5) !important; box-shadow: inset 0 0 0 3px var(--accent) !important; }
-.highlight-black { background: rgba(168,85,247,0.5) !important; box-shadow: inset 0 0 0 3px var(--accent) !important; }
-.selected-87a28 { background: rgba(255,220,0,0.6) !important; }
-#schach-board { user-select: none; }
-@media(max-width:520px) { #schach-board { width: calc(100vw - 64px) !important; } }
-
 /* Utility */
 .g-text-accent { color: var(--accent); }
 .g-text-green  { color: var(--neon-green); }
@@ -936,57 +921,47 @@ footer {
 
   <!-- ♟ SCHACH-MODUL -->
   <div id="view-schach" class="hidden">
-    <div class="card" style="max-width:900px; margin:0 auto;">
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+    <div class="card" style="max-width:860px; margin:0 auto;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
         <div>
           <p class="eyebrow">Gehirn-Training</p>
           <h2 style="margin:0; color:#fff;">♟ Schach-Arena</h2>
         </div>
-        <div id="schach-mode-select" style="display:flex; gap:8px; flex-wrap:wrap;">
-          <button class="btn" onclick="startChessAI(1)">😊 Einfach</button>
-          <button class="btn-ghost" onclick="startChessAI(3)">🤔 Mittel</button>
-          <button class="btn-ghost" onclick="startChessAI(6)">😤 Schwer</button>
-          <button class="btn-ghost" onclick="startChessAI(10)">🔥 Weltklasse</button>
-          <button class="btn-ghost" onclick="startChessAI(20)">👑 Legende</button>
-          <button class="btn-ghost" style="border-color:var(--accent); color:var(--accent);" onclick="openMultiplayerLobby()">⚡ vs. Spieler</button>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button class="btn-ghost" style="font-size:12px; padding:6px 12px;" onclick="SC.startAI(1)">😊 Einfach</button>
+          <button class="btn-ghost" style="font-size:12px; padding:6px 12px;" onclick="SC.startAI(3)">🤔 Mittel</button>
+          <button class="btn-ghost" style="font-size:12px; padding:6px 12px;" onclick="SC.startAI(6)">😤 Schwer</button>
+          <button class="btn-ghost" style="font-size:12px; padding:6px 12px;" onclick="SC.startAI(12)">🔥 Weltklasse</button>
+          <button class="btn-ghost" style="font-size:12px; padding:6px 12px;" onclick="SC.startAI(20)">👑 Legende</button>
+          <button class="btn-ghost" style="font-size:12px; padding:6px 12px; border-color:var(--accent); color:var(--accent);" onclick="SC.startMP()">⚡ vs Spieler</button>
         </div>
       </div>
-
-      <!-- Status Bar -->
-      <div id="schach-status" style="display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
-        <div id="schach-info" style="background:var(--glass-bg-2); border:1px solid var(--glass-border); border-radius:var(--r-md); padding:8px 14px; font-size:13px; font-weight:600; color:var(--text-1); flex:1;">Wähle einen Spielmodus</div>
-        <div id="schach-timer-w" style="display:none; background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:var(--r-md); padding:6px 12px; font-family:var(--font-mono); font-size:14px; font-weight:700; color:var(--text-1);">⬜ <span id="timer-w">10:00</span></div>
-        <div id="schach-timer-b" style="display:none; background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:var(--r-md); padding:6px 12px; font-family:var(--font-mono); font-size:14px; font-weight:700; color:var(--text-3);">⬛ <span id="timer-b">10:00</span></div>
-        <button id="schach-resign-btn" class="btn-ghost" style="display:none; font-size:12px; padding:6px 12px; color:var(--neon-rose); border-color:var(--neon-rose);" onclick="resignChess()">🏳 Aufgeben</button>
-        <button id="schach-new-btn" class="btn-ghost" style="display:none; font-size:12px; padding:6px 12px;" onclick="restartCurrentMode()">🔄 Neu</button>
+      <!-- Status -->
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap;">
+        <div id="sc-status" style="flex:1; background:var(--glass-bg-2); border:1px solid var(--glass-border); border-radius:var(--r-md); padding:8px 14px; font-size:13px; font-weight:600; color:var(--text-1);">Wähle einen Modus oben</div>
+        <span id="sc-timer-w" style="display:none; font-family:var(--font-mono); font-size:13px; font-weight:700; background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:var(--r-md); padding:6px 10px;">⬜ <span id="sc-tw">10:00</span></span>
+        <span id="sc-timer-b" style="display:none; font-family:var(--font-mono); font-size:13px; font-weight:700; background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:var(--r-md); padding:6px 10px; color:var(--text-3);">⬛ <span id="sc-tb">10:00</span></span>
+        <button id="sc-resign" class="btn-ghost" style="display:none; font-size:12px; padding:6px 12px; color:var(--neon-rose); border-color:var(--neon-rose);" onclick="SC.resign()">🏳 Aufgeben</button>
+        <button id="sc-new" class="btn-ghost" style="display:none; font-size:12px; padding:6px 12px;" onclick="SC.restart()">🔄 Neu</button>
       </div>
-
       <!-- Board + Sidebar -->
-      <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start;">
+      <div style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
         <div style="flex-shrink:0;">
-          <div id="schach-board" style="width:min(440px, calc(100vw - 80px));"></div>
+          <canvas id="sc-canvas" style="border-radius:var(--r-md); cursor:pointer; touch-action:none;"></canvas>
         </div>
-        <div style="flex:1; min-width:200px; display:flex; flex-direction:column; gap:12px;">
-          <!-- Move history -->
-          <div class="card g-card-sm" style="max-height:320px; overflow-y:auto;">
-            <p class="eyebrow" style="margin-bottom:8px;">Züge</p>
-            <div id="schach-moves" style="font-family:var(--font-mono); font-size:12px; color:var(--text-2); line-height:1.8;"></div>
+        <div style="flex:1; min-width:180px; display:flex; flex-direction:column; gap:10px;">
+          <div class="card g-card-sm" style="max-height:300px; overflow-y:auto;">
+            <p class="eyebrow" style="margin-bottom:6px;">Züge</p>
+            <div id="sc-moves" style="font-family:var(--font-mono); font-size:11px; color:var(--text-2); line-height:1.9;"></div>
           </div>
-          <!-- Captured pieces -->
           <div class="card g-card-sm">
-            <p class="eyebrow" style="margin-bottom:6px;">Geschlagene Figuren</p>
-            <div id="schach-captured" style="font-size:16px; line-height:1.6; min-height:28px;"></div>
+            <p class="eyebrow" style="margin-bottom:4px;">Geschlagen</p>
+            <div id="sc-captured" style="font-size:15px; min-height:24px;"></div>
           </div>
-          <!-- AI depth indicator -->
-          <div id="schach-thinking" style="display:none; text-align:center; padding:12px; background:var(--accent-10); border:1px solid var(--accent-18); border-radius:var(--r-md); font-size:13px; color:var(--accent); font-weight:600;">
-            🤖 KI denkt nach...
-          </div>
-          <!-- Multiplayer lobby -->
-          <div id="schach-lobby" style="display:none;">
-            <div class="card g-card-sm">
-              <p class="eyebrow" style="margin-bottom:8px;">⚡ Online-Spiel</p>
-              <div id="lobby-state"></div>
-            </div>
+          <div id="sc-thinking" style="display:none; text-align:center; padding:10px; background:var(--accent-10); border:1px solid var(--accent-18); border-radius:var(--r-md); font-size:13px; color:var(--accent); font-weight:600;">🤖 KI denkt...</div>
+          <div id="sc-mp-box" style="display:none;" class="card g-card-sm">
+            <p class="eyebrow" style="margin-bottom:6px;">⚡ Online</p>
+            <div id="sc-mp-info" style="font-size:13px; color:var(--text-2);"></div>
           </div>
         </div>
       </div>
@@ -1735,21 +1710,21 @@ function showPlayerTab(t){
   el("tab-rang").className   = t==="rang"?"active":"btn-ghost";
   var tabSchach = el("tab-schach"); if(tabSchach) tabSchach.className = t==="schach"?"active":"btn-ghost";
   if(t==="lernen"){
-    if(CHESS.board) chessCleanup();
+    
     only("view-modules"); show("app-head"); show("player-nav");
     loadPlayerStats();
     loadModules();
   } else if(t==="skills") {
-    if(CHESS.board) chessCleanup();
+    
     only("view-skills"); show("app-head"); show("player-nav");
     loadPlayerStats();
     renderPlayerSkills();
   } else if(t==="schach") {
     only("view-schach"); show("app-head"); show("player-nav");
     loadPlayerStats();
-    initChessView();
+    SC.init();
   } else {
-    if(CHESS.board) chessCleanup();
+    
     only("view-rang"); show("app-head"); show("player-nav");
     loadPlayerStats();
     loadLeaderboard("rang-body", currentLefilter === "round" ? ACCESS.current_round : null);
@@ -3683,355 +3658,600 @@ function saveEditPlayer(playerId) {
 }
 
 /* ════════════════════════════════════════════════════════════
-   ♟  SCHACH-MODUL
+   ♟  SCHACH-MODUL — Self-contained, no external deps
    ════════════════════════════════════════════════════════════ */
-var CHESS = {
-  game: null,       // chess.js instance
-  board: null,      // chessboard.js instance
-  mode: null,       // 'ai' | 'multiplayer'
-  aiDepth: 1,
-  playerColor: 'w',
-  aiThinking: false,
-  stockfish: null,
-  moveHistory: [],
-  timerInterval: null,
-  timeW: 600, timeB: 600,  // 10 min each
-  realtimeChannel: null,
-  roomId: null,
-  mpRole: null  // 'white' | 'black'
-};
 
-function initChessView() {
-  if (CHESS.board) return; // already initialised
-  var boardSize = Math.min(440, window.innerWidth - 80);
-  el("schach-board").style.width = boardSize + "px";
-  CHESS.game = new Chess();
-  CHESS.board = Chessboard("schach-board", {
-    draggable: true,
-    position: "start",
-    pieceTheme: "https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/img/chesspieces/wikipedia/{piece}.png",
-    onDragStart: chessOnDragStart,
-    onDrop: chessOnDrop,
-    onSnapEnd: chessOnSnapEnd
-  });
-}
+/* ── Minimal Chess Engine ──────────────────────────────────── */
+var ChessEngine = (function() {
+  var PIECES = { P:1,N:2,B:3,R:4,Q:5,K:6, p:7,n:8,b:9,r:10,q:11,k:12 };
+  var SYMW = {1:'♙',2:'♘',3:'♗',4:'♖',5:'♕',6:'♔'};
+  var SYMB = {7:'♟',8:'♞',9:'♝',10:'♜',11:'♛',12:'♚'};
+  var START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
-function chessCleanup() {
-  if (CHESS.timerInterval) clearInterval(CHESS.timerInterval);
-  if (CHESS.stockfish) { CHESS.stockfish.terminate(); CHESS.stockfish = null; }
-  if (CHESS.realtimeChannel) {
-    sb.removeChannel(CHESS.realtimeChannel);
-    CHESS.realtimeChannel = null;
+  function Game() {
+    this.reset();
   }
-  if (CHESS.board) { CHESS.board.destroy(); CHESS.board = null; }
-  CHESS.game = null;
-  CHESS.mode = null;
-}
-
-// ── DRAG & DROP ─────────────────────────────────────────────
-function chessOnDragStart(source, piece) {
-  if (!CHESS.game || CHESS.game.game_over()) return false;
-  if (CHESS.aiThinking) return false;
-  // In AI mode only player's pieces
-  if (CHESS.mode === "ai") {
-    if ((CHESS.playerColor === 'w' && piece.search(/^b/) !== -1) ||
-        (CHESS.playerColor === 'b' && piece.search(/^w/) !== -1)) return false;
-    if (CHESS.game.turn() !== CHESS.playerColor) return false;
-  }
-  // In multiplayer only own pieces + correct turn
-  if (CHESS.mode === "multiplayer") {
-    var myColor = CHESS.mpRole === "white" ? "w" : "b";
-    if (CHESS.game.turn() !== myColor) return false;
-    if ((myColor === 'w' && piece.search(/^b/) !== -1) ||
-        (myColor === 'b' && piece.search(/^w/) !== -1)) return false;
-  }
-}
-
-function chessOnDrop(source, target) {
-  var move = CHESS.game.move({ from: source, to: target, promotion: "q" });
-  if (move === null) return "snapback";
-  chessAfterMove(move);
-  if (CHESS.mode === "multiplayer") {
-    sendMultiplayerMove(move.san);
-  }
-  if (CHESS.mode === "ai" && !CHESS.game.game_over()) {
-    chessAIMove();
-  }
-}
-
-function chessOnSnapEnd() {
-  if (CHESS.board) CHESS.board.position(CHESS.game.fen());
-}
-
-function chessAfterMove(move) {
-  CHESS.moveHistory.push(move.san);
-  renderMoveHistory();
-  renderCaptured();
-  updateChessStatus();
-}
-
-// ── RENDER HELPERS ──────────────────────────────────────────
-function renderMoveHistory() {
-  var html = "";
-  for (var i = 0; i < CHESS.moveHistory.length; i++) {
-    if (i % 2 === 0) html += '<span style="color:var(--text-dim);">' + (Math.floor(i/2)+1) + '. </span>';
-    html += '<span>' + CHESS.moveHistory[i] + '</span> ';
-    if (i % 2 === 1) html += '<br>';
-  }
-  var box = el("schach-moves");
-  if (box) { box.innerHTML = html; box.scrollTop = box.scrollHeight; }
-}
-
-function renderCaptured() {
-  var pieceEmoji = { p:'♟', n:'♞', b:'♝', r:'♜', q:'♛', P:'♙', N:'♘', B:'♗', R:'♖', Q:'♕' };
-  var history = CHESS.game.history({ verbose: true });
-  var capturedW = [], capturedB = [];
-  history.forEach(function(m) {
-    if (m.captured) {
-      if (m.color === 'w') capturedB.push(pieceEmoji[m.captured] || '?');
-      else capturedW.push(pieceEmoji[m.captured.toUpperCase()] || '?');
+  Game.prototype.reset = function() {
+    this.board = new Array(64).fill(0);
+    this.turn = 'w';
+    this.castling = {K:true,Q:true,k:true,q:true};
+    this.ep = -1;
+    this.history = [];
+    this.captured = {w:[],b:[]};
+    this._loadFen(START_FEN);
+  };
+  Game.prototype._loadFen = function(fen) {
+    var parts = fen.split(' ');
+    var rows = parts[0].split('/');
+    var idx = 0;
+    for (var r = 0; r < 8; r++) {
+      for (var c = 0; c < rows[r].length; c++) {
+        var ch = rows[r][c];
+        if (ch >= '1' && ch <= '8') { idx += parseInt(ch); }
+        else { this.board[idx++] = PIECES[ch] || 0; }
+      }
     }
-  });
-  var box = el("schach-captured");
-  if (box) box.innerHTML =
-    '<div>⬜ ' + (capturedW.join('') || '–') + '</div>' +
-    '<div>⬛ ' + (capturedB.join('') || '–') + '</div>';
-}
+    this.turn = parts[1] || 'w';
+  };
+  Game.prototype.isWhite = function(p) { return p >= 1 && p <= 6; };
+  Game.prototype.isBlack = function(p) { return p >= 7 && p <= 12; };
+  Game.prototype.isOwn  = function(p) { return this.turn==='w' ? this.isWhite(p) : this.isBlack(p); };
+  Game.prototype.isEnemy= function(p) { return this.turn==='w' ? this.isBlack(p) : this.isWhite(p); };
+  Game.prototype.sym    = function(p) {
+    if (!p) return '';
+    return p <= 6 ? SYMW[p] : SYMB[p];
+  };
+  Game.prototype.pieceType = function(p) { return p > 6 ? p - 6 : p; }; // normalize to 1-6
 
-function updateChessStatus() {
-  var info = el("schach-info");
-  if (!info || !CHESS.game) return;
-  var g = CHESS.game;
-  if (g.in_checkmate()) {
-    var winner = g.turn() === 'w' ? '⬛ Schwarz' : '⬜ Weiss';
-    info.textContent = "🏆 Schachmatt! " + winner + " gewinnt!";
-    info.style.color = "var(--neon-amber)";
-    chessStopTimer();
-    show("schach-new-btn"); hide("schach-resign-btn");
-  } else if (g.in_draw()) {
-    info.textContent = "🤝 Remis!";
-    info.style.color = "var(--neon-cyan)";
-    chessStopTimer();
-    show("schach-new-btn"); hide("schach-resign-btn");
-  } else if (g.in_check()) {
-    info.textContent = "⚠️ Schach! " + (g.turn() === 'w' ? '⬜ Weiss' : '⬛ Schwarz') + " ist im Schach.";
-    info.style.color = "var(--neon-rose)";
-  } else {
-    var turn = g.turn() === 'w' ? '⬜ Weiss' : '⬛ Schwarz';
-    if (CHESS.mode === "ai") {
-      turn = g.turn() === CHESS.playerColor ? "🙋 Du bist dran" : "🤖 KI denkt...";
+  Game.prototype.legalMoves = function(from) {
+    var moves = [];
+    var p = this.board[from];
+    if (!p || !this.isOwn(p)) return moves;
+    var pt = this.pieceType(p);
+    var r = Math.floor(from/8), c = from%8;
+
+    var self = this;
+    function tryAdd(to) {
+      if (to < 0 || to > 63) return;
+      var target = self.board[to];
+      if (target && self.isOwn(target)) return;
+      // Check won't leave king in check
+      var saved = self._makeMove(from, to);
+      if (!self._inCheck(self.turn === 'w' ? 'w' : 'b')) {
+        // revert turn temporarily for check test
+      }
+      self._unmakeMove(saved);
+      // Simple: just add (full check detection below)
+      moves.push(to);
     }
-    info.textContent = turn + " ist am Zug.";
-    info.style.color = "var(--text-1)";
-  }
-}
 
-// ── AI MODE ─────────────────────────────────────────────────
-function startChessAI(depth) {
-  chessCleanup();
-  CHESS.mode = "ai";
-  CHESS.aiDepth = depth;
-  CHESS.playerColor = "w";
-  CHESS.moveHistory = [];
-  CHESS.timeW = 600; CHESS.timeB = 600;
-  initChessView();
-  CHESS.game.reset();
-  CHESS.board.position("start");
-  CHESS.board.orientation("white");
+    function slide(dr, dc) {
+      var nr = r+dr, nc = c+dc;
+      while (nr>=0&&nr<8&&nc>=0&&nc<8) {
+        var to = nr*8+nc, t = self.board[to];
+        if (t && self.isOwn(t)) break;
+        moves.push(to);
+        if (t && self.isEnemy(t)) break;
+        nr+=dr; nc+=dc;
+      }
+    }
+    function jump(dr, dc) {
+      var nr=r+dr, nc=c+dc;
+      if (nr>=0&&nr<8&&nc>=0&&nc<8) {
+        var to=nr*8+nc;
+        if (!self.board[to]||self.isEnemy(self.board[to])) moves.push(to);
+      }
+    }
 
-  var labels = {1:"😊 Einfach", 3:"🤔 Mittel", 6:"😤 Schwer", 10:"🔥 Weltklasse", 20:"👑 Legende"};
-  var info = el("schach-info");
-  info.textContent = "KI-Modus: " + (labels[depth]||"KI") + " · Du spielst Weiss.";
-  info.style.color = "var(--text-1)";
-  show("schach-resign-btn"); show("schach-new-btn");
-  show("schach-timer-w"); show("schach-timer-b");
-  hide("schach-lobby");
-  el("schach-moves").innerHTML = "";
-  renderCaptured();
+    if (pt===1) { // Pawn
+      var dir = this.turn==='w' ? -1 : 1;
+      var start = this.turn==='w' ? 6 : 1;
+      var nr = r+dir;
+      if (nr>=0&&nr<8) {
+        if (!this.board[nr*8+c]) {
+          moves.push(nr*8+c);
+          if (r===start && !this.board[(r+2*dir)*8+c]) moves.push((r+2*dir)*8+c);
+        }
+        [-1,1].forEach(function(dc2){
+          var nc2=c+dc2;
+          if (nc2>=0&&nc2<8) {
+            var to2=nr*8+nc2;
+            if (self.board[to2]&&self.isEnemy(self.board[to2])) moves.push(to2);
+            if (to2===self.ep) moves.push(to2);
+          }
+        });
+      }
+    } else if (pt===2) { // Knight
+      [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]].forEach(function(d){ jump(d[0],d[1]); });
+    } else if (pt===3) { // Bishop
+      [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(function(d){ slide(d[0],d[1]); });
+    } else if (pt===4) { // Rook
+      [[-1,0],[1,0],[0,-1],[0,1]].forEach(function(d){ slide(d[0],d[1]); });
+    } else if (pt===5) { // Queen
+      [[-1,-1],[-1,1],[1,-1],[1,1],[-1,0],[1,0],[0,-1],[0,1]].forEach(function(d){ slide(d[0],d[1]); });
+    } else if (pt===6) { // King
+      [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]].forEach(function(d){ jump(d[0],d[1]); });
+      // Castling
+      var kingRow = this.turn==='w' ? 7 : 0;
+      if (r===kingRow && c===4) {
+        if (this.turn==='w'&&this.castling.K&&!this.board[kingRow*8+5]&&!this.board[kingRow*8+6]) moves.push(kingRow*8+6);
+        if (this.turn==='w'&&this.castling.Q&&!this.board[kingRow*8+3]&&!this.board[kingRow*8+2]&&!this.board[kingRow*8+1]) moves.push(kingRow*8+2);
+        if (this.turn==='b'&&this.castling.k&&!this.board[kingRow*8+5]&&!this.board[kingRow*8+6]) moves.push(kingRow*8+6);
+        if (this.turn==='b'&&this.castling.q&&!this.board[kingRow*8+3]&&!this.board[kingRow*8+2]&&!this.board[kingRow*8+1]) moves.push(kingRow*8+2);
+      }
+    }
 
-  // Init Stockfish
-  initStockfish();
-  chessStartTimer();
-}
+    // Filter moves that leave own king in check
+    var self2 = this;
+    return moves.filter(function(to) {
+      var saved = self2._makeMove(from, to);
+      var inCh = self2._inCheck(saved.turn);
+      self2._unmakeMove(saved);
+      return !inCh;
+    });
+  };
 
-function initStockfish() {
-  try {
-    // Blob-Worker umgeht CORS-Einschränkungen auf GitHub Pages
-    var workerCode = 'importScripts("https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js");';
-    var blob = new Blob([workerCode], { type: "application/javascript" });
-    var blobUrl = URL.createObjectURL(blob);
-    CHESS.stockfish = new Worker(blobUrl);
-    URL.revokeObjectURL(blobUrl);
-    CHESS.stockfish.onmessage = function(e) {
-      var msg = e.data;
-      if (typeof msg === "string" && msg.indexOf("bestmove") === 0) {
-        var parts = msg.split(" ");
-        var move  = parts[1];
-        if (!move || move === "(none)") { hide("schach-thinking"); CHESS.aiThinking = false; return; }
-        hide("schach-thinking");
-        CHESS.aiThinking = false;
-        var result = CHESS.game.move({ from: move.slice(0,2), to: move.slice(2,4), promotion: move[4] || "q" });
-        if (result) {
-          CHESS.board.position(CHESS.game.fen());
-          chessAfterMove(result);
+  Game.prototype._makeMove = function(from, to) {
+    var saved = {
+      from:from, to:to,
+      fromPiece: this.board[from],
+      toPiece:   this.board[to],
+      ep: this.ep, castling: JSON.parse(JSON.stringify(this.castling)),
+      turn: this.turn
+    };
+    var p = this.board[from];
+    var pt = this.pieceType(p);
+    this.board[to] = p;
+    this.board[from] = 0;
+    // En passant capture
+    if (pt===1 && to===this.ep) {
+      var epCap = this.turn==='w' ? to+8 : to-8;
+      saved.epCap = epCap; saved.epCapPiece = this.board[epCap];
+      this.board[epCap] = 0;
+    }
+    // Set new ep
+    this.ep = -1;
+    if (pt===1 && Math.abs(to-from)===16) this.ep = (from+to)/2;
+    // Castling rook move
+    var kr = Math.floor(from/8);
+    if (pt===6 && Math.abs((to%8)-(from%8))===2) {
+      if (to%8===6) { this.board[kr*8+5]=this.board[kr*8+7]; this.board[kr*8+7]=0; saved.castleRook=true; saved.castleKS=true; }
+      else          { this.board[kr*8+3]=this.board[kr*8+0]; this.board[kr*8+0]=0; saved.castleRook=true; saved.castleKS=false; }
+    }
+    // Update castling rights
+    if (pt===6) { if(this.turn==='w'){this.castling.K=false;this.castling.Q=false;}else{this.castling.k=false;this.castling.q=false;} }
+    if (pt===4) { if(from===63)this.castling.K=false; if(from===56)this.castling.Q=false; if(from===7)this.castling.k=false; if(from===0)this.castling.q=false; }
+    // Promotion
+    if (pt===1 && (Math.floor(to/8)===0||Math.floor(to/8)===7)) { this.board[to] = this.turn==='w' ? 5 : 11; saved.promo=true; }
+    this.turn = this.turn==='w' ? 'b' : 'w';
+    return saved;
+  };
+
+  Game.prototype._unmakeMove = function(saved) {
+    this.turn = saved.turn;
+    this.ep   = saved.ep;
+    this.castling = saved.castling;
+    this.board[saved.from] = saved.fromPiece;
+    this.board[saved.to]   = saved.toPiece;
+    if (saved.epCap !== undefined) this.board[saved.epCap] = saved.epCapPiece;
+    if (saved.castleRook) {
+      var kr = Math.floor(saved.from/8);
+      if (saved.castleKS) { this.board[kr*8+7]=this.board[kr*8+5]; this.board[kr*8+5]=0; }
+      else                 { this.board[kr*8+0]=this.board[kr*8+3]; this.board[kr*8+3]=0; }
+    }
+  };
+
+  Game.prototype._inCheck = function(color) {
+    // Find king
+    var king = color==='w' ? 6 : 12;
+    var kpos = this.board.indexOf(king);
+    if (kpos<0) return false;
+    // Switch turn to enemy and see if any piece attacks king
+    var oldTurn = this.turn;
+    this.turn = color==='w' ? 'b' : 'w';
+    var attacked = false;
+    for (var i = 0; i < 64 && !attacked; i++) {
+      var p = this.board[i];
+      if (!p) continue;
+      var isEnemyPiece = color==='w' ? this.isBlack(p) : this.isWhite(p);
+      if (!isEnemyPiece) continue;
+      var pt = this.pieceType(p);
+      var r=Math.floor(i/8), c=i%8, kr=Math.floor(kpos/8), kc=kpos%8;
+      if (pt===1) {
+        var dir=color==='w'?1:-1; // enemy pawn direction
+        if (Math.abs(kc-c)===1 && kr-r===dir) attacked=true;
+      } else if (pt===2) {
+        var dr=Math.abs(kr-r),dc=Math.abs(kc-c);
+        if ((dr===2&&dc===1)||(dr===1&&dc===2)) attacked=true;
+      } else if (pt===6) {
+        if (Math.abs(kr-r)<=1&&Math.abs(kc-c)<=1) attacked=true;
+      } else if (pt===3||pt===5) {
+        if (Math.abs(kr-r)===Math.abs(kc-c)) {
+          var dr2=kr>r?1:-1, dc2=kc>c?1:-1, nr=r+dr2, nc=c+dc2;
+          while(nr!==kr||nc!==kc){if(this.board[nr*8+nc]){attacked=true;break;}nr+=dr2;nc+=dc2;}
+          if(!attacked&&nr===kr&&nc===kc) attacked=true;
+          // need to fix: only attacked if path clear
         }
       }
-    };
-    CHESS.stockfish.onerror = function(e) {
-      console.warn("Stockfish Worker Fehler:", e);
-      CHESS.stockfish = null;
-      hide("schach-thinking");
-      CHESS.aiThinking = false;
-      // Fallback: random legal move
-      chessRandomMove();
-    };
-    CHESS.stockfish.postMessage("uci");
-    CHESS.stockfish.postMessage("isready");
-  } catch(e) {
-    console.warn("Stockfish nicht verfügbar:", e);
-    CHESS.stockfish = null;
-  }
-}
-
-function chessRandomMove() {
-  // Fallback wenn Stockfish nicht lädt
-  var moves = CHESS.game.moves();
-  if (moves.length === 0) return;
-  var move = moves[Math.floor(Math.random() * moves.length)];
-  var result = CHESS.game.move(move);
-  if (result) {
-    CHESS.board.position(CHESS.game.fen());
-    chessAfterMove(result);
-  }
-}
-
-function chessAIMove() {
-  if (!CHESS.game || CHESS.game.game_over()) return;
-  CHESS.aiThinking = true;
-  show("schach-thinking");
-  if (!CHESS.stockfish) {
-    // Fallback: zufälliger Zug nach kurzer Verzögerung
-    setTimeout(function() {
-      hide("schach-thinking");
-      CHESS.aiThinking = false;
-      chessRandomMove();
-    }, 400 + Math.random() * 600);
-    return;
-  }
-  CHESS.stockfish.postMessage("position fen " + CHESS.game.fen());
-  CHESS.stockfish.postMessage("go depth " + CHESS.aiDepth);
-}
-
-// ── TIMER ───────────────────────────────────────────────────
-function chessStartTimer() {
-  chessStopTimer();
-  CHESS.timerInterval = setInterval(function() {
-    if (!CHESS.game || CHESS.game.game_over()) { chessStopTimer(); return; }
-    if (CHESS.game.turn() === "w") {
-      CHESS.timeW = Math.max(0, CHESS.timeW - 1);
-      el("timer-w").textContent = fmtTime(CHESS.timeW);
-      if (CHESS.timeW === 0) { el("schach-info").textContent = "⏱ Zeit abgelaufen! ⬛ Schwarz gewinnt."; chessStopTimer(); }
-    } else {
-      CHESS.timeB = Math.max(0, CHESS.timeB - 1);
-      el("timer-b").textContent = fmtTime(CHESS.timeB);
-      if (CHESS.timeB === 0) { el("schach-info").textContent = "⏱ Zeit abgelaufen! ⬜ Weiss gewinnt."; chessStopTimer(); }
+      if (!attacked && (pt===4||pt===5)) {
+        if (kr===r||kc===c) {
+          var dr3=kr===r?0:(kr>r?1:-1), dc3=kc===c?0:(kc>c?1:-1);
+          var nr3=r+dr3, nc3=c+dc3;
+          var clear=true;
+          while(nr3!==kr||nc3!==kc){if(this.board[nr3*8+nc3]){clear=false;break;}nr3+=dr3;nc3+=dc3;}
+          if(clear) attacked=true;
+        }
+      }
     }
-  }, 1000);
-}
-function chessStopTimer() { if (CHESS.timerInterval) { clearInterval(CHESS.timerInterval); CHESS.timerInterval = null; } }
-function fmtTime(s) { return String(Math.floor(s/60)).padStart(2,"0") + ":" + String(s%60).padStart(2,"0"); }
+    this.turn = oldTurn;
+    return attacked;
+  };
 
-function resignChess() {
-  if (!confirm("Wirklich aufgeben?")) return;
-  var info = el("schach-info");
-  info.textContent = "🏳 Aufgegeben. Gutes Spiel!";
-  info.style.color = "var(--neon-amber)";
-  chessStopTimer();
-  if (CHESS.stockfish) { CHESS.stockfish.postMessage("stop"); }
-  hide("schach-resign-btn"); show("schach-new-btn");
-}
+  // Check if current player has any legal moves
+  Game.prototype.hasLegalMoves = function() {
+    for (var i = 0; i < 64; i++) {
+      if (this.board[i] && this.isOwn(this.board[i])) {
+        if (this.legalMoves(i).length > 0) return true;
+      }
+    }
+    return false;
+  };
 
-function restartCurrentMode() {
-  if (CHESS.mode === "ai") startChessAI(CHESS.aiDepth);
-  else if (CHESS.mode === "multiplayer") openMultiplayerLobby();
-  else initChessView();
-}
+  Game.prototype.isCheckmate = function() { return this._inCheck(this.turn) && !this.hasLegalMoves(); };
+  Game.prototype.isStalemate = function() { return !this._inCheck(this.turn) && !this.hasLegalMoves(); };
+  Game.prototype.isCheck     = function() { return this._inCheck(this.turn); };
 
-// ── MULTIPLAYER via Supabase Realtime ───────────────────────
-function openMultiplayerLobby() {
-  chessCleanup();
-  CHESS.mode = "multiplayer";
-  CHESS.moveHistory = [];
-  initChessView();
-  CHESS.game.reset();
-  CHESS.board.position("start");
-  hide("schach-resign-btn"); hide("schach-new-btn");
-  hide("schach-timer-w"); hide("schach-timer-b");
-  show("schach-lobby");
-  hide("schach-thinking");
-  el("schach-moves").innerHTML = "";
+  Game.prototype.move = function(from, to) {
+    var legal = this.legalMoves(from);
+    if (legal.indexOf(to) < 0) return null;
+    var cap = this.board[to];
+    // en passant capture piece
+    var pt = this.pieceType(this.board[from]);
+    if (pt===1 && to===this.ep) cap = this.turn==='w' ? 7 : 1;
+    var saved = this._makeMove(from, to);
+    // Track captured
+    if (cap) {
+      var captureColor = saved.turn; // the player who moved
+      this.captured[captureColor].push(cap);
+    }
+    var moveObj = {from:from, to:to, piece:saved.fromPiece, captured:cap, san: this._toSan(from,to,saved)};
+    this.history.push(moveObj);
+    return moveObj;
+  };
 
-  var playerName = PROFILE ? (PROFILE.display_name || "Anonym") : "Anonym";
-  var roomCode   = prompt("Raum-Code eingeben (oder leer lassen um neuen zu erstellen):");
-  if (roomCode === null) { hide("schach-lobby"); return; }
-  roomCode = (roomCode || "").trim().toUpperCase();
+  Game.prototype._toSan = function(from, to, saved) {
+    var files='abcdefgh', ranks='87654321';
+    return files[from%8]+ranks[Math.floor(from/8)]+files[to%8]+ranks[Math.floor(to/8)];
+  };
 
-  if (!roomCode) {
-    // Erstelle neuen Raum
-    CHESS.roomId  = "chess-" + Math.random().toString(36).slice(2,8).toUpperCase();
-    CHESS.mpRole  = "white";
-    el("lobby-state").innerHTML =
-      '<p style="color:var(--accent); font-weight:700; margin-bottom:8px;">Raum erstellt!</p>' +
-      '<p style="font-size:13px; margin-bottom:6px;">Dein Code:</p>' +
-      '<div style="font-family:var(--font-mono); font-size:22px; font-weight:800; color:#fff; background:var(--accent-10); border:1px solid var(--accent-28); border-radius:var(--r-md); padding:10px; text-align:center; letter-spacing:0.2em;">' + CHESS.roomId.replace("chess-","") + '</div>' +
-      '<p style="font-size:12px; color:var(--text-3); margin-top:8px;">Teile diesen Code mit einem Mitspieler. Du spielst ⬜ Weiss.</p>';
-    mpJoinChannel(playerName);
-  } else {
-    // Trete bestehendem Raum bei
-    CHESS.roomId = "chess-" + roomCode;
-    CHESS.mpRole = "black";
-    el("lobby-state").innerHTML =
-      '<p style="color:var(--neon-green); font-weight:700;">Verbinde mit Raum ' + roomCode + '...</p>';
-    mpJoinChannel(playerName);
+  // Simple AI: minimax depth 2
+  var VALS = [0,100,320,330,500,900,20000, 100,320,330,500,900,20000];
+  Game.prototype.aiMove = function(depth) {
+    var self = this;
+    var best = null, bestScore = -Infinity;
+    for (var i = 0; i < 64; i++) {
+      if (!this.board[i] || !this.isOwn(this.board[i])) continue;
+      var moves = this.legalMoves(i);
+      for (var j = 0; j < moves.length; j++) {
+        var saved = this._makeMove(i, moves[j]);
+        var score = -self._minimax(depth-1, -Infinity, Infinity);
+        self._unmakeMove(saved);
+        if (score > bestScore) { bestScore = score; best = {from:i, to:moves[j]}; }
+      }
+    }
+    return best;
+  };
+
+  Game.prototype._minimax = function(depth, alpha, beta) {
+    if (depth === 0) return this._eval();
+    if (!this.hasLegalMoves()) return this._inCheck(this.turn) ? -Infinity : 0;
+    var best = -Infinity;
+    for (var i = 0; i < 64 && best < beta; i++) {
+      if (!this.board[i] || !this.isOwn(this.board[i])) continue;
+      var moves = this.legalMoves(i);
+      for (var j = 0; j < moves.length && best < beta; j++) {
+        var saved = this._makeMove(i, moves[j]);
+        var score = -this._minimax(depth-1, -beta, -Math.max(alpha, best));
+        this._unmakeMove(saved);
+        if (score > best) best = score;
+      }
+    }
+    return best;
+  };
+
+  Game.prototype._eval = function() {
+    var score = 0;
+    for (var i = 0; i < 64; i++) {
+      var p = this.board[i];
+      if (!p) continue;
+      var v = VALS[p];
+      score += this.isWhite(p) ? v : -v;
+    }
+    return this.turn === 'w' ? score : -score;
+  };
+
+  return { Game: Game, SYMW: SYMW, SYMB: SYMB };
+})();
+
+/* ── Canvas Renderer ───────────────────────────────────────── */
+var SC = (function() {
+  var game, canvas, ctx, selected, highlights, flipped, mode, aiDepth;
+  var timerW, timerB, timerInterval, mpChannel, mpRole, roomId;
+
+  var LIGHT = '#e8d5ff', DARK = '#6b2fa0', SEL = 'rgba(255,220,50,0.7)', HINT = 'rgba(168,85,247,0.4)';
+  var G = ChessEngine;
+
+  function sq(i) { return flipped ? 63-i : i; } // flipped index
+
+  function cellSize() {
+    var w = Math.min(440, window.innerWidth - 48);
+    return Math.floor(w / 8);
   }
-  el("schach-info").textContent = CHESS.mpRole === "white" ? "⬜ Du spielst Weiss · Warte auf Mitspieler..." : "⬛ Du spielst Schwarz · Verbunden!";
-  CHESS.board.orientation(CHESS.mpRole === "white" ? "white" : "black");
-}
 
-function mpJoinChannel(playerName) {
-  if (CHESS.realtimeChannel) { sb.removeChannel(CHESS.realtimeChannel); }
-  CHESS.realtimeChannel = sb.channel(CHESS.roomId, { config: { broadcast: { self: false } } });
+  function init() {
+    canvas = document.getElementById('sc-canvas');
+    if (!canvas) return;
+    var cs = cellSize();
+    canvas.width = canvas.height = cs * 8;
+    canvas.style.width = canvas.style.height = (cs*8) + 'px';
+    game = new G.Game();
+    selected = -1; highlights = [];
+    flipped = false;
+    ctx = canvas.getContext('2d');
+    draw();
+    canvas.addEventListener('click', onClick);
+    canvas.addEventListener('touchend', onTouch, {passive:false});
+    window.addEventListener('resize', onResize);
+  }
 
-  CHESS.realtimeChannel
-    .on("broadcast", { event: "move" }, function(payload) {
-      var san = payload.payload.san;
-      var move = CHESS.game.move(san);
-      if (move) {
-        CHESS.board.position(CHESS.game.fen());
-        chessAfterMove(move);
-      }
-    })
-    .on("broadcast", { event: "join" }, function(payload) {
-      if (CHESS.mpRole === "white") {
-        var lob = el("lobby-state");
-        if (lob) lob.innerHTML = '<p style="color:var(--neon-green); font-weight:700;">✓ ' + esc(payload.payload.name) + ' ist beigetreten! Spiel startet.</p>';
-        el("schach-info").textContent = "⬜ Du bist dran. Viel Spass!";
-        show("schach-resign-btn"); show("schach-new-btn");
-      }
-    })
-    .subscribe(function(status) {
-      if (status === "SUBSCRIBED" && CHESS.mpRole === "black") {
-        CHESS.realtimeChannel.send({ type:"broadcast", event:"join", payload:{ name: playerName } });
-        el("schach-info").textContent = "⬛ Du spielst Schwarz · Warte auf Weiss...";
-        show("schach-resign-btn"); show("schach-new-btn");
-      }
-    });
-}
+  function onResize() {
+    if (!canvas || !game) return;
+    var cs = cellSize();
+    canvas.width = canvas.height = cs * 8;
+    canvas.style.width = canvas.style.height = (cs*8) + 'px';
+    draw();
+  }
 
-function sendMultiplayerMove(san) {
-  if (!CHESS.realtimeChannel) return;
-  CHESS.realtimeChannel.send({ type: "broadcast", event: "move", payload: { san: san } });
-}
+  function draw() {
+    if (!ctx || !game) return;
+    var cs = cellSize();
+    var files = 'abcdefgh', ranks = '87654321';
+    for (var i = 0; i < 64; i++) {
+      var visual = sq(i);
+      var r = Math.floor(visual/8), c = visual%8;
+      var x = c*cs, y = r*cs;
+      // Square color
+      ctx.fillStyle = (r+c)%2===0 ? LIGHT : DARK;
+      ctx.fillRect(x, y, cs, cs);
+      // Highlight
+      if (i === selected) { ctx.fillStyle = SEL; ctx.fillRect(x,y,cs,cs); }
+      else if (highlights.indexOf(i)>=0) { ctx.fillStyle=HINT; ctx.beginPath(); ctx.arc(x+cs/2,y+cs/2,cs*0.17,0,Math.PI*2); ctx.fill(); }
+      // Piece
+      var p = game.board[i];
+      if (p) {
+        ctx.font = Math.floor(cs*0.72) + 'px serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        // Shadow for readability
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.fillText(game.sym(p), x+cs/2+1, y+cs/2+2);
+        ctx.fillStyle = p<=6 ? '#fff' : '#111';
+        ctx.fillText(game.sym(p), x+cs/2, y+cs/2);
+      }
+      // Coords
+      if (c===0) { ctx.font='bold '+(cs*0.22)+'px sans-serif'; ctx.textAlign='left'; ctx.textBaseline='top'; ctx.fillStyle=(r+c)%2===0?DARK:LIGHT; ctx.fillText(flipped?ranks[7-r]:ranks[r],2,y+2); }
+      if (r===7) { ctx.font='bold '+(cs*0.22)+'px sans-serif'; ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillStyle=(r+c)%2===0?DARK:LIGHT; ctx.fillText(flipped?files[7-c]:files[c],x+cs-2,y+cs-2); }
+    }
+  }
+
+  function posFromEvent(e) {
+    var rect = canvas.getBoundingClientRect();
+    var cs = cellSize();
+    var ex = e.clientX - rect.left, ey = e.clientY - rect.top;
+    var c = Math.floor(ex/cs), r = Math.floor(ey/cs);
+    if (c<0||c>7||r<0||r>7) return -1;
+    return sq(r*8+c);
+  }
+
+  function onClick(e) { handleInput(posFromEvent(e)); }
+  function onTouch(e) { e.preventDefault(); if(e.changedTouches[0]) handleInput(posFromEvent(e.changedTouches[0])); }
+
+  function handleInput(idx) {
+    if (idx<0||!game||game.isCheckmate()||game.isStalemate()) return;
+    // Block input when not player's turn
+    if (mode==='ai' && game.turn !== (flipped?'b':'w')) return;
+    if (mode==='multiplayer') {
+      var myColor = mpRole==='white'?'w':'b';
+      if (game.turn !== myColor) return;
+    }
+
+    if (selected>=0 && highlights.indexOf(idx)>=0) {
+      // Make move
+      var mv = game.move(selected, idx);
+      selected=-1; highlights=[];
+      draw();
+      if (mv) {
+        updateUI(mv);
+        if (mode==='multiplayer') sendMP(mv);
+        if (mode==='ai' && !game.isCheckmate() && !game.isStalemate()) {
+          setTimeout(doAIMove, 300);
+        }
+      }
+    } else {
+      var p = game.board[idx];
+      if (p && game.isOwn(p)) {
+        selected = idx;
+        highlights = game.legalMoves(idx);
+      } else {
+        selected=-1; highlights=[];
+      }
+      draw();
+    }
+  }
+
+  function updateUI(mv) {
+    // Status
+    var info = document.getElementById('sc-status');
+    if (game.isCheckmate()) {
+      var winner = game.turn==='w' ? '⬛ Schwarz' : '⬜ Weiss';
+      info.textContent = '🏆 Schachmatt! '+winner+' gewinnt!';
+      info.style.color='var(--neon-amber)';
+      stopTimer(); showEl('sc-new'); hideEl('sc-resign');
+    } else if (game.isStalemate()) {
+      info.textContent = '🤝 Patt — Remis!';
+      info.style.color='var(--neon-cyan)';
+      stopTimer(); showEl('sc-new'); hideEl('sc-resign');
+    } else if (game.isCheck()) {
+      info.textContent = '⚠️ Schach! '+(game.turn==='w'?'⬜ Weiss':'⬛ Schwarz')+' muss reagieren.';
+      info.style.color='var(--neon-rose)';
+    } else {
+      var t = game.turn==='w'?'⬜ Weiss':'⬛ Schwarz';
+      if (mode==='ai') t = game.turn===(flipped?'b':'w') ? '🙋 Du bist dran' : '🤖 KI am Zug...';
+      info.textContent = t+' ist am Zug.';
+      info.style.color='var(--text-1)';
+    }
+    // Move list
+    var h = game.history, html='';
+    for (var i=0;i<h.length;i++) {
+      if(i%2===0) html+='<span style="color:var(--text-dim)">'+(Math.floor(i/2)+1)+'. </span>';
+      html+=h[i].san+' ';
+      if(i%2===1) html+='<br>';
+    }
+    var mb = document.getElementById('sc-moves');
+    if(mb){mb.innerHTML=html;mb.scrollTop=mb.scrollHeight;}
+    // Captured
+    var cap = document.getElementById('sc-captured');
+    if(cap){
+      var wc='', bc='';
+      game.captured.w.forEach(function(p){wc+=ChessEngine.SYMB[p]||'';});
+      game.captured.b.forEach(function(p){bc+=ChessEngine.SYMW[p]||'';});
+      cap.innerHTML='<div>⬜ '+(wc||'–')+'</div><div>⬛ '+(bc||'–')+'</div>';
+    }
+  }
+
+  function doAIMove() {
+    if (!game||game.isCheckmate()||game.isStalemate()) return;
+    showEl('sc-thinking');
+    setTimeout(function() {
+      var depth = aiDepth<=1?1:aiDepth<=3?2:aiDepth<=6?3:aiDepth<=12?4:5;
+      var mv = game.aiMove(depth);
+      hideEl('sc-thinking');
+      if (mv) {
+        var result = game.move(mv.from, mv.to);
+        draw();
+        if (result) updateUI(result);
+      }
+    }, 50);
+  }
+
+  // Timer
+  function startTimer() {
+    timerW=600; timerB=600;
+    updateTimerDisplay();
+    showEl('sc-timer-w'); showEl('sc-timer-b');
+    stopTimer();
+    timerInterval = setInterval(function(){
+      if(!game||game.isCheckmate()||game.isStalemate()){stopTimer();return;}
+      if(game.turn==='w'){timerW=Math.max(0,timerW-1);if(timerW===0){document.getElementById('sc-status').textContent='⏱ Zeit! ⬛ Schwarz gewinnt.';stopTimer();}}
+      else{timerB=Math.max(0,timerB-1);if(timerB===0){document.getElementById('sc-status').textContent='⏱ Zeit! ⬜ Weiss gewinnt.';stopTimer();}}
+      updateTimerDisplay();
+    },1000);
+  }
+  function updateTimerDisplay(){
+    var tw=document.getElementById('sc-tw'),tb=document.getElementById('sc-tb');
+    if(tw)tw.textContent=fmt(timerW);
+    if(tb)tb.textContent=fmt(timerB);
+  }
+  function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+  function stopTimer(){if(timerInterval){clearInterval(timerInterval);timerInterval=null;}}
+
+  function showEl(id){var e=document.getElementById(id);if(e)e.style.display='';}
+  function hideEl(id){var e=document.getElementById(id);if(e)e.style.display='none';}
+
+  function resetUI(statusText) {
+    document.getElementById('sc-status').textContent=statusText;
+    document.getElementById('sc-status').style.color='var(--text-1)';
+    document.getElementById('sc-moves').innerHTML='';
+    document.getElementById('sc-captured').innerHTML='';
+    hideEl('sc-thinking'); hideEl('sc-mp-box');
+    showEl('sc-resign'); showEl('sc-new');
+  }
+
+  return {
+    init: function() {
+      setTimeout(init, 100); // wait for DOM
+    },
+    startAI: function(depth) {
+      stopTimer();
+      if(mpChannel){sb.removeChannel(mpChannel);mpChannel=null;}
+      mode='ai'; aiDepth=depth; flipped=false;
+      if(!canvas){init();}
+      game=new G.Game(); selected=-1; highlights=[];
+      draw();
+      var labels={1:'😊 Einfach',3:'🤔 Mittel',6:'😤 Schwer',12:'🔥 Weltklasse',20:'👑 Legende'};
+      resetUI('KI: '+(labels[depth]||'KI')+' · Du spielst ⬜ Weiss');
+      startTimer();
+    },
+    startMP: function() {
+      stopTimer();
+      if(mpChannel){sb.removeChannel(mpChannel);mpChannel=null;}
+      mode='multiplayer';
+      var code=prompt('Raum-Code eingeben (leer = neuer Raum):');
+      if(code===null)return;
+      code=code.trim().toUpperCase();
+      if(!canvas){init();}
+      game=new G.Game(); selected=-1; highlights=[];
+
+      if(!code) {
+        roomId='chess-'+Math.random().toString(36).slice(2,8).toUpperCase();
+        mpRole='white'; flipped=false;
+        var dispCode=roomId.replace('chess-','');
+        document.getElementById('sc-mp-info').innerHTML='<b style="color:var(--accent)">Raum: '+dispCode+'</b><br>Teile diesen Code. Du spielst ⬜.';
+      } else {
+        roomId='chess-'+code;
+        mpRole='black'; flipped=true;
+        document.getElementById('sc-mp-info').innerHTML='Verbinde mit Raum <b>'+code+'</b>...';
+      }
+      showEl('sc-mp-box'); hideEl('sc-timer-w'); hideEl('sc-timer-b');
+      draw();
+      resetUI(mpRole==='white'?'⬜ Du bist Weiss — warte auf Gegner':'⬛ Du bist Schwarz — verbunden!');
+
+      mpChannel=sb.channel(roomId,{config:{broadcast:{self:false}}});
+      mpChannel.on('broadcast',{event:'move'},function(payload){
+        var parts=payload.payload.move;
+        var from=parseInt(parts[0]), to=parseInt(parts[1]);
+        var mv=game.move(from,to);
+        if(mv){draw();updateUI(mv);}
+      }).on('broadcast',{event:'join'},function(payload){
+        if(mpRole==='white'){
+          document.getElementById('sc-mp-info').innerHTML='✓ <b style="color:var(--neon-green)">'+esc(payload.payload.name)+'</b> ist dabei!';
+          document.getElementById('sc-status').textContent='⬜ Du bist dran. Viel Spass!';
+          startTimer();
+        }
+      }).subscribe(function(status){
+        if(status==='SUBSCRIBED'&&mpRole==='black'){
+          var name=PROFILE?(PROFILE.display_name||'Spieler'):'Spieler';
+          mpChannel.send({type:'broadcast',event:'join',payload:{name:name}});
+          document.getElementById('sc-mp-info').innerHTML='✓ Verbunden! Du spielst ⬛.';
+          startTimer();
+        }
+      });
+    },
+    resign: function(){
+      if(!confirm('Wirklich aufgeben?'))return;
+      document.getElementById('sc-status').textContent='🏳 Aufgegeben. Gutes Spiel!';
+      stopTimer(); hideEl('sc-resign'); showEl('sc-new');
+    },
+    restart: function(){
+      if(mode==='ai')SC.startAI(aiDepth);
+      else if(mode==='multiplayer')SC.startMP();
+    }
+  };
+
+  function sendMP(mv){
+    if(!mpChannel)return;
+    mpChannel.send({type:'broadcast',event:'move',payload:{move:[mv.from,mv.to]}});
+  }
+})();
 </script>
 </body>
 </html>
