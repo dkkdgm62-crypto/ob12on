@@ -836,6 +836,7 @@ footer {
     <button id="tab-skills" class="btn-ghost" onclick="showPlayerTab('skills')">🎯 Skill-Challenges</button>
     <button id="tab-rang" class="btn-ghost" onclick="showPlayerTab('rang')">🏆 Rangliste</button>
     <button id="tab-schach" class="btn-ghost" onclick="showPlayerTab('schach')">♟ Schach</button>
+    <button id="tab-ziel" class="btn-ghost" onclick="showPlayerTab('ziel')">🎯 Zielvereinbarung</button>
   </div>
 
   <!-- SPIELER: PERSONAL HEADER CARD -->
@@ -1040,6 +1041,29 @@ footer {
     </div>
   </div>
 
+  <!-- ============ ZIELVEREINBARUNG (SPIELER) ============ -->
+  <div id="view-ziel" class="hidden" style="padding-top:20px; padding-bottom:40px;">
+    <div class="card" style="max-width:880px; margin:0 auto;">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:14px;">
+        <div>
+          <p class="eyebrow">Individuelle Entwicklung</p>
+          <h2 style="margin:4px 0 6px; color:#fff;">🎯 Deine Zielvereinbarung</h2>
+          <p class="muted" style="font-size:12px;">Deine persönlichen Entwicklungsziele, gemeinsam mit deinem Trainer.</p>
+        </div>
+        <button class="btn-ghost" style="padding:8px 14px; font-size:13px;" onclick="Ziel.exportPdf(Ziel.state.activeCycleId)">📄 Als PDF</button>
+      </div>
+
+      <div id="ziel-warning-banner" class="hidden banner" style="margin-bottom:18px;"></div>
+
+      <div style="display:flex; gap:8px; margin-bottom:18px;">
+        <button id="ziel-subtab-vorrunde" class="btn-ghost" style="flex:1; font-size:13px; padding:9px;" onclick="Ziel.switchCycle('vorrunde')">Vorrunde</button>
+        <button id="ziel-subtab-rueckrunde" class="btn-ghost" style="flex:1; font-size:13px; padding:9px;" onclick="Ziel.switchCycle('rueckrunde')">Rückrunde</button>
+      </div>
+
+      <div id="ziel-body"><div class="spinner"></div></div>
+    </div>
+  </div>
+
   <!-- TRAINER-DASHBOARD -->
   <div id="view-staff" class="hidden">
     <div class="nav">
@@ -1054,6 +1078,7 @@ footer {
       <button id="stab-spieler" class="btn-ghost" onclick="showStaffTab('spieler')">🔐 Spieler verwalten</button>
       <button id="stab-inhalte" class="btn-ghost" onclick="showStaffTab('inhalte')" style="border-color:var(--accent); color:var(--accent);">✏️ Inhalte bearbeiten</button>
     <button id="stab-jonglier" class="btn-ghost" onclick="showStaffTab('jonglier')">🎓 Jonglierreihe</button>
+    <button id="stab-ziel" class="btn-ghost" onclick="showStaffTab('ziel')">🎯 Zielvereinbarungen</button>
     </div>
 
     <!-- Trainer-Tab: Kader & Fortschritt -->
@@ -1440,6 +1465,21 @@ footer {
       <div id="jr-staff-body"><p class="muted" style="font-size:13px;">Bitte Spieler/in auswählen.</p></div>
     </div>
 
+    <div id="staff-ziel" class="card hidden">
+      <p class="eyebrow">Individuelle Entwicklung</p>
+      <h3 style="margin:8px 0 16px; color:#fff;">🎯 Zielvereinbarungen — Übersicht</h3>
+      <p class="muted" style="font-size:13px; margin-bottom:16px;">Übersicht aller Spieler mit Ampel-Status. Wähle einen Spieler an, um Zyklus, Ziele, Gespräche und Gelbe Karte zu verwalten.</p>
+      <div id="ziel-staff-overview" style="margin-bottom:24px;"><div class="spinner"></div></div>
+
+      <div style="border-top:1px solid var(--line); padding-top:20px;">
+        <div style="max-width:340px; margin-bottom:16px;">
+          <label>Spieler/in auswählen</label>
+          <select id="ziel-staff-player" onchange="Ziel.staffLoadPlayer()"></select>
+        </div>
+        <div id="ziel-staff-body"><p class="muted" style="font-size:13px;">Bitte Spieler/in auswählen.</p></div>
+      </div>
+    </div>
+
   </div>
 
   <!-- ============ REGISTRATION VIEW (für Einladungs-Links) ============ -->
@@ -1817,6 +1857,7 @@ function showPlayerTab(t){
   var tabS = el("tab-skills"); if(tabS) tabS.className = t==="skills"?"active":"btn-ghost";
   el("tab-rang").className   = t==="rang"?"active":"btn-ghost";
   var tabSchach = el("tab-schach"); if(tabSchach) tabSchach.className = t==="schach"?"active":"btn-ghost";
+  var tabZiel = el("tab-ziel"); if(tabZiel) tabZiel.className = t==="ziel"?"active":"btn-ghost";
   if(t==="lernen"){
     
     only("view-modules"); show("app-head"); show("player-nav");
@@ -1831,6 +1872,10 @@ function showPlayerTab(t){
     only("view-schach"); show("app-head"); show("player-nav");
     loadPlayerStats();
     SC.init();
+  } else if(t==="ziel") {
+    only("view-ziel"); show("app-head"); show("player-nav");
+    loadPlayerStats();
+    Ziel.playerInit();
   } else {
     
     only("view-rang"); show("app-head"); show("player-nav");
@@ -2175,7 +2220,7 @@ function exportLeaderboardPDF() {
 function openStaff(){ hide("player-nav"); only("view-staff"); show("app-head"); showStaffTab("kader"); }
 function showStaffTab(t){
   scrollToTop();
-  ["kader","skills","rang","frei","zeit","runden","log","vor","spieler","inhalte","jonglier"].forEach(function(k){
+  ["kader","skills","rang","frei","zeit","runden","log","vor","spieler","inhalte","jonglier","ziel"].forEach(function(k){
     var btn = el("stab-"+k); if(btn) btn.className = k===t?"active":"btn-ghost";
     var content = el("staff-"+k); if(content) content.classList.toggle("hidden", k!==t);
   });
@@ -2201,6 +2246,7 @@ function showStaffTab(t){
   if(t==="spieler") loadInvitations();
   if(t==="inhalte") CE.load();
   if(t==="jonglier") loadJrStaffForm();
+  if(t==="ziel") Ziel.staffInit();
 }
 
 /* ====================================================================
@@ -5185,6 +5231,516 @@ var CE = (function(){
     _backToQuestions: _backToQuestions
   };
 
+})();
+
+/* ══════════════════════════════════════════════════════════════
+   🎯 ZIELVEREINBARUNG — Individueller Entwicklungsplan
+   Vorrunde (Aug/Sept) + Rückrunde (Feb), 2 Defizite + 1 Stärke,
+   Gesprächs-Fahrplan, Kommentare, Gelbe Karte, PDF-Export.
+   ══════════════════════════════════════════════════════════════ */
+var Ziel = (function(){
+
+  var BEREICH_LABEL = {technik:'Technik', taktik:'Taktik', athletik:'Athletik', mental:'Mental'};
+  var MILESTONE_LABEL = {
+    erstgespraech: 'Erstgespräch',
+    zwischengespraech_eltern: 'Zwischengespräch (mit Eltern)',
+    finale: 'Finale (Saisonabschluss)',
+    abschluss: 'Abschluss-Gespräch'
+  };
+  var MILESTONES_BY_CYCLE = {
+    vorrunde: ['erstgespraech','zwischengespraech_eltern'],
+    rueckrunde: ['erstgespraech','finale','abschluss']
+  };
+
+  var state = { activeCycleId:null, activeCycleType:'vorrunde', playerId:null, isStaff:false, cycles:{}, warnings:[], staffPlayerId:null, staffCycles:{}, staffActiveType:'vorrunde' };
+
+  function seasonLabel(d){
+    d = d || new Date();
+    var y = d.getFullYear(), m = d.getMonth()+1;
+    return m>=8 ? (y+"/"+String(y+1).slice(-2)) : ((y-1)+"/"+String(y).slice(-2));
+  }
+  function defaultCycleType(d){
+    d = d || new Date();
+    var m = d.getMonth()+1;
+    return (m>=8 || m<=1) ? 'vorrunde' : 'rueckrunde';
+  }
+  function fmtD(dstr){
+    if(!dstr) return '–';
+    var d = new Date(dstr);
+    if(isNaN(d.getTime())) return dstr;
+    var dd = String(d.getDate()).length<2 ? '0'+d.getDate() : ''+d.getDate();
+    var mm = String(d.getMonth()+1).length<2 ? '0'+(d.getMonth()+1) : ''+(d.getMonth()+1);
+    return dd+"."+mm+"."+d.getFullYear();
+  }
+
+  /* ============ SPIELER-SEITE ============ */
+
+  function playerInit(){
+    state.playerId = ME.id;
+    state.isStaff = false;
+    state.activeCycleType = defaultCycleType();
+    highlightSubtab();
+    loadPlayerCycles();
+  }
+
+  function highlightSubtab(){
+    var v = el("ziel-subtab-vorrunde"), r = el("ziel-subtab-rueckrunde");
+    if(v) v.className = state.activeCycleType==="vorrunde" ? "active" : "btn-ghost";
+    if(r) r.className = state.activeCycleType==="rueckrunde" ? "active" : "btn-ghost";
+  }
+
+  function switchCycle(type){
+    state.activeCycleType = type;
+    highlightSubtab();
+    renderActiveCycle();
+  }
+
+  function loadPlayerCycles(){
+    el("ziel-body").innerHTML = '<div class="spinner"></div>';
+    var season = seasonLabel();
+    sb.from("dev_cycles").select("*").eq("player_id", ME.id).eq("season_label", season).then(function(r){
+      state.cycles = {};
+      (r.data||[]).forEach(function(c){ state.cycles[c.cycle_type] = c; });
+      loadWarnings();
+      renderActiveCycle();
+    });
+  }
+
+  function loadWarnings(){
+    sb.from("dev_warnings").select("*").eq("player_id", ME.id).eq("status","aktiv").order("issued_at",{ascending:false}).then(function(r){
+      state.warnings = r.data || [];
+      renderWarningBanner();
+    });
+  }
+
+  function renderWarningBanner(){
+    var b = el("ziel-warning-banner");
+    if(!b) return;
+    var w = (state.warnings||[])[0];
+    if(!w){ b.classList.add("hidden"); b.innerHTML=""; return; }
+    b.classList.remove("hidden");
+    b.style.background = "rgba(230,180,40,0.12)";
+    b.style.border = "1px solid rgba(230,180,40,0.4)";
+    b.style.borderRadius = "12px";
+    b.style.padding = "16px";
+    var confirmedHtml = w.confirmed_at
+      ? '<p style="font-size:12px; color:var(--muted); margin-top:10px;">Bestätigt am '+fmtD(w.confirmed_at)+'</p>'
+      : '<button class="btn" style="margin-top:12px;" onclick="Ziel.confirmWarning(\''+w.id+'\')">Zur Kenntnis genommen — bestätigen</button>';
+    b.innerHTML = '<p style="font-weight:800; color:#f0c419; margin-bottom:8px;">🟨 Gelbe Karte — Frist bis '+fmtD(w.frist_bis)+'</p>'
+      + '<div style="white-space:pre-wrap; font-size:13.5px; color:#fff; line-height:1.5;">'+esc(w.brief_text||"")+'</div>'
+      + confirmedHtml;
+  }
+
+  function confirmWarning(id){
+    sb.rpc("confirm_yellow_card", {p_warning_id:id}).then(function(r){
+      if(r.error){ alert("Fehler: "+r.error.message); return; }
+      loadWarnings();
+    });
+  }
+
+  function renderActiveCycle(){
+    var c = state.cycles[state.activeCycleType];
+    state.activeCycleId = c ? c.id : null;
+    var body = el("ziel-body");
+    if(!c){
+      body.innerHTML = '<div class="card" style="background:rgba(255,255,255,0.02);"><p class="muted" style="font-size:13.5px;">Für die '+(state.activeCycleType==='vorrunde'?'Vorrunde':'Rückrunde')+' '+seasonLabel()+' wurde noch kein Zyklus gestartet. Sprich mit deinem Trainer, damit er ihn eröffnet.</p></div>';
+      return;
+    }
+    body.innerHTML = '<div class="spinner"></div>';
+    Promise.all([
+      sb.from("dev_goals").select("*").eq("cycle_id", c.id).order("goal_type"),
+      sb.from("dev_meetings").select("*").eq("cycle_id", c.id),
+      sb.from("dev_comments").select("*").eq("cycle_id", c.id).order("created_at")
+    ]).then(function(results){
+      var goals = results[0].data || [];
+      var meetings = results[1].data || [];
+      var comments = results[2].data || [];
+      body.innerHTML = renderCycleHtml(c, goals, meetings, comments, false);
+    });
+  }
+
+  function renderCycleHtml(cycle, goals, meetings, comments, isStaffView){
+    var defizite = goals.filter(function(g){return g.goal_type==='defizit';});
+    var staerken = goals.filter(function(g){return g.goal_type==='staerke';});
+    var html = '';
+
+    html += '<h3 style="color:#fff; font-size:16px; margin-bottom:4px;">'+(cycle.cycle_type==='vorrunde'?'Vorrunde':'Rückrunde')+' '+esc(cycle.season_label)+'</h3>';
+    html += '<p class="muted" style="font-size:12px; margin-bottom:16px;">Zeitraum: '+fmtD(cycle.start_date)+' – '+fmtD(cycle.end_date)+'</p>';
+
+    html += '<h4 style="color:var(--gold); font-size:13px; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;">📉 Entwicklungs-Defizite (2)</h4>';
+    for(var i=0;i<2;i++){
+      html += goalCardHtml(defizite[i], cycle.id, 'defizit', isStaffView, i);
+    }
+    html += '<h4 style="color:var(--gold); font-size:13px; text-transform:uppercase; letter-spacing:0.5px; margin:20px 0 10px;">💪 Stärke (1)</h4>';
+    html += goalCardHtml(staerken[0], cycle.id, 'staerke', isStaffView, 0);
+
+    html += '<h4 style="color:#fff; font-size:14px; margin:26px 0 10px;">📅 Gesprächs-Fahrplan</h4>';
+    var mtypes = MILESTONES_BY_CYCLE[cycle.cycle_type] || [];
+    mtypes.forEach(function(mt){
+      var m = meetings.find(function(x){return x.milestone_type===mt;});
+      html += meetingRowHtml(mt, m, cycle.id, isStaffView);
+    });
+
+    html += '<h4 style="color:#fff; font-size:14px; margin:26px 0 10px;">💬 Kommentare</h4>';
+    html += '<div style="max-height:220px; overflow-y:auto; margin-bottom:12px;">';
+    if(comments.length===0){ html += '<p class="muted" style="font-size:12.5px;">Noch keine Kommentare.</p>'; }
+    comments.forEach(function(cm){
+      var who = cm.author_role==='spieler' ? 'Spieler' : (cm.author_role==='leiter'?'Leiter':'Trainer');
+      html += '<div style="background:rgba(255,255,255,0.03); border-radius:8px; padding:8px 12px; margin-bottom:6px;"><p style="font-size:11.5px; color:var(--muted); margin-bottom:2px;">'+who+' · '+fmtD(cm.created_at)+'</p><p style="font-size:13px; color:#fff; white-space:pre-wrap;">'+esc(cm.kommentar)+'</p></div>';
+    });
+    html += '</div>';
+    html += '<textarea id="ziel-comment-input-'+cycle.id+'" placeholder="Kommentar schreiben..." style="width:100%; min-height:60px; margin-bottom:8px;"></textarea>';
+    html += '<button class="btn-ghost" style="font-size:13px; padding:8px 16px;" onclick="Ziel.addComment(\''+cycle.id+'\')">Senden</button>';
+
+    return html;
+  }
+
+  function goalCardHtml(goal, cycleId, goalType, isStaffView, slotIndex){
+    var uid = goalType + '_' + (goal ? goal.id : ('new'+slotIndex));
+    if(!goal && isStaffView){
+      return '<div class="card" style="background:rgba(255,255,255,0.02); margin-bottom:10px;"><p class="muted" style="font-size:12.5px;">Noch nicht vom Spieler erfasst.</p></div>';
+    }
+    var bereich = goal ? goal.bereich : 'technik';
+    var titel = goal ? goal.titel : '';
+    var beschreibung = goal ? goal.beschreibung : '';
+    var massnahmen = goal ? goal.massnahmen : '';
+    var fortschritt = goal ? goal.fortschritt : '';
+    var status = goal ? goal.fortschritt_status : 'offen';
+
+    var bereichOpts = Object.keys(BEREICH_LABEL).map(function(k){
+      return '<option value="'+k+'"'+(k===bereich?' selected':'')+'>'+BEREICH_LABEL[k]+'</option>';
+    }).join('');
+    var statusOpts = ['offen','in_arbeit','erreicht'].map(function(k){
+      var lbl = {offen:'Offen',in_arbeit:'In Arbeit',erreicht:'Erreicht 🏆'}[k];
+      return '<option value="'+k+'"'+(k===status?' selected':'')+'>'+lbl+'</option>';
+    }).join('');
+
+    var readonlyAttr = isStaffView ? ' disabled' : '';
+    var html = '<div class="card" style="background:rgba(255,255,255,0.02); margin-bottom:10px; padding:14px 16px;">';
+    html += '<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px;">';
+    html += '<select id="gf-bereich-'+uid+'" style="max-width:160px;"'+readonlyAttr+'>'+bereichOpts+'</select>';
+    html += '<input id="gf-titel-'+uid+'" placeholder="Kurztitel deines Ziels" value="'+esc(titel||"")+'" style="flex:1; min-width:150px;"'+readonlyAttr+'/>';
+    html += '</div>';
+    html += '<textarea id="gf-beschreibung-'+uid+'" placeholder="Was genau willst du erreichen?" style="width:100%; min-height:50px; margin-bottom:8px;"'+readonlyAttr+'>'+esc(beschreibung||"")+'</textarea>';
+    html += '<textarea id="gf-massnahmen-'+uid+'" placeholder="Maßnahmen / Prozessziele — z.B. Dienstag & Sonntag 20 Min. Jonglieren" style="width:100%; min-height:50px; margin-bottom:8px;"'+readonlyAttr+'>'+esc(massnahmen||"")+'</textarea>';
+    if(!isStaffView){
+      html += '<button class="btn-ghost" style="font-size:12.5px; padding:6px 12px; margin-bottom:10px;" onclick="Ziel.saveGoal(\''+cycleId+'\',\''+goalType+'\',\''+(goal?goal.id:'')+'\',\''+uid+'\')">Ziel speichern</button>';
+    }
+    html += '<div style="border-top:1px solid var(--line); padding-top:8px; margin-top:4px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">';
+    html += '<select id="gf-status-'+uid+'" style="max-width:150px;"'+readonlyAttr+'>'+statusOpts+'</select>';
+    html += '<input id="gf-fortschritt-'+uid+'" placeholder="Fortschritt / Notiz" value="'+esc(fortschritt||"")+'" style="flex:1; min-width:150px;"'+readonlyAttr+'/>';
+    if(!isStaffView && goal){
+      html += '<button class="btn-ghost" style="font-size:12.5px; padding:6px 12px;" onclick="Ziel.saveProgress(\''+goal.id+'\',\''+uid+'\')">Fortschritt speichern</button>';
+    }
+    html += '</div></div>';
+    return html;
+  }
+
+  function meetingRowHtml(mt, m, cycleId, isStaffView){
+    var label = MILESTONE_LABEL[mt];
+    var status = m ? m.status : 'offen';
+    var badge = status==='erledigt' ? '<span style="color:#3ecf6d; font-weight:700; font-size:12px;">✓ erledigt</span>' : '<span style="color:var(--muted); font-size:12px;">offen</span>';
+    var html = '<div class="card" style="background:rgba(255,255,255,0.02); margin-bottom:8px; padding:12px 16px;">';
+    html += '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">';
+    html += '<b style="font-size:13.5px; color:#fff;">'+label+'</b>'+badge;
+    html += '</div>';
+    if(isStaffView){
+      html += '<div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">';
+      html += '<input type="date" id="mt-datum-'+cycleId+'-'+mt+'" value="'+(m&&m.geplant_datum?m.geplant_datum:'')+'" style="max-width:160px;"/>';
+      html += '<select id="mt-status-'+cycleId+'-'+mt+'" style="max-width:140px;"><option value="offen"'+(status==='offen'?' selected':'')+'>Offen</option><option value="erledigt"'+(status==='erledigt'?' selected':'')+'>Erledigt</option></select>';
+      html += '</div>';
+      html += '<textarea id="mt-protokoll-'+cycleId+'-'+mt+'" placeholder="Protokoll / Notizen" style="width:100%; min-height:50px; margin-top:8px;">'+esc(m?m.protokoll:"")+'</textarea>';
+      html += '<input id="mt-teilnehmer-'+cycleId+'-'+mt+'" placeholder="Teilnehmer (z.B. Spieler, Eltern, Trainer X)" value="'+esc(m?m.teilnehmer:"")+'" style="width:100%; margin-top:8px;"/>';
+      html += '<button class="btn-ghost" style="font-size:12.5px; padding:6px 12px; margin-top:8px;" onclick="Ziel.saveMeeting(\''+cycleId+'\',\''+mt+'\')">Speichern</button>';
+    } else {
+      html += '<p class="muted" style="font-size:12px; margin-top:6px;">'+(m&&m.geplant_datum? 'Termin: '+fmtD(m.geplant_datum):'Termin noch offen')+'</p>';
+      if(m && m.protokoll){ html += '<p style="font-size:12.5px; color:var(--text); margin-top:6px; white-space:pre-wrap;">'+esc(m.protokoll)+'</p>'; }
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function saveGoal(cycleId, goalType, goalId, uid){
+    var bereich = el("gf-bereich-"+uid).value;
+    var titel = el("gf-titel-"+uid).value.trim();
+    var beschreibung = el("gf-beschreibung-"+uid).value.trim();
+    var massnahmen = el("gf-massnahmen-"+uid).value.trim();
+    sb.rpc("upsert_dev_goal", {
+      p_goal_id: goalId||null, p_cycle_id: cycleId, p_goal_type: goalType,
+      p_bereich: bereich, p_titel: titel, p_beschreibung: beschreibung, p_massnahmen: massnahmen
+    }).then(function(r){
+      if(r.error){ alert("Fehler: "+r.error.message); return; }
+      renderActiveCycle();
+    });
+  }
+
+  function saveProgress(goalId, uid){
+    var fortschritt = el("gf-fortschritt-"+uid).value.trim();
+    var status = el("gf-status-"+uid).value;
+    sb.rpc("update_dev_goal_progress", {p_goal_id:goalId, p_fortschritt:fortschritt, p_fortschritt_status:status}).then(function(r){
+      if(r.error){ alert("Fehler: "+r.error.message); return; }
+      renderActiveCycle();
+    });
+  }
+
+  function addComment(cycleId){
+    var input = el("ziel-comment-input-"+cycleId);
+    var txt = input.value.trim();
+    if(!txt) return;
+    sb.rpc("add_dev_comment", {p_cycle_id:cycleId, p_goal_id:null, p_kommentar:txt}).then(function(r){
+      if(r.error){ alert("Fehler: "+r.error.message); return; }
+      if(state.isStaff) staffRenderCycle(); else renderActiveCycle();
+    });
+  }
+
+  /* ============ TRAINER-SEITE ============ */
+
+  function staffInit(){
+    state.isStaff = true;
+    loadOverview();
+    sb.from("profiles").select("id,display_name,vorname,nachname").eq("role","spieler").order("display_name").then(function(r){
+      var opts = '<option value="">– auswählen –</option>';
+      (r.data||[]).forEach(function(p){ opts += '<option value="'+p.id+'">'+esc(p.display_name)+'</option>'; });
+      el("ziel-staff-player").innerHTML = opts;
+    });
+  }
+
+  function loadOverview(){
+    var box = el("ziel-staff-overview");
+    box.innerHTML = '<div class="spinner"></div>';
+    var season = seasonLabel();
+    Promise.all([
+      sb.from("profiles").select("id,display_name").eq("role","spieler").order("display_name"),
+      sb.from("dev_cycles").select("*").eq("season_label", season),
+      sb.from("dev_warnings").select("*").eq("status","aktiv")
+    ]).then(function(results){
+      var players = results[0].data || [];
+      var cycles = results[1].data || [];
+      var warnings = results[2].data || [];
+      var rows = players.map(function(p){
+        var pc = cycles.filter(function(c){return c.player_id===p.id;});
+        var pw = warnings.find(function(w){return w.player_id===p.id;});
+        var ampel = pw ? '🟨' : (pc.length>0 ? '🟢' : '⚪');
+        var status = pw ? 'Gelbe Karte' : (pc.length>0 ? pc.length+' Zyklus/en aktiv' : 'Kein Zyklus');
+        return '<tr><td>'+ampel+'</td><td>'+esc(p.display_name)+'</td><td class="muted" style="font-size:12.5px;">'+status+'</td><td><button class="btn-ghost" style="font-size:11.5px; padding:5px 10px;" onclick="el(\'ziel-staff-player\').value=\''+p.id+'\'; Ziel.staffLoadPlayer();">Öffnen</button></td></tr>';
+      }).join('');
+      box.innerHTML = '<table style="width:100%;"><thead><tr><th></th><th>Spieler</th><th>Status</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+    });
+  }
+
+  function staffLoadPlayer(){
+    var pid = el("ziel-staff-player").value;
+    state.staffPlayerId = pid;
+    var body = el("ziel-staff-body");
+    if(!pid){ body.innerHTML = '<p class="muted" style="font-size:13px;">Bitte Spieler/in auswählen.</p>'; return; }
+    body.innerHTML = '<div class="spinner"></div>';
+    var season = seasonLabel();
+    sb.from("dev_cycles").select("*").eq("player_id",pid).eq("season_label",season).then(function(r){
+      state.staffCycles = {};
+      (r.data||[]).forEach(function(c){ state.staffCycles[c.cycle_type] = c; });
+      renderStaffPlayer();
+    });
+  }
+
+  function renderStaffPlayer(){
+    var body = el("ziel-staff-body");
+    if(!state.staffActiveType) state.staffActiveType = 'vorrunde';
+    var html = '<div style="display:flex; gap:8px; margin-bottom:14px;">';
+    ['vorrunde','rueckrunde'].forEach(function(type){
+      var exists = !!state.staffCycles[type];
+      html += '<button class="'+(state.staffActiveType===type?'active':'btn-ghost')+'" style="flex:1; font-size:12.5px; padding:8px;" onclick="Ziel.staffSwitchType(\''+type+'\')">'+
+        (type==='vorrunde'?'Vorrunde':'Rückrunde')+(exists?'':' (nicht gestartet)')+'</button>';
+    });
+    html += '</div><div id="ziel-staff-cycle-area"></div>';
+    body.innerHTML = html;
+    staffRenderCycle();
+  }
+
+  function staffSwitchType(type){
+    state.staffActiveType = type;
+    renderStaffPlayer();
+  }
+
+  function staffRenderCycle(){
+    var area = el("ziel-staff-cycle-area");
+    if(!area) return;
+    var c = state.staffCycles[state.staffActiveType];
+    var pid = state.staffPlayerId;
+    if(!c){
+      area.innerHTML = '<div class="card" style="background:rgba(255,255,255,0.02); margin-bottom:16px;">'+
+        '<p class="muted" style="font-size:13px; margin-bottom:10px;">Noch kein Zyklus für '+(state.staffActiveType==='vorrunde'?'Vorrunde':'Rückrunde')+' '+seasonLabel()+'.</p>'+
+        '<button class="btn" onclick="Ziel.staffCreateCycle()">Zyklus eröffnen</button></div>';
+      return;
+    }
+    area.innerHTML = '<div class="spinner"></div>';
+    Promise.all([
+      sb.from("dev_goals").select("*").eq("cycle_id", c.id).order("goal_type"),
+      sb.from("dev_meetings").select("*").eq("cycle_id", c.id),
+      sb.from("dev_comments").select("*").eq("cycle_id", c.id).order("created_at"),
+      sb.from("dev_warnings").select("*").eq("cycle_id", c.id).order("issued_at",{ascending:false})
+    ]).then(function(results){
+      var goals = results[0].data||[], meetings = results[1].data||[], comments = results[2].data||[], warnings = results[3].data||[];
+      var html = renderCycleHtml(c, goals, meetings, comments, true);
+      html += '<h4 style="color:#fff; font-size:14px; margin:26px 0 10px;">🟨 Gelbe Karte</h4>';
+      warnings.forEach(function(w){
+        html += '<div class="card" style="background:rgba(230,180,40,0.06); border:1px solid rgba(230,180,40,0.3); margin-bottom:8px; padding:12px;">'+
+          '<p style="font-size:12px; color:var(--muted);">Ausgestellt '+fmtD(w.issued_at)+' · Frist bis '+fmtD(w.frist_bis)+' · Status: '+w.status+
+          (w.confirmed_at? ' · Bestätigt am '+fmtD(w.confirmed_at) : ' · Noch nicht bestätigt')+'</p>'+
+          (w.status==='aktiv' ? '<button class="btn-ghost" style="font-size:11.5px; padding:5px 10px; margin-top:6px;" onclick="Ziel.staffRevokeWarning(\''+w.id+'\')">Aufheben</button>' : '')+
+          '</div>';
+      });
+      var tpl = "Liebe Eltern, lieber Spieler\n\nWir möchten euch hiermit kurz informieren, dass die aktuelle Entwicklung im Leistungs- und Ausbildungsbereich im Moment nicht ausreichend stabil ist und der Schritt in den Spitzenfussball möglicherweise noch zu früh kommt.\n\nAus diesem Grund erhält der Spieler eine Gelbe Karte bis zum unten stehenden Datum.\n\nSollte sich die Entwicklung in dieser Zeit nicht klar verbessern, wird eine Weiterführung auf diesem Niveau schwierig.\n\nBitte bestätigt, dass ihr diese Information erhalten habt. Ihr erhaltet zusätzlich ein schriftliches Schreiben.\n\nSportliche Grüsse\nTrainerteam";
+      html += '<div class="card" style="background:rgba(255,255,255,0.02); margin-top:8px; padding:14px 16px;">'+
+        '<label>Frist bis</label><input type="date" id="yc-frist" style="max-width:180px; margin-bottom:8px;"/>'+
+        '<label>Grund (optional, intern)</label><input id="yc-grund" style="width:100%; margin-bottom:8px;"/>'+
+        '<label>Brieftext (editierbar)</label><textarea id="yc-text" style="width:100%; min-height:140px;">'+esc(tpl)+'</textarea>'+
+        '<button class="btn" style="margin-top:10px;" onclick="Ziel.staffIssueWarning(\''+pid+'\',\''+c.id+'\')">🟨 Gelbe Karte ausstellen</button>'+
+        '</div>';
+      html += '<div style="margin-top:20px;"><button class="btn-ghost" onclick="Ziel.exportPdf(\''+c.id+'\')">📄 Entwicklungsplan als PDF</button></div>';
+      area.innerHTML = html;
+    });
+  }
+
+  function staffCreateCycle(){
+    var pid = state.staffPlayerId, type = state.staffActiveType, season = seasonLabel();
+    var y1 = season.split('/')[0], y2 = "20"+season.split('/')[1];
+    var start = type==='vorrunde' ? (y1+"-08-01") : (y2+"-02-01");
+    var end   = type==='vorrunde' ? (y1+"-12-31") : (y2+"-06-30");
+    sb.rpc("create_dev_cycle", {p_player_id:pid, p_season_label:season, p_cycle_type:type, p_start_date:start, p_end_date:end}).then(function(r){
+      if(r.error){ alert("Fehler: "+r.error.message); return; }
+      staffLoadPlayer();
+    });
+  }
+
+  function saveMeeting(cycleId, mt){
+    var datum = el("mt-datum-"+cycleId+"-"+mt).value || null;
+    var status = el("mt-status-"+cycleId+"-"+mt).value;
+    var protokoll = el("mt-protokoll-"+cycleId+"-"+mt).value.trim();
+    var teilnehmer = el("mt-teilnehmer-"+cycleId+"-"+mt).value.trim();
+    var durchgefuehrt = status==='erledigt' ? new Date().toISOString() : null;
+    sb.rpc("record_dev_meeting", {
+      p_cycle_id:cycleId, p_milestone_type:mt, p_geplant_datum:datum, p_durchgefuehrt_am:durchgefuehrt,
+      p_protokoll:protokoll, p_teilnehmer:teilnehmer, p_status:status
+    }).then(function(r){
+      if(r.error){ alert("Fehler: "+r.error.message); return; }
+      staffRenderCycle();
+    });
+  }
+
+  function staffIssueWarning(pid, cycleId){
+    var frist = el("yc-frist").value;
+    var grund = el("yc-grund").value.trim();
+    var text = el("yc-text").value.trim();
+    if(!frist){ alert("Bitte Frist setzen."); return; }
+    sb.rpc("issue_yellow_card", {p_player_id:pid, p_cycle_id:cycleId, p_grund:grund, p_frist_bis:frist, p_brief_text:text}).then(function(r){
+      if(r.error){ alert("Fehler: "+r.error.message); return; }
+      staffRenderCycle();
+      loadOverview();
+    });
+  }
+
+  function staffRevokeWarning(id){
+    sb.rpc("update_yellow_card_status", {p_warning_id:id, p_status:'aufgehoben'}).then(function(r){
+      if(r.error){ alert("Fehler: "+r.error.message); return; }
+      staffRenderCycle();
+      loadOverview();
+    });
+  }
+
+  /* ============ PDF EXPORT ============ */
+
+  function exportPdf(cycleId){
+    if(!cycleId){ alert("Bitte zuerst einen Zyklus (Vorrunde/Rückrunde) öffnen."); return; }
+    Promise.all([
+      sb.from("dev_cycles").select("*, profiles!dev_cycles_player_id_fkey(vorname,nachname,display_name,geburtsdatum)").eq("id",cycleId).single(),
+      sb.from("dev_goals").select("*").eq("cycle_id",cycleId).order("goal_type"),
+      sb.from("dev_meetings").select("*").eq("cycle_id",cycleId),
+      sb.from("dev_comments").select("*").eq("cycle_id",cycleId).order("created_at")
+    ]).then(function(results){
+      var cycle = results[0].data, goals = results[1].data||[], meetings = results[2].data||[], comments = results[3].data||[];
+      if(!cycle){ alert("Zyklus nicht gefunden."); return; }
+      buildDevPdf(cycle, goals, meetings, comments);
+    });
+  }
+
+  function buildDevPdf(cycle, goals, meetings, comments){
+    var jsPDFctor = window.jspdf.jsPDF;
+    var doc = new jsPDFctor();
+    var p = cycle.profiles || {};
+    var name = (p.vorname||p.nachname) ? ((p.vorname||"")+" "+(p.nachname||"")).trim() : (p.display_name||"");
+    var geb = p.geburtsdatum ? fmtD(p.geburtsdatum) : "-";
+
+    doc.setFont("helvetica","bold"); doc.setFontSize(16);
+    doc.text("Individuelle Zielvereinbarung", 14, 18);
+    doc.setFont("helvetica","normal"); doc.setFontSize(10);
+    doc.text("Name: "+name, 14, 27);
+    doc.text("Geburtsdatum: "+geb, 14, 33);
+    doc.text((cycle.cycle_type==='vorrunde'?'Vorrunde':'Rueckrunde')+" "+cycle.season_label+"  (Zeitraum: "+fmtD(cycle.start_date)+" - "+fmtD(cycle.end_date)+")", 14, 39);
+    doc.text("Erstellt am: "+fmtD(new Date().toISOString()), 14, 45);
+
+    var rows = goals.map(function(g){
+      return [
+        g.goal_type==='defizit' ? 'Defizit' : 'Staerke',
+        BEREICH_LABEL[g.bereich]||g.bereich,
+        (g.titel||"") + (g.beschreibung ? ("\n"+g.beschreibung) : ""),
+        g.massnahmen||"",
+        (g.fortschritt_status==='erreicht'?'Erreicht':(g.fortschritt_status==='in_arbeit'?'In Arbeit':'Offen')) + (g.fortschritt?("\n"+g.fortschritt):"")
+      ];
+    });
+    doc.autoTable({
+      startY: 52,
+      head: [["Typ","Bereich","Ziel","Massnahmen / Prozessziele","Fortschritt"]],
+      body: rows,
+      styles: { fontSize: 8, cellPadding: 3 },
+      headStyles: { fillColor: [30,32,40] }
+    });
+
+    var y = doc.lastAutoTable.finalY + 10;
+    doc.setFont("helvetica","bold"); doc.setFontSize(12);
+    doc.text("Gespraechs-Fahrplan", 14, y); y += 6;
+    doc.setFont("helvetica","normal"); doc.setFontSize(9);
+    meetings.forEach(function(m){
+      var label = MILESTONE_LABEL[m.milestone_type]||m.milestone_type;
+      var line = "- "+label+": "+(m.status==='erledigt'?'erledigt':'offen')+(m.geplant_datum?(" (Termin: "+fmtD(m.geplant_datum)+")"):"");
+      doc.text(line, 14, y); y += 5;
+      if(m.protokoll){
+        var split = doc.splitTextToSize("  Protokoll: "+m.protokoll, 180);
+        doc.text(split, 14, y); y += split.length*5;
+      }
+    });
+
+    if(comments.length>0){
+      y += 4;
+      doc.setFont("helvetica","bold"); doc.setFontSize(12);
+      doc.text("Kommentare", 14, y); y += 6;
+      doc.setFont("helvetica","normal"); doc.setFontSize(9);
+      comments.forEach(function(cm){
+        var who = cm.author_role==='spieler'?'Spieler':(cm.author_role==='leiter'?'Leiter':'Trainer');
+        var split = doc.splitTextToSize("["+fmtD(cm.created_at)+" - "+who+"] "+cm.kommentar, 180);
+        doc.text(split, 14, y); y += split.length*5 + 2;
+      });
+    }
+
+    doc.save("Zielvereinbarung_"+(name||"Spieler").replace(/\s+/g,"_")+"_"+cycle.cycle_type+"_"+cycle.season_label.replace("/","-")+".pdf");
+  }
+
+  return {
+    state: state,
+    playerInit: playerInit,
+    switchCycle: switchCycle,
+    confirmWarning: confirmWarning,
+    saveGoal: saveGoal,
+    saveProgress: saveProgress,
+    addComment: addComment,
+    staffInit: staffInit,
+    staffLoadPlayer: staffLoadPlayer,
+    staffSwitchType: staffSwitchType,
+    staffCreateCycle: staffCreateCycle,
+    saveMeeting: saveMeeting,
+    staffIssueWarning: staffIssueWarning,
+    staffRevokeWarning: staffRevokeWarning,
+    exportPdf: exportPdf
+  };
 })();
 </script>
 </body>
