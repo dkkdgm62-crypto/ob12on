@@ -2271,17 +2271,14 @@ function renderJugglingReihe(){
     function levelDone(lv){ return JUGGLING_DATA[lv].exercises.every(function(e){ return !!passed[e.id]; }); }
 
     var html = '<h3 style="color:#fff; font-family:\'Sora\'; font-size:18px; margin:0 0 4px; display:flex; align-items:center; gap:8px;">🎓 Jonglierreihe — Offizielle Prüfung</h3>';
-    html += '<p class="muted" style="font-size:12px; margin-bottom:16px;">FE12 → U15. Der Trainer bestätigt jede Übung nach Vorführung. Erst wenn alle Übungen eines Niveaus bestanden sind, schaltet sich das nächste frei.</p>';
+    html += '<p class="muted" style="font-size:12px; margin-bottom:16px;">FE12 → U15. Alle Niveaus sind jederzeit offen zum Üben. Der Trainer bestätigt jede Übung nachträglich, sobald sie erfolgreich vorgezeigt wurde.</p>';
 
     for(var lv=1; lv<=4; lv++){
       var data = JUGGLING_DATA[lv];
-      var unlocked = (lv===1) || levelDone(lv-1);
       var complete = levelDone(lv);
-      html += '<div class="card g-card-sm" style="margin-bottom:12px; opacity:'+(unlocked?1:0.45)+';">';
-      html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">';
-      html += '<p class="eyebrow" style="margin:0;">'+(complete?'✅ ':(unlocked?'🔓 ':'🔒 '))+esc(data.label)+'</p>';
-      if(!unlocked) html += '<span class="muted" style="font-size:11px;">Erst nach Niveau '+(lv-1)+'</span>';
-      html += '</div><div style="display:flex; flex-direction:column; gap:6px;">';
+      html += '<div class="card g-card-sm" style="margin-bottom:12px;">';
+      html += '<p class="eyebrow" style="margin:0 0 8px;">'+(complete?'✅ ':'')+esc(data.label)+'</p>';
+      html += '<div style="display:flex; flex-direction:column; gap:6px;">';
       data.exercises.forEach(function(e){ html += jrRow(e, !!passed[e.id]); });
       html += '</div></div>';
     }
@@ -2440,7 +2437,36 @@ var SKILL_CHALLENGES = [
   { id: 'trick_cr7', category: 'tricks', title: 'CR7 Chop ⚡', desc: 'Schneller Richtungswechsel durch Hacken-Kick (L & R)' },
   { id: 'trick_the_v', category: 'tricks', title: 'The V ✌️', desc: 'Ball schräg heranziehen und V-förmig wegdribbeln (L & R)' },
   { id: 'trick_okocha', category: 'tricks', title: 'Okocha Flick 🇳🇬', desc: 'Ball mit beiden Beinen einklemmen und über den Gegner heben (L & R)' },
-  { id: 'trick_combo1', category: 'tricks', title: 'Combo 1: Neymar1-Zidane-2fach-Übersteiger 💥', desc: 'Verbinde Neymar1, Zidane-Drehung und einen 2fach-Übersteiger flüssig hintereinander!' }
+  { id: 'trick_combo1', category: 'tricks', title: 'Combo 1: Neymar1-Zidane-2fach-Übersteiger 💥', desc: 'Verbinde Neymar1, Zidane-Drehung und einen 2fach-Übersteiger flüssig hintereinander!' },
+
+  // JONGLIERREIHE — EIGENES TRAINING (Selbst-Eintrag, unabhängig von der offiziellen Prüfung oben)
+  { id: 'jrp_fe12_frei', category: 'jrpractice', title: '🎓 FE12 · Frei', desc: 'Frei jonglieren. Jedes Körperteil bis auf Arme erlaubt. Ziel: 100x' },
+  { id: 'jrp_fe12_lire', category: 'jrpractice', title: '🎓 FE12 · Li/Re Fuss', desc: 'Abwechselnd Li/Re Fuss. Ball nicht höher wie Hüfte, wenig Rotation. Ziel: 100x' },
+  { id: 'jrp_fe12_kreis', category: 'jrpractice', title: '🎓 FE12 · Kleiner Kreis', desc: 'Re Fuss – Re Knie – Li Knie – Li Fuss. Retten erlaubt (z.B. 2x mit Fuss), Reihenfolge einhalten. Ziel: 10x' },
+  { id: 'jrp_fe13_kopfball', category: 'jrpractice', title: '🎓 FE13 · Kopfball', desc: 'Mit Kopf jonglieren. Nur Kopf erlaubt. Ziel: 20x' },
+  { id: 'jrp_fe13_grosserkreis', category: 'jrpractice', title: '🎓 FE13 · Grosser Kreis', desc: 'Re Fuss – Re Knie – Kopf – Li Knie – Li Fuss. Retten erlaubt, Reihenfolge einhalten. Ziel: 10x' },
+  { id: 'jrp_fe13_ueberkopf', category: 'jrpractice', title: '🎓 FE13 · Über Kopf', desc: 'Mit Füssen jonglieren, 1x Re/Li über Kopf spielen, drehen und weiter jonglieren. Ziel: 10x' },
+  { id: 'jrp_fe13_innenaussen', category: 'jrpractice', title: '🎓 FE13 · Innen-/Aussenseite', desc: 'Re Fuss Aussenseite/Innenseite – Li Fuss Aussenseite/Innenseite. Je ein Kontakt, kein Retten. Ziel: 5x Re/5x Li' },
+  { id: 'jrp_fe13_nacken', category: 'jrpractice', title: '🎓 FE13 · Nacken', desc: 'Mit Füssen jonglieren, Ball in Nacken nehmen, 5 Sek. halten. Ziel: 3x' },
+  { id: 'jrp_fe13_fussboden', category: 'jrpractice', title: '🎓 FE13 · Fuss am Boden', desc: 'Ball beim Jonglieren auf flachen Fuss fallen lassen / Re Fuss – Li Fuss. Ziel: 10x' },
+  { id: 'jrp_fe14_crossover', category: 'jrpractice', title: '🎓 FE14 · Crossover Trick', desc: 'Ein Bein spielt den Ball in der Luft, das andere dreht von Aussen nach Innen darüber. Beide Beine in der Luft. Ziel: 5x Re/5x Li' },
+  { id: 'jrp_fe14_crossoverstehend', category: 'jrpractice', title: '🎓 FE14 · Crossover stehend', desc: 'Standbein bleibt am Boden, das andere dreht von Aussen nach Innen über den Ball. Ziel: 5x Re/5x Li' },
+  { id: 'jrp_fe14_atw', category: 'jrpractice', title: '🎓 FE14 · Around the World', desc: 'ATW innen/aussen sowie aussen/innen mit Re Fuss und Li Fuss. Retten erlaubt. Ziel: je 1x' },
+  { id: 'jrp_fe14_aussenseite', category: 'jrpractice', title: '🎓 FE14 · Aussenseite', desc: 'Re Fuss Aussenseite – Li Fuss Aussenseite. Je ein Kontakt, kein Retten. Ziel: 10x' },
+  { id: 'jrp_fe14_hochnehmen', category: 'jrpractice', title: '🎓 FE14 · Ball hochnehmen', desc: 'Trick: Ball vom Boden aufnehmen. Ziel: 3x Li/Re' },
+  { id: 'jrp_u15_brasilkreis', category: 'jrpractice', title: '🎓 U15 · Brasilianischer Kreis', desc: 'Re Fuss – Re Knie – Re Schulter – Kopf – Li Schulter – Li Knie – Li Fuss. Retten erlaubt, Reihenfolge einhalten. Ziel: 10x' },
+  { id: 'jrp_u15_ferse', category: 'jrpractice', title: '🎓 U15 · Ferse', desc: 'Re Fuss – Li Fuss – Re Ferse – Li Fuss – Re Fuss – Li Ferse. Ablauf genau einhalten, kein Retten. Ziel: 10x' },
+  { id: 'jrp_u15_brust', category: 'jrpractice', title: '🎓 U15 · Brust', desc: 'Im Laufen abwechselnd Fuss – Brust. Ziel: Grundlinie zu Mittellinie' },
+  { id: 'jrp_u15_kopf', category: 'jrpractice', title: '🎓 U15 · Kopf', desc: 'Im Laufen abwechselnd Fuss – Kopf. Ziel: Grundlinie zu Mittellinie' },
+  { id: 'jrp_u15_pancake', category: 'jrpractice', title: '🎓 U15 · Pancake Trick', desc: 'Ball mit Aussenrist am Boden auffangen und weiter jonglieren. Ziel: 5x Re/5x Li' },
+  { id: 'jrp_team_twotouch', category: 'jrpractice', title: '🎓 Team · Two Touch', desc: 'Zu zweit jonglieren hin und her, two touch, immer rechts links. Ziel: 50x' },
+  { id: 'jrp_team_onetouch', category: 'jrpractice', title: '🎓 Team · One Touch', desc: 'Zu zweit jonglieren hin und her, one touch. Ziel: 50x' },
+  { id: 'jrp_team_brust', category: 'jrpractice', title: '🎓 Team · Brust', desc: 'Zu zweit jonglieren mit Fuss auf Brust. Brustannahme, mit Fuss zurück auf Brust. Ziel: je 20x' },
+  { id: 'jrp_team_kopf', category: 'jrpractice', title: '🎓 Team · Kopf', desc: 'Zu zweit jonglieren hin und her, nur mit Kopf. Ziel: 30x' },
+  { id: 'jrp_team_kopftwotouch', category: 'jrpractice', title: '🎓 Team · Kopf Two Touch', desc: 'Zu zweit jonglieren hin und her, nur Kopf, two touch. Ziel: 20x' },
+  { id: 'jrp_team_laufenseitlich', category: 'jrpractice', title: '🎓 Team · Laufen (seitlich)', desc: 'Zu zweit jonglieren im Laufen, seitlich. Maximal two touch. Ziel: Grundlinie bis Mittellinie' },
+  { id: 'jrp_team_laufenrueckwaerts', category: 'jrpractice', title: '🎓 Team · Laufen (rückwärts/gerade)', desc: 'Zu zweit jonglieren im Laufen, rückwärts und gerade. Maximal two touch. Ziel: Grundlinie bis Mittellinie' },
+  { id: 'jrp_team_laufenkopf', category: 'jrpractice', title: '🎓 Team · Laufen (Kopf)', desc: 'Zu zweit jonglieren im Laufen, rückwärts und gerade, nur Kopf. Ziel: Grundlinie bis Mittellinie' }
 ];
 
 function getBadge(score, limits, type) {
@@ -2543,7 +2569,52 @@ function renderPlayerSkills() {
     '</div>';
   });
   html += '</div>'; // close grid
-  
+
+  // 3. Jonglierreihe — Eigenes Training (Selbst-Eintrag, alle Niveaus FE12–U15 + Team, immer offen)
+  html += '<h3 style="color:#fff; font-family:\'Sora\'; font-size:18px; margin:32px 0 4px; display:flex; align-items:center; gap:8px;">🎓 Jonglierreihe — Eigenes Training</h3>';
+  html += '<p class="muted" style="font-size:12px; margin-bottom:12px;">Zum Üben und selbst Eintragen — alle Niveaus FE12 bis U15 und alle Teamübungen sind jederzeit offen. Die offizielle Prüfung oben läuft unabhängig davon über deinen Trainer.</p>';
+  html += '<div class="grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">';
+
+  SKILL_CHALLENGES.filter(function(c) { return c.category === 'jrpractice'; }).forEach(function(c) {
+    var score = userSkills[c.id] != null ? parseInt(userSkills[c.id]) : 0;
+    var limits = { gold: 4, silver: 3, bronze: 1 };
+    var badge = getBadge(score, limits, 'max');
+
+    var statusText = "Noch nicht geschafft";
+    if (score === 1) statusText = "In Arbeit";
+    else if (score === 2) statusText = "Fast geschafft";
+    else if (score === 3) statusText = "Geschafft ✅";
+    else if (score === 4) statusText = "Sicher beherrscht 🏆";
+
+    html += '<div class="card" style="display:flex; flex-direction:column; gap:12px; background:var(--card-gradient); position:relative; border-color:' + (score > 0 ? badge.color : 'rgba(139,146,156,0.15)') + ';">' +
+      '<div style="display:flex; justify-content:space-between; align-items:flex-start;">' +
+        '<div>' +
+          '<h4 style="color:#fff; font-family:\'Sora\'; font-size:14px;">' + esc(c.title) + '</h4>' +
+          '<p class="muted" style="font-size:11px; margin-top:4px; line-height:1.3;">' + esc(c.desc) + '</p>' +
+        '</div>' +
+        '<span style="font-size:24px; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));">' + badge.emoji + '</span>' +
+      '</div>' +
+      '<div style="background:rgba(0,0,0,0.2); padding:8px; border-radius:10px; font-size:11px; border:1px solid var(--line); margin-top:auto;">' +
+        '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+          '<span style="font-weight:700; color:' + badge.color + ';">Status:</span>' +
+          '<span style="font-family:\'Sora\'; font-size:12px; font-weight:800; color:#fff;">' + statusText + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex; gap:8px; margin-top:8px;">' +
+        '<select id="select-skill-' + c.id + '" style="flex:1; padding:6px 10px; font-size:12px; background:rgba(21, 23, 30, 0.8); color:#fff; border-radius:12px; border:1px solid var(--line);">' +
+          '<option value="0"' + (score === 0 ? ' selected' : '') + '>0: Noch nicht geschafft</option>' +
+          '<option value="1"' + (score === 1 ? ' selected' : '') + '>1: In Arbeit</option>' +
+          '<option value="2"' + (score === 2 ? ' selected' : '') + '>2: Fast geschafft</option>' +
+          '<option value="3"' + (score === 3 ? ' selected' : '') + '>3: Geschafft ✅</option>' +
+          '<option value="4"' + (score === 4 ? ' selected' : '') + '>4: Sicher beherrscht 🏆</option>' +
+        '</select>' +
+        '<button class="btn" style="padding:6px 12px; font-size:12px;" onclick="savePlayerSkillSelect(\'' + c.id + '\')">Speichern</button>' +
+      '</div>' +
+      '<div id="fb-skill-' + c.id + '" style="font-size:11px; font-weight:700; margin-top:2px;"></div>' +
+    '</div>';
+  });
+  html += '</div>'; // close grid
+
   el("skills-grid").innerHTML = html;
 }
 
