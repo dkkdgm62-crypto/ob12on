@@ -942,10 +942,8 @@ footer {
       </div>
     </div>
     
-    <div id="jr-section" style="margin-bottom:32px;"></div>
-
     <div id="skills-grid">
-      <!-- Dynamisch befüllt (Jonglieren & Tricks) -->
+      <!-- Dynamisch befüllt (Jonglierreihe & Tricks) -->
     </div>
   </div>
 
@@ -1857,8 +1855,8 @@ function loadPlayerStats() {
       el("player-stats-points").innerHTML = myRow.gesamt + ' <span style="font-size:13px; font-weight:600;">PUNKTE</span>';
       show("player-stats-card");
     } else {
-      el("player-stats-rank").textContent = "Willkommen in der Lern-Akademie!";
-      el("player-stats-details").textContent = "Starte dein erstes Modul in Quartal 1, um im Ranking aufgenommen zu werden.";
+      el("player-stats-rank").textContent = "Willkommen in der Lern-Akademie! 🎓";
+      el("player-stats-details").textContent = "Starte dein erstes Modul in Quartal 1 — mit Demut und Fleiss wächst dein Wissen Schritt für Schritt, bis du es sicher und selbstbewusst auf dem Platz anwendest.";
       el("player-stats-points").innerHTML = '0 <span style="font-size:13px; font-weight:600;">PUNKTE</span>';
       show("player-stats-card");
     }
@@ -2253,46 +2251,6 @@ var JUGGLING_TEAM = [
   {id:'jr_team_laufenkopf', name:'Zu zweit laufen (Kopf)', desc:'Ball zu zweit jonglieren hin und her im Laufen (rückwärts und gerade)', rules:'Nur Kopf', count:'Grundlinie bis Mittellinie'}
 ];
 
-function jrRow(e, ok){
-  return '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; background:var(--glass-bg-2); border:1px solid var(--glass-border); border-radius:var(--r-md); padding:8px 10px;">'
-    + '<div><b style="font-size:13px; color:var(--text-1);">'+esc(e.name)+'</b> <span class="muted" style="font-size:11px;">('+esc(e.count)+')</span>'
-    + '<div class="muted" style="font-size:11px; margin-top:2px;">'+esc(e.desc)+(e.rules?' — '+esc(e.rules):'')+'</div></div>'
-    + '<span style="font-size:18px; flex-shrink:0;" title="'+(ok?'Bestanden':'Noch nicht bestanden')+'">'+(ok?'✅':'⏳')+'</span></div>';
-}
-
-function renderJugglingReihe(){
-  var box = el('jr-section');
-  if(!box || !ME) return;
-  box.innerHTML = '<p class="muted" style="font-size:12px;">Lade Jonglierreihe...</p>';
-  sb.from('juggling_progress').select('exercise_id,passed').eq('player_id', ME.id).then(function(r){
-    if(!box) return;
-    var passed = {};
-    (r.data||[]).forEach(function(row){ if(row.passed) passed[row.exercise_id]=true; });
-    function levelDone(lv){ return JUGGLING_DATA[lv].exercises.every(function(e){ return !!passed[e.id]; }); }
-
-    var html = '<h3 style="color:#fff; font-family:\'Sora\'; font-size:18px; margin:0 0 4px; display:flex; align-items:center; gap:8px;">🎓 Jonglierreihe — Offizielle Prüfung</h3>';
-    html += '<p class="muted" style="font-size:12px; margin-bottom:16px;">FE12 → U15. Alle Niveaus sind jederzeit offen zum Üben. Der Trainer bestätigt jede Übung nachträglich, sobald sie erfolgreich vorgezeigt wurde.</p>';
-
-    for(var lv=1; lv<=4; lv++){
-      var data = JUGGLING_DATA[lv];
-      var complete = levelDone(lv);
-      html += '<div class="card g-card-sm" style="margin-bottom:12px;">';
-      html += '<p class="eyebrow" style="margin:0 0 8px;">'+(complete?'✅ ':'')+esc(data.label)+'</p>';
-      html += '<div style="display:flex; flex-direction:column; gap:6px;">';
-      data.exercises.forEach(function(e){ html += jrRow(e, !!passed[e.id]); });
-      html += '</div></div>';
-    }
-
-    html += '<div class="card g-card-sm" style="margin-bottom:8px;">';
-    html += '<p class="eyebrow" style="margin:0 0 8px;">👥 Team-Übungen (immer offen, egal auf welcher Stufe)</p>';
-    html += '<div style="display:flex; flex-direction:column; gap:6px;">';
-    JUGGLING_TEAM.forEach(function(e){ html += jrRow(e, !!passed[e.id]); });
-    html += '</div></div>';
-
-    box.innerHTML = html;
-  });
-}
-
 function loadJrStaffForm(){
   sb.from("profiles").select("id,display_name").eq("role","spieler").order("display_name").then(function(r){
     var pData = r.data || [];
@@ -2344,81 +2302,7 @@ function toggleJrExercise(playerId, exerciseId, checked){
 }
 
 var SKILL_CHALLENGES = [
-  // JONGLIEREN (JUGGLING)
-  {
-    id: 'jong_spann_rl',
-    category: 'juggling',
-    title: 'Jonglieren: Vollspann Links & Rechts ⚽',
-    desc: '50 Kontakte mit Vollspann (links und rechts kontrolliert)',
-    unit: 'Kontakte',
-    type: 'max',
-    limits: { gold: 50, silver: 30, bronze: 15 }
-  },
-  {
-    id: 'jong_spann_wechsel',
-    category: 'juggling',
-    title: 'Jonglieren: Spann im Wechsel 🔄',
-    desc: '100 Kontakte abwechselnd mit dem rechten und linken Spann',
-    unit: 'Kontakte',
-    type: 'max',
-    limits: { gold: 100, silver: 60, bronze: 30 }
-  },
-  {
-    id: 'jong_oberschenkel_rl',
-    category: 'juggling',
-    title: 'Jonglieren: Oberschenkel L/R 🦵',
-    desc: '50 Kontakte mit dem Oberschenkel (L oder R)',
-    unit: 'Kontakte',
-    type: 'max',
-    limits: { gold: 50, silver: 30, bronze: 15 }
-  },
-  {
-    id: 'jong_oberschenkel_wechsel',
-    category: 'juggling',
-    title: 'Jonglieren: Oberschenkel abwechselnd 🔀',
-    desc: '100 Kontakte abwechselnd mit dem rechten und linken Oberschenkel',
-    unit: 'Kontakte',
-    type: 'max',
-    limits: { gold: 100, silver: 60, bronze: 30 }
-  },
-  {
-    id: 'jong_kopf',
-    category: 'juggling',
-    title: 'Jonglieren: Kopfball-Meister 🗣️',
-    desc: '50 Kontakte kontrolliert mit dem Kopf',
-    unit: 'Kontakte',
-    type: 'max',
-    limits: { gold: 50, silver: 30, bronze: 15 }
-  },
-  {
-    id: 'jong_aussenrist',
-    category: 'juggling',
-    title: 'Jonglieren: Außenrist L/R 👟',
-    desc: '20 Kontakte mit dem Außenrist (Links oder Rechts)',
-    unit: 'Kontakte',
-    type: 'max',
-    limits: { gold: 20, silver: 12, bronze: 6 }
-  },
-  {
-    id: 'jong_innenrist',
-    category: 'juggling',
-    title: 'Jonglieren: Innenrist L/R 🥾',
-    desc: '20 Kontakte mit dem Innenrist (Links oder Rechts)',
-    unit: 'Kontakte',
-    type: 'max',
-    limits: { gold: 20, silver: 12, bronze: 6 }
-  },
-  {
-    id: 'jong_weltreise',
-    category: 'juggling',
-    title: 'Master: Kleine Weltreise 🌍',
-    desc: 'Reihenfolge: Rechter Spann -> Rechter Oberschenkel -> Kopf -> Linker Oberschenkel -> Linker Spann. Ziel: 3 Runden ohne Unterbruch!',
-    unit: 'Runden',
-    type: 'max',
-    limits: { gold: 3, silver: 2, bronze: 1 }
-  },
-
-  // TRICKS / SKILLS (VIDEOS SEND PRIVATELY)
+  // TRICKS / SKILLS
   { id: 'trick_samba', category: 'tricks', title: 'Samba Steps 🕺', desc: 'Schnelles Überrollen und Antäuschen über den Ball (L & R)' },
   { id: 'trick_rabona', category: 'tricks', title: 'Rabona 🏹', desc: 'Flanke oder Schuss durch Überkreuzen der Beine (L & R)' },
   { id: 'trick_pass_fake', category: 'tricks', title: 'Pass Fake 🤥', desc: 'Passbewegung antäuschen und Ball mit Sohle/Innenseite mitnehmen (L & R)' },
@@ -2485,95 +2369,13 @@ function getBadge(score, limits, type) {
 }
 
 function renderPlayerSkills() {
-  renderJugglingReihe();
   var userSkills = PROFILE.skills || {};
   var html = "";
-  
-  // 1. Jonglieren Section Title
-  html += '<h3 style="color:#fff; font-family:\'Sora\'; font-size:18px; margin:24px 0 12px; display:flex; align-items:center; gap:8px;">⚽ Jonglier-Herausforderungen</h3>';
-  html += '<div class="grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom:32px;">';
-  
-  SKILL_CHALLENGES.filter(function(c) { return c.category === 'juggling'; }).forEach(function(c) {
-    var score = userSkills[c.id] != null ? parseFloat(userSkills[c.id]) : null;
-    var badge = getBadge(score, c.limits, c.type);
-    
-    html += '<div class="card" style="display:flex; flex-direction:column; gap:12px; background:var(--card-gradient); position:relative; border-color:' + (score ? badge.color : 'rgba(139,146,156,0.15)') + ';">' +
-      '<div style="display:flex; justify-content:space-between; align-items:flex-start;">' +
-        '<div>' +
-          '<h4 style="color:#fff; font-family:\'Sora\'; font-size:14px;">' + esc(c.title) + '</h4>' +
-          '<p class="muted" style="font-size:11px; margin-top:4px; line-height:1.3;">' + esc(c.desc) + '</p>' +
-        '</div>' +
-        '<span style="font-size:24px; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));">' + badge.emoji + '</span>' +
-      '</div>' +
-      '<div style="background:rgba(0,0,0,0.2); padding:8px; border-radius:10px; font-size:11px; border:1px solid var(--line); margin-top:auto;">' +
-        '<div style="display:flex; justify-content:space-between; margin-bottom:4px;">' +
-          '<span class="muted">Grenzwerte:</span>' +
-          '<span style="font-weight:700; color:var(--gold);">' +
-            '🏆 Gold: ' + c.limits.gold + ' | 🥈 Silber: ' + c.limits.silver + ' | 🥉 Bronze: ' + c.limits.bronze +
-          '</span>' +
-        '</div>' +
-        '<div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">' +
-          '<span style="font-weight:700; color:' + badge.color + ';">Aktueller Rekord:</span>' +
-          '<span style="font-family:\'Sora\'; font-size:14px; font-weight:800; color:#fff;">' + (score != null ? (score + ' ' + c.unit) : 'Kein Eintrag') + '</span>' +
-        '</div>' +
-      '</div>' +
-      '<div style="display:flex; gap:8px; margin-top:8px;">' +
-        '<input type="number" min="0" placeholder="z.B. 25" id="input-skill-' + c.id + '" style="flex:1; padding:6px 10px; font-size:12px;" />' +
-        '<button class="btn" style="padding:6px 12px; font-size:12px;" onclick="savePlayerSkill(\'' + c.id + '\')">Speichern</button>' +
-      '</div>' +
-      '<div id="fb-skill-' + c.id + '" style="font-size:11px; font-weight:700; margin-top:2px;"></div>' +
-    '</div>';
-  });
-  html += '</div>'; // close grid
-  
-  // 2. Tricks Section Title
-  html += '<h3 style="color:#fff; font-family:\'Sora\'; font-size:18px; margin:32px 0 12px; display:flex; align-items:center; gap:8px;">✨ Trick-Challenges (Videos L/R privat senden)</h3>';
-  html += '<div class="grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">';
-  
-  SKILL_CHALLENGES.filter(function(c) { return c.category === 'tricks'; }).forEach(function(c) {
-    var score = userSkills[c.id] != null ? parseInt(userSkills[c.id]) : 0;
-    var limits = { gold: 4, silver: 3, bronze: 1 };
-    var badge = getBadge(score, limits, 'max');
-    
-    var statusText = "Noch nicht geschafft";
-    if (score === 1) statusText = "Links klappt 🥉";
-    else if (score === 2) statusText = "Rechts klappt 🥉";
-    else if (score === 3) statusText = "Links & Rechts klappen 🥈";
-    else if (score === 4) statusText = "L/R Meister & Video gesendet 🏆";
-    
-    html += '<div class="card" style="display:flex; flex-direction:column; gap:12px; background:var(--card-gradient); position:relative; border-color:' + (score > 0 ? badge.color : 'rgba(139,146,156,0.15)') + ';">' +
-      '<div style="display:flex; justify-content:space-between; align-items:flex-start;">' +
-        '<div>' +
-          '<h4 style="color:#fff; font-family:\'Sora\'; font-size:14px;">' + esc(c.title) + '</h4>' +
-          '<p class="muted" style="font-size:11px; margin-top:4px; line-height:1.3;">' + esc(c.desc) + '</p>' +
-        '</div>' +
-        '<span style="font-size:24px; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));">' + badge.emoji + '</span>' +
-      '</div>' +
-      '<div style="background:rgba(0,0,0,0.2); padding:8px; border-radius:10px; font-size:11px; border:1px solid var(--line); margin-top:auto;">' +
-        '<div style="display:flex; justify-content:space-between; align-items:center;">' +
-          '<span style="font-weight:700; color:' + badge.color + ';">Status:</span>' +
-          '<span style="font-family:\'Sora\'; font-size:12px; font-weight:800; color:#fff;">' + statusText + '</span>' +
-        '</div>' +
-      '</div>' +
-      '<div style="display:flex; gap:8px; margin-top:8px;">' +
-        '<select id="select-skill-' + c.id + '" style="flex:1; padding:6px 10px; font-size:12px; background:rgba(21, 23, 30, 0.8); color:#fff; border-radius:12px; border:1px solid var(--line);">' +
-          '<option value="0"' + (score === 0 ? ' selected' : '') + '>0: Noch nicht geschafft</option>' +
-          '<option value="1"' + (score === 1 ? ' selected' : '') + '>1: Links klappt 🥉</option>' +
-          '<option value="2"' + (score === 2 ? ' selected' : '') + '>2: Rechts klappt 🥉</option>' +
-          '<option value="3"' + (score === 3 ? ' selected' : '') + '>3: L & R klappen 🥈</option>' +
-          '<option value="4"' + (score === 4 ? ' selected' : '') + '>4: L/R Meister & Video gesendet 🏆</option>' +
-        '</select>' +
-        '<button class="btn" style="padding:6px 12px; font-size:12px;" onclick="savePlayerSkillSelect(\'' + c.id + '\')">Speichern</button>' +
-      '</div>' +
-      '<div id="fb-skill-' + c.id + '" style="font-size:11px; font-weight:700; margin-top:2px;"></div>' +
-    '</div>';
-  });
-  html += '</div>'; // close grid
 
-  // 3. Jonglierreihe — Eigenes Training (Selbst-Eintrag, alle Niveaus FE12–U15 + Team, immer offen)
-  html += '<h3 style="color:#fff; font-family:\'Sora\'; font-size:18px; margin:32px 0 4px; display:flex; align-items:center; gap:8px;">🎓 Jonglierreihe — Eigenes Training</h3>';
-  html += '<p class="muted" style="font-size:12px; margin-bottom:12px;">Zum Üben und selbst Eintragen — alle Niveaus FE12 bis U15 und alle Teamübungen sind jederzeit offen. Die offizielle Prüfung oben läuft unabhängig davon über deinen Trainer.</p>';
-  html += '<div class="grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">';
+  // 1. Jonglierreihe — Eigenes Training (Selbst-Eintrag, alle Niveaus FE12–U15 + Team, immer offen)
+  html += '<h3 style="color:#fff; font-family:\'Sora\'; font-size:18px; margin:0 0 4px; display:flex; align-items:center; gap:8px;">🎓 Jonglierreihe — Eigenes Training</h3>';
+  html += '<p class="muted" style="font-size:12px; margin-bottom:16px;">Zum Üben und selbst Eintragen — alle Niveaus FE12 bis U15 und alle Teamübungen sind jederzeit offen.</p>';
+  html += '<div class="grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom:32px;">';
 
   SKILL_CHALLENGES.filter(function(c) { return c.category === 'jrpractice'; }).forEach(function(c) {
     var score = userSkills[c.id] != null ? parseInt(userSkills[c.id]) : 0;
@@ -2607,6 +2409,50 @@ function renderPlayerSkills() {
           '<option value="2"' + (score === 2 ? ' selected' : '') + '>2: Fast geschafft</option>' +
           '<option value="3"' + (score === 3 ? ' selected' : '') + '>3: Geschafft ✅</option>' +
           '<option value="4"' + (score === 4 ? ' selected' : '') + '>4: Sicher beherrscht 🏆</option>' +
+        '</select>' +
+        '<button class="btn" style="padding:6px 12px; font-size:12px;" onclick="savePlayerSkillSelect(\'' + c.id + '\')">Speichern</button>' +
+      '</div>' +
+      '<div id="fb-skill-' + c.id + '" style="font-size:11px; font-weight:700; margin-top:2px;"></div>' +
+    '</div>';
+  });
+  html += '</div>'; // close grid
+
+  // 2. Tricks Section Title
+  html += '<h3 style="color:#fff; font-family:\'Sora\'; font-size:18px; margin:32px 0 12px; display:flex; align-items:center; gap:8px;">✨ Trick-Challenges</h3>';
+  html += '<div class="grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">';
+
+  SKILL_CHALLENGES.filter(function(c) { return c.category === 'tricks'; }).forEach(function(c) {
+    var score = userSkills[c.id] != null ? parseInt(userSkills[c.id]) : 0;
+    var limits = { gold: 4, silver: 3, bronze: 1 };
+    var badge = getBadge(score, limits, 'max');
+
+    var statusText = "Noch nicht geschafft";
+    if (score === 1) statusText = "Links klappt 🥉";
+    else if (score === 2) statusText = "Rechts klappt 🥉";
+    else if (score === 3) statusText = "Links & Rechts klappen 🥈";
+    else if (score === 4) statusText = "L/R Meister 🏆";
+
+    html += '<div class="card" style="display:flex; flex-direction:column; gap:12px; background:var(--card-gradient); position:relative; border-color:' + (score > 0 ? badge.color : 'rgba(139,146,156,0.15)') + ';">' +
+      '<div style="display:flex; justify-content:space-between; align-items:flex-start;">' +
+        '<div>' +
+          '<h4 style="color:#fff; font-family:\'Sora\'; font-size:14px;">' + esc(c.title) + '</h4>' +
+          '<p class="muted" style="font-size:11px; margin-top:4px; line-height:1.3;">' + esc(c.desc) + '</p>' +
+        '</div>' +
+        '<span style="font-size:24px; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));">' + badge.emoji + '</span>' +
+      '</div>' +
+      '<div style="background:rgba(0,0,0,0.2); padding:8px; border-radius:10px; font-size:11px; border:1px solid var(--line); margin-top:auto;">' +
+        '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+          '<span style="font-weight:700; color:' + badge.color + ';">Status:</span>' +
+          '<span style="font-family:\'Sora\'; font-size:12px; font-weight:800; color:#fff;">' + statusText + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex; gap:8px; margin-top:8px;">' +
+        '<select id="select-skill-' + c.id + '" style="flex:1; padding:6px 10px; font-size:12px; background:rgba(21, 23, 30, 0.8); color:#fff; border-radius:12px; border:1px solid var(--line);">' +
+          '<option value="0"' + (score === 0 ? ' selected' : '') + '>0: Noch nicht geschafft</option>' +
+          '<option value="1"' + (score === 1 ? ' selected' : '') + '>1: Links klappt 🥉</option>' +
+          '<option value="2"' + (score === 2 ? ' selected' : '') + '>2: Rechts klappt 🥉</option>' +
+          '<option value="3"' + (score === 3 ? ' selected' : '') + '>3: L & R klappen 🥈</option>' +
+          '<option value="4"' + (score === 4 ? ' selected' : '') + '>4: L/R Meister 🏆</option>' +
         '</select>' +
         '<button class="btn" style="padding:6px 12px; font-size:12px;" onclick="savePlayerSkillSelect(\'' + c.id + '\')">Speichern</button>' +
       '</div>' +
