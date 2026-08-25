@@ -5508,12 +5508,32 @@ var Ziel = (function(){
     zwischengespraech: 'Zwischengespräch',
     standortgespraech_eltern: 'Standortgespräch (mit Eltern)',
     fruehjahrsgespraech: 'Frühjahrsgespräch',
-    finale: 'Finale (Stufenentscheid)'
+    finale: 'Abschluss'
   };
   var MILESTONES_BY_CYCLE = {
     vorrunde: ['zwischengespraech','standortgespraech_eltern'],
     rueckrunde: ['fruehjahrsgespraech','finale']
   };
+  var STUFEN_LABEL = { fe13:'FE13', fe14:'FE14', nicht_erreicht:'Nicht erreicht' };
+
+  // Saison-Label "2026/27" -> Startjahr 2026, Endjahr 2027
+  function seasonYears(seasonLbl){
+    var parts = (seasonLbl||"").split('/');
+    var y1 = parseInt(parts[0],10);
+    var y2 = parts[1] ? parseInt((parts[0]||"").slice(0,2)+parts[1],10) : (y1+1);
+    return {start:y1, end:y2};
+  }
+  // Zeitfenster je Meilenstein, automatisch an die Saison angepasst
+  function milestoneWindow(mt, seasonLbl){
+    var yrs = seasonYears(seasonLbl);
+    switch(mt){
+      case 'zwischengespraech': return 'bis Aug/Sep ' + yrs.start;
+      case 'standortgespraech_eltern': return 'bis Dezember ' + yrs.start;
+      case 'fruehjahrsgespraech': return 'Frühling ' + yrs.end;
+      case 'finale': return 'Mai/Juni ' + yrs.end;
+      default: return '';
+    }
+  }
 
   var state = { activeCycleId:null, activeCycleType:'vorrunde', playerId:null, isStaff:false, cycles:{}, warnings:[], staffPlayerId:null, staffCycles:{}, staffActiveType:'vorrunde' };
 
@@ -5628,7 +5648,7 @@ var Ziel = (function(){
     var html = '';
 
     var mtypes = MILESTONES_BY_CYCLE[cycle.cycle_type] || [];
-    var hint = nextMilestoneHint(mtypes, meetings);
+    var hint = nextMilestoneHint(mtypes, meetings, cycle.season_label);
 
     // ---- Kopf im Formular-Stil ----
     html += '<div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:10px; margin-bottom:4px;">';
@@ -5661,7 +5681,7 @@ var Ziel = (function(){
     html += '<h4 style="color:#fff; font-size:14px; margin:26px 0 10px;">📅 Gesprächs-Fahrplan</h4>';
     mtypes.forEach(function(mt){
       var m = meetings.find(function(x){return x.milestone_type===mt;});
-      html += meetingRowHtml(mt, m, cycle.id, isStaffView);
+      html += meetingRowHtml(mt, m, cycle.id, isStaffView, cycle.season_label);
     });
 
     html += '<h4 style="color:#fff; font-size:14px; margin:26px 0 10px;">💬 Kommentare</h4>';
@@ -5669,22 +5689,28 @@ var Ziel = (function(){
     if(comments.length===0){ html += '<p class="muted" style="font-size:12.5px;">Noch keine Kommentare.</p>'; }
     comments.forEach(function(cm){
       var who = cm.author_role==='spieler' ? 'Spieler' : (cm.author_role==='leiter'?'Leiter':'Trainer');
-      html += '<div style="background:rgba(255,255,255,0.03); border-radius:8px; padding:8px 12px; margin-bottom:6px;"><p style="font-size:11.5px; color:var(--text-3); margin-bottom:2px;">'+who+' · '+fmtD(cm.created_at)+'</p><p style="font-size:13px; color:#fff; white-space:pre-wrap;">'+esc(cm.kommentar)+'</p></div>';
+      var internBadge = cm.is_internal ? ' <span style="color:#f0c419; font-weight:700;">🔒 Intern</span>' : '';
+      html += '<div style="background:rgba(255,255,255,0.03); border-radius:8px; padding:8px 12px; margin-bottom:6px;'+(cm.is_internal?' border:1px dashed rgba(230,180,40,0.4);':'')+'"><p style="font-size:11.5px; color:var(--text-3); margin-bottom:2px;">'+who+' · '+fmtD(cm.created_at)+internBadge+'</p><p style="font-size:13px; color:#fff; white-space:pre-wrap;">'+esc(cm.kommentar)+'</p></div>';
     });
     html += '</div>';
     html += '<textarea id="ziel-comment-input-'+cycle.id+'" placeholder="Kommentar schreiben..." style="width:100%; min-height:60px; margin-bottom:8px;"></textarea>';
+    if(isStaffView){
+      html += '<label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--gold); text-transform:none; letter-spacing:0; margin-bottom:8px; cursor:pointer;">';
+      html += '<input type="checkbox" id="ziel-comment-internal-'+cycle.id+'" style="width:auto;"/> Nur intern (nicht für den Spieler sichtbar — für den Trainer-Austausch)';
+      html += '</label>';
+    }
     html += '<button class="btn-ghost" style="font-size:13px; padding:8px 16px;" onclick="Ziel.addComment(\''+cycle.id+'\')">Senden</button>';
 
     return html;
   }
 
-  // Nächster noch offener Gesprächstermin als Fortschritt-Hinweis (z.B. "Bis 06.10. (Zwischengespräch)")
-  function nextMilestoneHint(mtypes, meetings){
+  // Nächster noch offener Gesprächstermin als Fortschritt-Hinweis (z.B. "bis Aug/Sep 2026 (Zwischengespräch)")
+  function nextMilestoneHint(mtypes, meetings, seasonLbl){
     for(var i=0;i<mtypes.length;i++){
       var mt = mtypes[i];
       var m = meetings.find(function(x){return x.milestone_type===mt;});
       if(!m || m.status!=='erledigt'){
-        var datePart = (m && m.geplant_datum) ? ('bis '+fmtD(m.geplant_datum)) : 'Termin folgt';
+        var datePart = (m && m.geplant_datum) ? ('bis '+fmtD(m.geplant_datum)) : milestoneWindow(mt, seasonLbl);
         return datePart+' ('+MILESTONE_LABEL[mt]+')';
       }
     }
@@ -5719,13 +5745,15 @@ var Ziel = (function(){
     return html;
   }
 
-  function meetingRowHtml(mt, m, cycleId, isStaffView){
+  function meetingRowHtml(mt, m, cycleId, isStaffView, seasonLbl){
     var label = MILESTONE_LABEL[mt];
+    var window = milestoneWindow(mt, seasonLbl);
     var status = m ? m.status : 'offen';
     var badge = status==='erledigt' ? '<span style="color:#3ecf6d; font-weight:700; font-size:12px;">✓ erledigt</span>' : '<span style="color:var(--text-3); font-size:12px;">offen</span>';
+    var stufenergebnis = m ? m.stufenergebnis : null;
     var html = '<div class="card" style="background:rgba(255,255,255,0.02); margin-bottom:8px; padding:12px 16px;">';
     html += '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">';
-    html += '<b style="font-size:13.5px; color:#fff;">'+label+'</b>'+badge;
+    html += '<div><b style="font-size:13.5px; color:#fff;">'+label+'</b> <span class="muted" style="font-size:11.5px;">· '+esc(window)+'</span></div>'+badge;
     html += '</div>';
     if(isStaffView){
       html += '<div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">';
@@ -5734,10 +5762,32 @@ var Ziel = (function(){
       html += '</div>';
       html += '<textarea id="mt-protokoll-'+cycleId+'-'+mt+'" placeholder="Protokoll / Notizen" style="width:100%; min-height:50px; margin-top:8px;">'+esc(m?m.protokoll:"")+'</textarea>';
       html += '<input id="mt-teilnehmer-'+cycleId+'-'+mt+'" placeholder="Teilnehmer (z.B. Spieler, Eltern, Trainer X)" value="'+esc(m?m.teilnehmer:"")+'" style="width:100%; margin-top:8px;"/>';
+      if(mt==='finale'){
+        html += '<div style="margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);">';
+        html += '<label style="font-size:12px; color:var(--gold);">🏆 Stufenergebnis</label>';
+        html += '<select id="mt-stufenergebnis-'+cycleId+'-'+mt+'" style="max-width:260px; margin-top:4px;">';
+        html += '<option value=""'+(!stufenergebnis?' selected':'')+'>Noch offen</option>';
+        html += '<option value="fe13"'+(stufenergebnis==='fe13'?' selected':'')+'>🎉 FE13 erreicht</option>';
+        html += '<option value="fe14"'+(stufenergebnis==='fe14'?' selected':'')+'>🎉 FE14 erreicht</option>';
+        html += '<option value="nicht_erreicht"'+(stufenergebnis==='nicht_erreicht'?' selected':'')+'>Nicht erreicht</option>';
+        html += '</select>';
+        html += '</div>';
+      }
       html += '<button class="btn-ghost" style="font-size:12.5px; padding:6px 12px; margin-top:8px;" onclick="Ziel.saveMeeting(\''+cycleId+'\',\''+mt+'\')">Speichern</button>';
     } else {
       html += '<p class="muted" style="font-size:12px; margin-top:6px;">'+(m&&m.geplant_datum? 'Termin: '+fmtD(m.geplant_datum):'Termin noch offen')+'</p>';
       if(m && m.protokoll){ html += '<p style="font-size:12.5px; color:var(--text-1); margin-top:6px; white-space:pre-wrap;">'+esc(m.protokoll)+'</p>'; }
+      if(mt==='finale' && (stufenergebnis==='fe13' || stufenergebnis==='fe14')){
+        html += '<div style="margin-top:12px; padding:16px; border-radius:14px; text-align:center; background:linear-gradient(135deg,#22c97a,#3ecf6d); box-shadow:0 6px 20px rgba(34,201,122,0.35);">';
+        html += '<div style="font-size:28px;">🎉🏆🎉</div>';
+        html += '<p style="font-size:16px; font-weight:800; color:#06210f; margin-top:6px;">Herzliche Gratulation!</p>';
+        html += '<p style="font-size:14px; font-weight:700; color:#06210f;">Du hast '+STUFEN_LABEL[stufenergebnis]+' erreicht!</p>';
+        html += '</div>';
+      } else if(mt==='finale' && stufenergebnis==='nicht_erreicht'){
+        html += '<div style="margin-top:12px; padding:14px 16px; border-radius:12px; background:rgba(255,255,255,0.03); border:1px solid var(--line);">';
+        html += '<p style="font-size:13px; color:var(--text-1);">Die nächste Stufe wurde diese Saison noch nicht erreicht — gemeinsam mit deinem Trainer geht es weiter an deiner Entwicklung.</p>';
+        html += '</div>';
+      }
     }
     html += '</div>';
     return html;
@@ -5769,7 +5819,9 @@ var Ziel = (function(){
     var input = el("ziel-comment-input-"+cycleId);
     var txt = input.value.trim();
     if(!txt) return;
-    sb.rpc("add_dev_comment", {p_cycle_id:cycleId, p_goal_id:null, p_kommentar:txt}).then(function(r){
+    var internalEl = el("ziel-comment-internal-"+cycleId);
+    var isInternal = internalEl ? internalEl.checked : false;
+    sb.rpc("add_dev_comment", {p_cycle_id:cycleId, p_goal_id:null, p_kommentar:txt, p_is_internal:isInternal}).then(function(r){
       if(r.error){ alert("Fehler: "+r.error.message); return; }
       if(state.isStaff) staffRenderCycle(); else renderActiveCycle();
     });
@@ -5878,7 +5930,11 @@ var Ziel = (function(){
         '<label>Brieftext (editierbar)</label><textarea id="yc-text" style="width:100%; min-height:140px;">'+esc(tpl)+'</textarea>'+
         '<button class="btn" style="margin-top:10px;" onclick="Ziel.staffIssueWarning(\''+pid+'\',\''+c.id+'\')">🟨 Gelbe Karte ausstellen</button>'+
         '</div>';
-      html += '<div style="margin-top:20px;"><button class="btn-ghost" onclick="Ziel.exportPdf(\''+c.id+'\')">📄 Entwicklungsplan als PDF</button></div>';
+      html += '<div style="margin-top:20px;">';
+      html += '<label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-3); text-transform:none; letter-spacing:0; margin-bottom:10px; cursor:pointer;">';
+      html += '<input type="checkbox" id="ziel-pdf-internal-'+c.id+'" checked style="width:auto;"/> Interne Kommentare im PDF einschliessen';
+      html += '</label>';
+      html += '<button class="btn-ghost" onclick="Ziel.exportPdf(\''+c.id+'\')">📄 Entwicklungsplan als PDF</button></div>';
       area.innerHTML = html;
     });
   }
@@ -5900,9 +5956,11 @@ var Ziel = (function(){
     var protokoll = el("mt-protokoll-"+cycleId+"-"+mt).value.trim();
     var teilnehmer = el("mt-teilnehmer-"+cycleId+"-"+mt).value.trim();
     var durchgefuehrt = status==='erledigt' ? new Date().toISOString() : null;
+    var stufenergebnisEl = el("mt-stufenergebnis-"+cycleId+"-"+mt);
+    var stufenergebnis = (stufenergebnisEl && stufenergebnisEl.value) ? stufenergebnisEl.value : null;
     sb.rpc("record_dev_meeting", {
       p_cycle_id:cycleId, p_milestone_type:mt, p_geplant_datum:datum, p_durchgefuehrt_am:durchgefuehrt,
-      p_protokoll:protokoll, p_teilnehmer:teilnehmer, p_status:status
+      p_protokoll:protokoll, p_teilnehmer:teilnehmer, p_status:status, p_stufenergebnis:stufenergebnis
     }).then(function(r){
       if(r.error){ alert("Fehler: "+r.error.message); return; }
       staffRenderCycle();
@@ -5933,6 +5991,8 @@ var Ziel = (function(){
 
   function exportPdf(cycleId){
     if(!cycleId){ alert("Bitte zuerst einen Zyklus (Vorrunde/Rückrunde) öffnen."); return; }
+    var internalCb = el("ziel-pdf-internal-"+cycleId);
+    var includeInternal = internalCb ? internalCb.checked : true;
     Promise.all([
       sb.from("dev_cycles").select("*, profiles!dev_cycles_player_id_fkey(vorname,nachname,display_name,geburtsdatum)").eq("id",cycleId).single(),
       sb.from("dev_goals").select("*").eq("cycle_id",cycleId),
@@ -5940,7 +6000,8 @@ var Ziel = (function(){
       sb.from("dev_comments").select("*").eq("cycle_id",cycleId).order("created_at"),
       sb.from("dev_warnings").select("*").eq("cycle_id",cycleId).order("issued_at",{ascending:false})
     ]).then(function(results){
-      var cycle = results[0].data, goals = results[1].data||[], meetings = results[2].data||[], comments = results[3].data||[], warnings = results[4].data||[];
+      var cycle = results[0].data, goals = results[1].data||[], meetings = results[2].data||[], warnings = results[4].data||[];
+      var comments = (results[3].data||[]).filter(function(cm){ return includeInternal || !cm.is_internal; });
       if(!cycle){ alert("Zyklus nicht gefunden."); return; }
       buildDevPdf(cycle, goals, meetings, comments, warnings);
     });
@@ -6001,6 +6062,11 @@ var Ziel = (function(){
         var split = doc.splitTextToSize("  Protokoll: "+m.protokoll, 180);
         doc.text(split, 14, y); y += split.length*5;
       }
+      if(m.milestone_type==='finale' && m.stufenergebnis){
+        doc.setFont("helvetica","bold");
+        doc.text("  Stufenergebnis: "+(STUFEN_LABEL[m.stufenergebnis]||m.stufenergebnis), 14, y); y += 6;
+        doc.setFont("helvetica","normal");
+      }
     });
 
     if(comments.length>0){
@@ -6012,7 +6078,8 @@ var Ziel = (function(){
       comments.forEach(function(cm){
         if(y>270){ doc.addPage(); y=20; }
         var who = cm.author_role==='spieler'?'Spieler':(cm.author_role==='leiter'?'Leiter':'Trainer');
-        var split = doc.splitTextToSize("["+fmtD(cm.created_at)+" - "+who+"] "+cm.kommentar, 180);
+        var internTag = cm.is_internal ? " (INTERN)" : "";
+        var split = doc.splitTextToSize("["+fmtD(cm.created_at)+" - "+who+internTag+"] "+cm.kommentar, 180);
         doc.text(split, 14, y); y += split.length*5 + 2;
       });
     }
