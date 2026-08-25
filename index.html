@@ -966,7 +966,7 @@ footer {
         <button class="btn-ghost" style="padding:9px 14px" onclick="doLogout()">Abmelden</button>
       </div>
     </div>
-    <div id="presence-dropdown" class="hidden card g-card-sm" style="position:fixed; top:60px; right:16px; z-index:9998; min-width:190px; max-height:240px; overflow-y:auto; padding:8px;"></div>
+    <div id="presence-dropdown" class="hidden card g-card-sm" style="position:fixed; top:60px; right:16px; z-index:10050; min-width:200px; max-height:240px; overflow-y:auto; padding:8px; background:var(--bg-card); box-shadow:0 12px 32px rgba(0,0,0,0.6);"></div>
     <div id="warn-banner" class="banner hidden"></div>
   </div>
 
@@ -2515,6 +2515,57 @@ function openStaff(){ hide("player-nav"); only("view-staff"); show("app-head"); 
 
 /* ============ DASHBOARDS (Landing-Seiten) ============ */
 
+var DNA_MESSAGES = [
+  "💪 Demut & Fleiss: Jeder kleine Schritt heute macht dich morgen stärker.",
+  "🔥 Teamgeist ist unsere DNA — gemeinsam wachsen wir über uns hinaus.",
+  "🎯 Ehrgeiz zeigt sich nicht im Sieg, sondern im täglichen Dranbleiben.",
+  "🤝 Respekt vor dir selbst und deinem Team ist der erste Schritt zum Erfolg.",
+  "⚡ Mut heisst: es trotzdem versuchen, auch wenn es schwierig ist.",
+  "📈 Fortschritt schlägt Perfektion — bleib dran, du machst das gut!",
+  "🧠 Wer lernt, gewinnt immer — egal wie das nächste Spiel ausgeht.",
+  "🛡️ Disziplin ist die Brücke zwischen deinen Zielen und deinem Erfolg.",
+  "🌟 Sei heute ein bisschen besser als gestern — das reicht völlig.",
+  "🤗 Zusammenhalt macht uns stark — keiner schafft es allein.",
+  "🚀 Grosse Spieler beginnen mit kleinen, ehrlichen Trainingseinheiten.",
+  "❤️ Alles, was du heute lernst, gehört für immer dir."
+];
+function randomDnaMessage(){
+  return DNA_MESSAGES[Math.floor(Math.random() * DNA_MESSAGES.length)];
+}
+
+/* Mini-Rangliste fuers Dashboard: Top 10 identisch zur echten Rangliste, eigener Rang immer sichtbar */
+function dashboardLeaderboardHtml(rows){
+  if(!rows || rows.length===0) return '';
+  var sorted = rows.slice().sort(function(a,b){ return a.rang - b.rang; });
+  var top10 = sorted.slice(0, 10);
+  var myRow = sorted.find(function(x){ return x.player_id === ME.id; });
+  var myInTop10 = myRow && top10.some(function(x){ return x.player_id === ME.id; });
+
+  function rowHtml(row){
+    var mine = row.player_id === ME.id;
+    var medal = row.rang===1 ? "🥇" : (row.rang===2 ? "🥈" : (row.rang===3 ? "🥉" : row.rang));
+    return '<div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:7px 10px; border-radius:8px;'
+      + (mine ? ' background:var(--accent-10); border:1px solid var(--accent-28);' : '') + '">'
+      + '<span style="font-size:13px; color:'+(mine?'var(--accent)':'#fff')+'; font-weight:'+(mine?'800':'600')+';">'+medal+' '+esc(row.display_name)+(mine?' (Du)':'')+'</span>'
+      + '<span style="font-size:13px; font-weight:800; color:var(--gold);">'+row.gesamt+' Pkt</span>'
+      + '</div>';
+  }
+
+  var html = '<div class="card" style="margin-top:20px; padding:16px;">';
+  html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">';
+  html += '<p class="eyebrow" style="margin:0;">🏆 Rangliste — Top 10</p>';
+  html += '<button class="btn-ghost" style="font-size:11px; padding:5px 10px;" onclick="showPlayerTab(\'rang\')">Ganze Rangliste →</button>';
+  html += '</div>';
+  html += '<div style="display:flex; flex-direction:column; gap:4px;">';
+  top10.forEach(function(row){ html += rowHtml(row); });
+  if(myRow && !myInTop10){
+    html += '<div class="muted" style="text-align:center; font-size:12px; padding:2px 0;">⋯</div>';
+    html += rowHtml(myRow);
+  }
+  html += '</div></div>';
+  return html;
+}
+
 function loadPlayerDashboard(){
   var box = el("dashboard-player-body");
   if(!box) return;
@@ -2522,10 +2573,12 @@ function loadPlayerDashboard(){
   var name = (PROFILE && PROFILE.display_name) || "Spieler";
   Promise.all([
     sb.from("matches").select("*").order("match_date"),
-    sb.from("dev_warnings").select("*").eq("player_id",ME.id).eq("status","aktiv").order("issued_at",{ascending:false})
+    sb.from("dev_warnings").select("*").eq("player_id",ME.id).eq("status","aktiv").order("issued_at",{ascending:false}),
+    sb.rpc("get_leaderboard", {p_round_nr: ACCESS.current_round})
   ]).then(function(results){
     var matches = results[0].data||[];
     var warnings = results[1].data||[];
+    var lbRows = results[2].data||[];
     var todayStart = new Date(new Date().toDateString());
     var upcoming = matches.filter(function(m){return new Date(m.match_date+"T00:00:00")>=todayStart;});
     var past = matches.filter(function(m){return new Date(m.match_date+"T00:00:00")<todayStart;});
@@ -2533,7 +2586,7 @@ function loadPlayerDashboard(){
     var lastMatch = past[past.length-1];
 
     var html = '<h2 style="color:#fff; margin-bottom:4px;">Willkommen zurück, '+esc(name)+'! 👋</h2>';
-    html += '<p class="muted" style="font-size:13px; margin-bottom:20px;">Hier ist dein Überblick.</p>';
+    html += '<p style="font-size:13.5px; color:var(--gold); font-weight:600; margin-bottom:20px;">'+esc(randomDnaMessage())+'</p>';
 
     if(warnings.length>0){
       html += '<div style="background:rgba(230,180,40,0.12); border:1px solid rgba(230,180,40,0.4); border-radius:12px; padding:14px 16px; margin-bottom:16px; cursor:pointer;" onclick="showPlayerTab(\'ziel\')">';
@@ -2555,7 +2608,9 @@ function loadPlayerDashboard(){
       html += '</div>';
     }
 
-    html += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:12px;">';
+    html += dashboardLeaderboardHtml(lbRows);
+
+    html += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:12px; margin-top:20px;">';
     [
       {icon:'📖', label:'Lernen', tab:'lernen'},
       {icon:'🎯', label:'Skill-Challenges', tab:'skills'},
@@ -2582,143 +2637,33 @@ function staffDashTile(icon, value, label, tab){
   '</div>';
 }
 
-function totalJrExercises(){
-  var c = 0;
-  for(var lv=1; lv<=4; lv++){ if(JUGGLING_DATA[lv]) c += JUGGLING_DATA[lv].exercises.length; }
-  c += JUGGLING_TEAM.length;
-  return c;
-}
-
-function fmtDateShort(dstr){
-  if(!dstr) return '–';
-  var d = new Date(dstr+"T00:00:00");
-  if(isNaN(d.getTime())) return dstr;
-  var dd = ('0'+d.getDate()).slice(-2), mm = ('0'+(d.getMonth()+1)).slice(-2);
-  return dd+"."+mm+"."+d.getFullYear();
-}
-
 function loadStaffDashboard(){
   var box = el("dashboard-staff-body");
   if(!box) return;
   box.innerHTML = '<div class="spinner"></div>';
   Promise.all([
-    sb.from("profiles").select("id,display_name,is_active,player_nr,skills").eq("role","spieler"),
+    sb.from("profiles").select("id,is_active").eq("role","spieler"),
     sb.from("dev_warnings").select("id").eq("status","aktiv"),
     sb.from("matches").select("*").order("match_date"),
-    sb.from("self_reflections").select("match_id,player_id"),
-    sb.rpc("get_leaderboard", { p_round_nr: ACCESS.current_round }),
-    sb.from("juggling_progress").select("player_id,exercise_id,passed")
+    sb.from("self_reflections").select("match_id")
   ]).then(function(results){
     var players = results[0].data||[];
     var warnings = results[1].data||[];
     var matches = results[2].data||[];
     var reflections = results[3].data||[];
-    var leaderboard = results[4].data||[];
-    var jrRows = results[5].data||[];
-
-    var activePlayersArr = players.filter(function(p){return p.is_active!==false;});
-    var activePlayers = activePlayersArr.length;
-
+    var activePlayers = players.filter(function(p){return p.is_active!==false;}).length;
     var todayStart = new Date(new Date().toDateString());
     var upcoming = matches.filter(function(m){return new Date(m.match_date+"T00:00:00")>=todayStart;});
     var past = matches.filter(function(m){return new Date(m.match_date+"T00:00:00")<todayStart;});
     var nextMatch = upcoming[0];
-    var last3Matches = past.slice(-3).reverse();
+    var lastMatch = past[past.length-1];
+    var lastMatchFilled = lastMatch ? reflections.filter(function(r){return r.match_id===lastMatch.id;}).length : 0;
 
-    var lMap = {};
-    leaderboard.forEach(function(row){ lMap[row.player_id] = row; });
-
-    var jrByPlayer = {};
-    jrRows.forEach(function(row){
-      if(!row.passed) return;
-      jrByPlayer[row.player_id] = (jrByPlayer[row.player_id]||0) + 1;
-    });
-    var jrTotal = totalJrExercises();
-
-    var reflByMatch = {};
-    reflections.forEach(function(r){
-      if(!reflByMatch[r.match_id]) reflByMatch[r.match_id] = {};
-      reflByMatch[r.match_id][r.player_id] = true;
-    });
-
-    var html = '';
-
-    /* ===== 1) Selbstreflexionen — letzte 3 Spiele ===== */
-    html += '<div style="margin-bottom:28px;">';
-    html += '<h3 style="color:#fff; font-size:15px; margin-bottom:12px;">🪞 Selbstreflexionen — Letzte 3 Spiele</h3>';
-    if(last3Matches.length===0){
-      html += '<p class="muted" style="font-size:13px;">Noch keine vergangenen Spiele erfasst.</p>';
-    } else {
-      html += '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(230px,1fr)); gap:14px;">';
-      last3Matches.forEach(function(m){
-        var filledMap = reflByMatch[m.id]||{};
-        var filledCount = activePlayersArr.filter(function(p){return filledMap[p.id];}).length;
-        var missing = activePlayersArr.filter(function(p){return !filledMap[p.id];});
-        var pct = activePlayers>0 ? Math.round((filledCount/activePlayers)*100) : 0;
-        var barColor = pct===100 ? 'var(--good)' : (pct>=50 ? 'var(--gold)' : 'var(--bad)');
-        html += '<div class="card" style="padding:16px; cursor:pointer;" onclick="showStaffTab(\'reflex\')">';
-        html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">';
-        html += '<span style="font-weight:700; color:#fff; font-size:13.5px;">'+esc(m.opponent||'Spiel')+'</span>';
-        html += '<span class="muted" style="font-size:11.5px;">'+fmtDateShort(m.match_date)+'</span>';
-        html += '</div>';
-        html += '<div class="bar" style="margin-bottom:8px;"><i style="width:'+pct+'%; background:'+barColor+';"></i></div>';
-        html += '<div style="display:flex; justify-content:space-between; align-items:center;">';
-        html += '<span style="font-size:12px; font-weight:700; color:'+barColor+';">'+filledCount+' / '+activePlayers+' ausgefüllt</span>';
-        if(missing.length>0){
-          html += '<span class="muted" style="font-size:11px;" title="Offen: '+esc(missing.map(function(p){return p.display_name;}).join(', '))+'">'+missing.length+' offen</span>';
-        } else {
-          html += '<span style="font-size:11px; color:var(--good); font-weight:700;">✓ komplett</span>';
-        }
-        html += '</div></div>';
-      });
-      html += '</div>';
-    }
-    html += '</div>';
-
-    /* ===== 2) Gesamt-Statistik: Lernen / Skills / Jonglieren ===== */
-    html += '<div style="margin-bottom:28px;">';
-    html += '<h3 style="color:#fff; font-size:15px; margin-bottom:12px;">📊 Gesamt-Statistik — Lernen, Skills &amp; Jonglieren</h3>';
-    var statsPlayers = activePlayersArr.slice().sort(function(a,b){
-      var na = a.player_nr ? parseInt(a.player_nr) : 999;
-      var nb = b.player_nr ? parseInt(b.player_nr) : 999;
-      return na-nb;
-    });
-    if(statsPlayers.length===0){
-      html += '<p class="muted" style="font-size:13px;">Keine aktiven Spieler/innen.</p>';
-    } else {
-      html += '<div class="table-container"><table class="trainer-table" style="font-size:13px;"><thead><tr>';
-      html += '<th style="width:50px; text-align:center;">Nr.</th><th>Spieler/in</th>';
-      html += '<th style="text-align:center;">📖 Lernen</th>';
-      html += '<th style="text-align:center;">🎯 Skill-Punkte</th>';
-      html += '<th style="text-align:center;">🎓 Jonglierreihe</th>';
-      html += '</tr></thead><tbody>';
-      statsPlayers.forEach(function(p){
-        var l = lMap[p.id] || { module_bestanden: 0 };
-        var lernPct = Math.round((Math.min(l.module_bestanden,4)/4)*100);
-        var skillTotal = 0;
-        SKILL_CHALLENGES.forEach(function(c){
-          var score = (p.skills && p.skills[c.id]!=null) ? parseInt(p.skills[c.id]) : 0;
-          skillTotal += skillPointsFor(score);
-        });
-        var jrDone = jrByPlayer[p.id]||0;
-        var name = formatPlayerName(p.display_name, p.skills);
-        html += '<tr>';
-        html += '<td style="text-align:center; font-weight:800; color:var(--gold);">'+esc(p.player_nr||'–')+'</td>';
-        html += '<td style="font-weight:700; color:#fff;">'+esc(name)+'</td>';
-        html += '<td style="text-align:center;">'+l.module_bestanden+' / 4 <span class="muted" style="font-size:11px;">('+lernPct+'%)</span></td>';
-        html += '<td style="text-align:center; font-weight:800; color:var(--gold);">'+skillTotal+'</td>';
-        html += '<td style="text-align:center;">'+jrDone+' / '+jrTotal+'</td>';
-        html += '</tr>';
-      });
-      html += '</tbody></table></div>';
-    }
-    html += '</div>';
-
-    /* ===== 3) KPI-Kacheln ===== */
-    html += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(170px,1fr)); gap:14px; margin-bottom:26px;">';
+    var html = '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(170px,1fr)); gap:14px; margin-bottom:26px;">';
     html += staffDashTile('👥', activePlayers, 'Aktive Spieler', 'kader');
     html += staffDashTile('🟨', warnings.length, 'Aktive Gelbe Karten', 'ziel');
     html += staffDashTile('📅', nextMatch ? nextMatch.match_date : '–', 'Nächstes Spiel', 'spiele');
+    html += staffDashTile('🪞', lastMatch ? (lastMatchFilled+'/'+activePlayers) : '–', 'Selbstreflexion letztes Spiel', 'reflex');
     html += '</div>';
 
     html += '<h3 style="color:#fff; font-size:14px; margin-bottom:12px;">Schnellzugriff</h3>';
@@ -5320,7 +5265,7 @@ var CHAL = (function(){
   var pointsCache = {}; // id -> gesamt-Punkte
 
   function refreshPointsCache(cb){
-    sb.rpc("get_leaderboard").then(function(r){
+    sb.rpc("get_leaderboard", {p_round_nr: ACCESS.current_round}).then(function(r){
       pointsCache = {};
       (r.data||[]).forEach(function(row){ pointsCache[row.player_id] = row.gesamt; });
       if(cb) cb();
@@ -5460,8 +5405,17 @@ var CHAL = (function(){
     },
     togglePresenceDropdown: function(){
       var box = document.getElementById('presence-dropdown');
+      var pill = document.getElementById('presence-pill');
       if(!box) return;
       var willOpen = box.classList.contains('hidden');
+      if(willOpen){
+        if(pill){
+          var r = pill.getBoundingClientRect();
+          box.style.top = (r.bottom + 8) + 'px';
+          box.style.right = (window.innerWidth - r.right) + 'px';
+        }
+        refreshPointsCache(renderDropdown);
+      }
       box.classList.toggle('hidden');
       if(willOpen){
         setTimeout(function(){
