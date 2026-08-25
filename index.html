@@ -350,23 +350,28 @@ body {
   overflow-x: auto;
 }
 .nav button, .nav .g-tab {
-  flex-shrink: 0; padding: 8px 16px;
+  flex-shrink: 0; padding: 10px 18px;
   border-radius: var(--r-md) var(--r-md) 0 0;
-  font-size: var(--text-sm); font-weight: 500;
+  font-size: var(--text-sm); font-weight: 600;
   cursor: pointer; border: 1px solid transparent;
   background: transparent; color: var(--text-3);
   font-family: var(--font-body);
   transition: all var(--dur-base) var(--ease-out);
 }
 .nav button:hover, .nav .g-tab:hover {
-  color: var(--text-1); background: var(--glass-bg);
-  border-color: var(--glass-border);
+  color: #fff; background: var(--accent-18);
+  border-color: var(--accent-28);
+  box-shadow: 0 0 18px var(--accent-18), var(--glow-sm);
+  transform: translateY(-2px);
 }
 .nav button.active, .nav .g-tab.active {
   background: var(--accent-10); color: var(--accent);
   border-color: var(--accent-28) var(--accent-28) transparent;
   box-shadow: var(--glow-sm);
 }
+.nav-gap { flex-shrink:0; width:1px; align-self:stretch; margin: 8px 8px 0; background: var(--glass-border); }
+.dash-tile { background: rgba(255,255,255,0.03); transition: all var(--dur-base) var(--ease-out); }
+.dash-tile:hover { background: var(--accent-10); border-color: var(--accent-28); box-shadow: 0 0 20px var(--accent-18), var(--glow-sm); transform: translateY(-3px); }
 
 /* Tabs (inline pill style) */
 .g-tabs { display: flex; gap: 2px; background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 3px; border-radius: var(--r-lg); }
@@ -779,32 +784,111 @@ footer {
     </div>
   </div>
 
-  <!-- LOGIN -->
-  <div id="view-login" class="hidden" style="min-height:100vh; display:flex; align-items:flex-start; justify-content:center; padding:8vh var(--sp-4) 0;">
-    <div class="card" style="max-width:400px; width:100%; padding:0; overflow:hidden; flex-shrink:0;">
-      <img src="Fussball SpielZ.jpeg" alt="" style="width:100%; height:140px; object-fit:cover; border-bottom:1px solid rgba(168,85,247,0.2);" />
-      <div style="padding:28px 28px 32px;">
-        <!-- Logo + Titel -->
-        <div style="text-align:center; margin-bottom:32px;">
-          <img id="login-logo" src="" alt="Logo" style="width:100px; height:100px; border-radius:20px; object-fit:cover; border:1px solid rgba(168,85,247,0.3); box-shadow:0 8px 28px rgba(0,0,0,0.6); margin:-70px auto 16px; display:block; position:relative; z-index:2; background:#000;"/>
-          <h2 style="font-size:24px; font-family:'Sora'; font-weight:800; color:#fff;">FE12 - OB Online</h2>
-          <p style="font-size:12px; letter-spacing:0.15em; text-transform:uppercase; margin-top:4px; font-weight:600; color:var(--accent);">Team Basel-Old Boys · DNA</p>
-        </div>
-        <!-- Benutzername -->
+  <!-- LOGIN / STARTSEITE -->
+  <div id="view-login" class="hidden">
+
+    <!-- HERO: Vollflächiges Banner mit Logo & Titel -->
+    <div style="position:relative; width:100%; height:300px; overflow:hidden;">
+      <img src="Fussball SpielZ.jpeg" alt="" style="width:100%; height:100%; object-fit:cover; filter:brightness(0.5) saturate(1.15);"/>
+      <div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(8,6,26,0.05) 0%, rgba(8,6,26,0.35) 45%, var(--bg-deep) 96%);"></div>
+      <div style="position:absolute; left:0; right:0; bottom:0; text-align:center; padding:0 var(--sp-4) 4px;">
+        <img id="login-logo" src="" alt="Logo" style="width:104px; height:104px; border-radius:24px; object-fit:cover; border:2px solid rgba(255,255,255,0.28); box-shadow:0 12px 34px rgba(0,0,0,0.6); background:#000; margin-bottom:12px;"/>
+        <h1 style="font-size:30px; font-family:'Sora'; font-weight:800; color:#fff; margin:0; text-shadow:0 3px 16px rgba(0,0,0,0.65);">FE12 - OB Online</h1>
+        <p style="font-size:12px; letter-spacing:0.16em; text-transform:uppercase; margin-top:6px; font-weight:700; color:var(--gold);">Team Basel-Old Boys · DNA</p>
+      </div>
+    </div>
+
+    <!-- Login-Karte: direkt unter dem Hero, einzige Login-Stelle der Seite -->
+    <div id="login-card-anchor" style="display:flex; justify-content:center; margin-top:-30px; padding:0 var(--sp-4); position:relative; z-index:2;">
+      <div class="card" style="max-width:380px; width:100%; padding:26px 26px 28px;">
+        <p class="eyebrow" style="text-align:center; margin-bottom:18px;">🔐 Anmelden</p>
         <div style="margin-bottom:14px;">
           <p style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-3); margin-bottom:6px;">Benutzername</p>
           <input id="in-user" autocomplete="username" placeholder="z.B. noah" onkeydown="if(event.key==='Enter') doLogin()" />
         </div>
-        <!-- Passwort -->
-        <div style="margin-bottom:24px;">
+        <div style="margin-bottom:22px;">
           <p style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-3); margin-bottom:6px;">Passwort</p>
           <input id="in-pass" type="password" autocomplete="current-password" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()" />
         </div>
-        <div style="text-align:center;">
-          <button class="btn" style="width:100%; justify-content:center;" onclick="doLogin()">Einloggen</button>
-        </div>
+        <button class="btn" style="width:100%; justify-content:center;" onclick="doLogin()">Einloggen</button>
         <p id="login-err" class="hidden" style="color:var(--bad); font-size:13px; margin-top:14px; text-align:center; font-weight:600;"></p>
       </div>
+    </div>
+
+    <!-- Datenschutz-Hinweis: einmalig, wegklickbar, dann gemerkt (localStorage, pro Gerät) -->
+    <div id="privacy-banner" class="hidden card" style="max-width:380px; margin:14px auto 0; padding:12px 16px; position:relative;">
+      <button onclick="dismissPrivacyBanner()" aria-label="Schliessen" style="position:absolute; top:8px; right:10px; background:none; border:none; color:var(--text-3); font-size:16px; cursor:pointer; line-height:1;">✕</button>
+      <p style="font-size:12px; line-height:1.55; color:var(--text-2); margin:0; padding-right:18px;">
+        🔒 <b style="color:#fff;">Datenhinweis:</b> Beim Einloggen speichern wir deinen Fortschritt, um dich wiederzuerkennen – ausschliesslich zur individuellen Entwicklung innerhalb unseres Teams. Da unsere Spieler grösstenteils minderjährig sind, erfolgt die Nutzung dieser Plattform in Absprache mit den Erziehungsberechtigten bzw. dem Verein; die Verantwortung für die Kontonutzung liegt beim Verein BSC Old Boys Basel FE12.
+      </p>
+    </div>
+
+    <p style="text-align:center; font-size:11px; color:var(--text-3); margin:26px 0 0;">↓ Mehr über die Akademie erfahren</p>
+
+    <!-- STARTSEITE / HOMEPAGE-BEREICH -->
+    <div style="max-width:820px; margin:0 auto; padding:14px var(--sp-4) 50px;">
+
+      <div class="card" style="margin-bottom:16px;">
+        <p class="eyebrow">Willkommen</p>
+        <h2 style="margin:6px 0 10px; color:#fff;">Was ist die FOOTECO Lern-Akademie?</h2>
+        <p class="muted" style="font-size:13.5px; line-height:1.65;">
+          Hier üben Spieler Fussballwissen in kurzen Lernmodulen, trainieren Skills wie Jonglieren und Tricks, verfolgen ihre persönlichen Entwicklungsziele und messen sich gegenseitig im Schach. Ziel ist die individuelle Entwicklung jedes einzelnen Spielers – begleitet durch die Trainer.
+        </p>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <p class="eyebrow">Für wen?</p>
+        <h2 style="margin:6px 0 10px; color:#fff;">👥 Ausschliesslich für unser Team</h2>
+        <p class="muted" style="font-size:13.5px; line-height:1.65;">
+          Diese Plattform ist kein offenes Angebot, sondern ein geschlossener Bereich exklusiv für Spieler und Trainer von <b style="color:#fff;">BSC Old Boys Basel FE12</b>. Zugänge werden vom Trainerteam persönlich erstellt und verwaltet.
+        </p>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <p class="eyebrow">Sicherheit & Kinderschutz</p>
+        <h2 style="margin:6px 0 10px; color:#fff;">🔒 Verantwortungsvoll für unsere Spieler</h2>
+        <p class="muted" style="font-size:13.5px; line-height:1.65;">
+          Da unsere Spieler grösstenteils minderjährig sind, legen wir besonderen Wert auf Sicherheit: Die Akademie wird in der Schweiz gehostet, Inhalte dürfen nicht kopiert, geklont oder an Dritte weitergegeben werden. Die Nutzung erfolgt in Absprache mit den Erziehungsberechtigten bzw. dem Verein; die Verantwortung für die Kontonutzung liegt beim Verein BSC Old Boys Basel FE12.
+        </p>
+      </div>
+
+      <div class="card" style="margin-bottom:24px;">
+        <p class="eyebrow">Bereiche der Akademie</p>
+        <h2 style="margin:6px 0 16px; color:#fff;">⚽ Womit trainierst du hier?</h2>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:12px;">
+          <div class="dash-tile" style="border:1px solid var(--line); border-radius:12px; text-align:center; padding:18px 10px;">
+            <div style="font-size:24px; margin-bottom:6px;">📖</div><div style="font-size:12.5px; color:#fff; font-weight:600;">Lernen</div>
+            <div class="muted" style="font-size:11px; margin-top:4px;">Fussballwissen & Quiz</div>
+          </div>
+          <div class="dash-tile" style="border:1px solid var(--line); border-radius:12px; text-align:center; padding:18px 10px;">
+            <div style="font-size:24px; margin-bottom:6px;">🎯</div><div style="font-size:12.5px; color:#fff; font-weight:600;">Skill-Challenges</div>
+            <div class="muted" style="font-size:11px; margin-top:4px;">Jonglieren & Tricks</div>
+          </div>
+          <div class="dash-tile" style="border:1px solid var(--line); border-radius:12px; text-align:center; padding:18px 10px;">
+            <div style="font-size:24px; margin-bottom:6px;">♟</div><div style="font-size:12.5px; color:#fff; font-weight:600;">Schach</div>
+            <div class="muted" style="font-size:11px; margin-top:4px;">Gegeneinander spielen</div>
+          </div>
+          <div class="dash-tile" style="border:1px solid var(--line); border-radius:12px; text-align:center; padding:18px 10px;">
+            <div style="font-size:24px; margin-bottom:6px;">🏆</div><div style="font-size:12.5px; color:#fff; font-weight:600;">Rangliste</div>
+            <div class="muted" style="font-size:11px; margin-top:4px;">Team-Meisterschaft</div>
+          </div>
+          <div class="dash-tile" style="border:1px solid var(--line); border-radius:12px; text-align:center; padding:18px 10px;">
+            <div style="font-size:24px; margin-bottom:6px;">🎯</div><div style="font-size:12.5px; color:#fff; font-weight:600;">Zielvereinbarung</div>
+            <div class="muted" style="font-size:11px; margin-top:4px;">Persönliche Entwicklung</div>
+          </div>
+          <div class="dash-tile" style="border:1px solid var(--line); border-radius:12px; text-align:center; padding:18px 10px;">
+            <div style="font-size:24px; margin-bottom:6px;">📅</div><div style="font-size:12.5px; color:#fff; font-weight:600;">Spielplan / Selbstreflexion</div>
+            <div class="muted" style="font-size:11px; margin-top:4px;">Spiele & Rückblick nach dem Match</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Abschluss: zurück zum Login, statt Duplikat -->
+      <div class="card" style="text-align:center; padding:26px 20px;">
+        <p style="font-size:14px; color:#fff; font-weight:700; margin-bottom:14px;">Bereit loszulegen?</p>
+        <button class="btn" style="padding:11px 28px;" onclick="scrollToLogin()">↑ Jetzt einloggen</button>
+      </div>
+
     </div>
   </div>
 
@@ -858,10 +942,12 @@ footer {
     <button id="tab-dashboard" class="active" onclick="showPlayerTab('dashboard')">🏠 Dashboard</button>
     <button id="tab-lernen" class="btn-ghost" onclick="showPlayerTab('lernen')">📖 Lernen</button>
     <button id="tab-skills" class="btn-ghost" onclick="showPlayerTab('skills')">🎯 Skill-Challenges</button>
-    <button id="tab-rang" class="btn-ghost" onclick="showPlayerTab('rang')">🏆 Rangliste</button>
     <button id="tab-schach" class="btn-ghost" onclick="showPlayerTab('schach')">♟ Schach</button>
+    <button id="tab-rang" class="btn-ghost" onclick="showPlayerTab('rang')">🏆 Rangliste</button>
+    <div class="nav-gap" aria-hidden="true"></div>
     <button id="tab-ziel" class="btn-ghost" onclick="showPlayerTab('ziel')">🎯 Zielvereinbarung</button>
-    <button id="tab-spiele" class="btn-ghost" onclick="showPlayerTab('spiele')">📅 Spielplan</button>
+    <button id="tab-spiele" class="btn-ghost" onclick="showPlayerTab('spiele')">📅 Spielplan / Selbstreflexion</button>
+    <button id="tab-hilfe" class="btn-ghost" onclick="showPlayerTab('hilfe')">❓ Hilfe</button>
   </div>
 
   <!-- SPIELER: PERSONAL HEADER CARD -->
@@ -1098,8 +1184,52 @@ footer {
   <div id="view-spiele" class="hidden" style="padding-top:20px; padding-bottom:40px;">
     <div class="card" style="max-width:820px; margin:0 auto;">
       <p class="eyebrow">Team Basel-Old Boys FE12</p>
-      <h2 style="margin:4px 0 16px; color:#fff;">📅 Spielplan</h2>
+      <h2 style="margin:4px 0 16px; color:#fff;">📅 Spielplan / Selbstreflexion</h2>
       <div id="spiele-list"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+  <!-- ============ HILFE / LEXIKON (SPIELER) ============ -->
+  <div id="view-hilfe" class="hidden" style="padding-top:20px; padding-bottom:40px;">
+    <div class="card" style="max-width:820px; margin:0 auto;">
+      <p class="eyebrow">Nachschlagewerk</p>
+      <h2 style="margin:4px 0 6px; color:#fff;">❓ Hilfe – Wie funktioniert die Akademie?</h2>
+      <p class="muted" style="font-size:13px; margin-bottom:20px;">Hier findest du kurze Erklärungen zu allen Bereichen. Schau jederzeit wieder rein, wenn du etwas nachlesen möchtest.</p>
+
+      <div class="card g-card-sm" style="margin-bottom:14px;">
+        <p style="font-weight:700; color:#fff; margin-bottom:6px;">🏆 Punktesystem</p>
+        <p class="muted" style="font-size:13px; line-height:1.6;">Punkte bekommst du für richtig gelöste Fragen im Lernbereich. Nur der <b>erste Versuch</b> pro Frage zählt für die Rangliste – üben darfst du danach beliebig oft. Die Rangliste zeigt dein aktuelles Quartal oder die Gesamt-Meisterschaft.</p>
+      </div>
+
+      <div class="card g-card-sm" style="margin-bottom:14px;">
+        <p style="font-weight:700; color:#fff; margin-bottom:6px;">📖 Lernen</p>
+        <p class="muted" style="font-size:13px; line-height:1.6;">Jedes Modul hat einen kurzen Lehrtext und danach eine Wissensprüfung dazu. Module werden je nach Quartal automatisch freigeschaltet – manche Bonus-Module schaltet dein Trainer gezielt für dich frei.</p>
+      </div>
+
+      <div class="card g-card-sm" style="margin-bottom:14px;">
+        <p style="font-weight:700; color:#fff; margin-bottom:6px;">🎯 Skill-Challenges</p>
+        <p class="muted" style="font-size:13px; line-height:1.6;">Bei der <b>Jonglierreihe</b> trägst du deinen Fortschritt selbst ein – jederzeit zum Üben. Bei den <b>Trick-Challenges</b> bestätigt dein Trainer offiziell, wenn du eine Stufe (z.B. L/R Meister 🏆) erreicht hast.</p>
+      </div>
+
+      <div class="card g-card-sm" style="margin-bottom:14px;">
+        <p style="font-weight:700; color:#fff; margin-bottom:6px;">♟ Schach-Arena</p>
+        <p class="muted" style="font-size:13px; line-height:1.6;">Hier spielst du gegen echte Teamkolleg:innen – nicht gegen eine KI. Fordere online Spieler direkt heraus oder nutze einen Raum-Code für eine private Partie. Während des Spiels kannst du im integrierten Chat mit deinem Gegenüber schreiben. Deine letzten Partien werden gespeichert und unter dem Brett angezeigt.</p>
+      </div>
+
+      <div class="card g-card-sm" style="margin-bottom:14px;">
+        <p style="font-weight:700; color:#fff; margin-bottom:6px;">🎯 Zielvereinbarung</p>
+        <p class="muted" style="font-size:13px; line-height:1.6;">Deine persönlichen Entwicklungsziele für Vorrunde und Rückrunde – gemeinsam mit deinem Trainer festgelegt und über die Saison verfolgt. Du kannst die Zielvereinbarung jederzeit als PDF exportieren.</p>
+      </div>
+
+      <div class="card g-card-sm" style="margin-bottom:14px;">
+        <p style="font-weight:700; color:#fff; margin-bottom:6px;">📅 Spielplan / Selbstreflexion</p>
+        <p class="muted" style="font-size:13px; line-height:1.6;">Hier siehst du alle Spiele deines Teams. Nach einem Spiel kannst du eine kurze Selbstreflexion ausfüllen – das hilft dir und deinem Trainer, deine Entwicklung besser zu verstehen.</p>
+      </div>
+
+      <div class="card g-card-sm">
+        <p style="font-weight:700; color:#fff; margin-bottom:6px;">🔒 Sicherheit & Daten</p>
+        <p class="muted" style="font-size:13px; line-height:1.6;">Die Akademie wird in der Schweiz gehostet und ist ausschliesslich für unser Team bestimmt. Deine Daten dienen nur deiner individuellen Entwicklung und werden nicht weitergegeben. Zugang gibt es nur an den vom Trainer festgelegten Trainingstagen.</p>
+      </div>
     </div>
   </div>
 
@@ -1386,6 +1516,10 @@ footer {
           <select id="reset-mod"></select>
         </div>
       </div>
+      <label id="reset-skills-label" style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-2); cursor:pointer; padding:10px 12px; border-radius:8px; border:1px solid var(--line); margin-bottom:14px; max-width:520px; transition: all 0.15s ease;">
+        <input type="checkbox" id="reset-skills" style="width:18px; height:18px; accent-color:var(--bad); cursor:pointer;" data-highlight="224,86,59" data-highlight-text="var(--bad)" onchange="toggleInternalCheckbox(this)"/>
+        🎯 Zusätzlich Skill-Challenges & offizielle Jonglierreihe-Prüfung zurücksetzen (Schach, Zielvereinbarung & Selbstreflexion bleiben immer erhalten)
+      </label>
       <button class="btn btn-ghost" style="color:var(--bad); border-color:rgba(224,86,59,0.4);" onclick="doResetProgress()">Fortschritt zurücksetzen</button>
       <p id="reset-msg" class="muted" style="font-size:13px; margin-top:14px; font-weight:600;"></p>
 
@@ -1639,7 +1773,7 @@ footer {
     </div>
   </div>
 
-  <footer>System &amp; Development by Dogus Kaplan</footer>
+  <footer>System development by D.K.</footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1685,7 +1819,7 @@ function hide(id){el(id).classList.add("hidden");}
 function esc(s){var d=document.createElement("div");d.textContent=(s==null?"":s);return d.innerHTML;}
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
 function only(id){
-  var v=["view-setup","view-login","view-closed","view-modules","view-learn","view-quiz","view-result","view-rang","view-skills","view-staff","view-register","view-schach","view-ziel","view-spiele","view-dashboard-player"];
+  var v=["view-setup","view-login","view-closed","view-modules","view-learn","view-quiz","view-result","view-rang","view-skills","view-staff","view-register","view-schach","view-ziel","view-spiele","view-dashboard-player","view-hilfe"];
   for(var i=0;i<v.length;i++) hide(v[i]);
   show(id);
 }
@@ -1715,10 +1849,42 @@ window.addEventListener("load", function(){
 
   sb.auth.getSession().then(function(r){
     if(r.data.session){ ME=r.data.session.user; afterLogin(); }
-    else { hideAllChrome(); only("view-login"); }
+    else { hideAllChrome(); only("view-login"); initPrivacyBanner(); }
   });
 });
 function hideAllChrome(){hide("app-head");hide("player-nav");hide("player-stats-card");}
+
+/* ---------------------- Datenschutz-Banner (Login) ---------------------- */
+function initPrivacyBanner(){
+  try{
+    if(localStorage.getItem("ob12_privacy_dismissed")==="1") return;
+  }catch(e){}
+  var b = el("privacy-banner");
+  if(b) b.classList.remove("hidden");
+}
+function dismissPrivacyBanner(){
+  try{ localStorage.setItem("ob12_privacy_dismissed","1"); }catch(e){}
+  hide("privacy-banner");
+}
+
+/* ---------------------- Checkbox stark hervorheben (Zielvereinbarung "Nur intern", Reset "Skills auch löschen") ---------------------- */
+function toggleInternalCheckbox(cb){
+  var lbl = cb.closest("label");
+  if(!lbl) return;
+  var hl = cb.getAttribute("data-highlight") || "230,180,40"; // Standard: Gold
+  var textColor = cb.getAttribute("data-highlight-text") || "#f0c419";
+  if(cb.checked){
+    lbl.style.background = "rgba("+hl+",0.20)";
+    lbl.style.borderColor = "rgba("+hl+",0.7)";
+    lbl.style.color = textColor;
+    lbl.style.fontWeight = "700";
+  } else {
+    lbl.style.background = "transparent";
+    lbl.style.borderColor = "var(--line)";
+    lbl.style.color = "var(--text-2)";
+    lbl.style.fontWeight = "normal";
+  }
+}
 
 /* ---------------------- Login / Logout ---------------------- */
 function doLogin(){
@@ -1731,10 +1897,15 @@ function doLogin(){
     ME=r.data.user; sb.rpc("log_login_event",{p_event:"login"}); afterLogin();
   });
 }
-function loginErr(m){var e=el("login-err");e.textContent=m;e.classList.remove("hidden");}
+function loginErr(m){var e=el("login-err");if(!e)return;e.textContent=m;e.classList.remove("hidden");}
+function scrollToLogin(){
+  var a = el("login-card-anchor");
+  if(a) a.scrollIntoView({behavior:"smooth", block:"center"});
+  if(el("in-user")) el("in-user").focus();
+}
 function doLogout(){
   if (window.loginLogInterval) { clearInterval(window.loginLogInterval); window.loginLogInterval = null; }
-  var done=function(){CHAL.teardown();if(typeof SC!=='undefined'&&SC.leaveRoom)SC.leaveRoom();ME=null;PROFILE=null;stopClock();hideAllChrome();el("in-pass").value="";only("view-login");};
+  var done=function(){CHAL.teardown();if(typeof SC!=='undefined'&&SC.leaveRoom)SC.leaveRoom();ME=null;PROFILE=null;stopClock();hideAllChrome();if(el("in-pass"))el("in-pass").value="";only("view-login");initPrivacyBanner();};
   sb.rpc("log_login_event",{p_event:"logout"}).then(function(){sb.auth.signOut().then(done);}, function(){sb.auth.signOut().then(done);});
 }
 
@@ -1975,6 +2146,7 @@ function showPlayerTab(t){
   var tabSchach = el("tab-schach"); if(tabSchach) tabSchach.className = t==="schach"?"active":"btn-ghost";
   var tabZiel = el("tab-ziel"); if(tabZiel) tabZiel.className = t==="ziel"?"active":"btn-ghost";
   var tabSpiele = el("tab-spiele"); if(tabSpiele) tabSpiele.className = t==="spiele"?"active":"btn-ghost";
+  var tabHilfe = el("tab-hilfe"); if(tabHilfe) tabHilfe.className = t==="hilfe"?"active":"btn-ghost";
   if(t==="dashboard"){
     only("view-dashboard-player"); show("app-head"); show("player-nav");
     loadPlayerStats();
@@ -2001,6 +2173,9 @@ function showPlayerTab(t){
     only("view-spiele"); show("app-head"); show("player-nav");
     loadPlayerStats();
     Spielplan.loadPlayerView();
+  } else if(t==="hilfe") {
+    only("view-hilfe"); show("app-head"); show("player-nav");
+    loadPlayerStats();
   } else {
     
     only("view-rang"); show("app-head"); show("player-nav");
@@ -2333,7 +2508,7 @@ function exportLeaderboardPDF() {
     doc.setFont("Helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
-    doc.text("System & Development by Dogus Kaplan", 14, 285);
+    doc.text("System development by D.K.", 14, 285);
     
     doc.save("FE12_Akademie_Rangliste_" + (isRound ? "Runde_" + ACCESS.current_round : "Gesamt") + ".pdf");
   });
@@ -2376,7 +2551,7 @@ function loadPlayerDashboard(){
       html += '<div class="card" style="background:rgba(255,255,255,0.02); margin-bottom:14px; padding:14px 16px; cursor:pointer;" onclick="showPlayerTab(\'spiele\')">';
       html += '<p class="eyebrow" style="margin-bottom:6px;">Letztes Spiel</p>';
       html += '<b style="color:#fff;">vs. '+esc(lastMatch.opponent)+'</b> <span class="muted" style="font-size:12px;"> · '+esc(lastMatch.match_date)+'</span>';
-      html += '<p class="muted" style="font-size:12px; margin-top:4px;">Selbstreflexion im Spielplan ausfüllen →</p>';
+      html += '<p class="muted" style="font-size:12px; margin-top:4px;">Jetzt Selbstreflexion ausfüllen →</p>';
       html += '</div>';
     }
     if(nextMatch){
@@ -2390,12 +2565,12 @@ function loadPlayerDashboard(){
     [
       {icon:'📖', label:'Lernen', tab:'lernen'},
       {icon:'🎯', label:'Skill-Challenges', tab:'skills'},
-      {icon:'🏆', label:'Rangliste', tab:'rang'},
       {icon:'♟', label:'Schach', tab:'schach'},
+      {icon:'🏆', label:'Rangliste', tab:'rang'},
       {icon:'🎯', label:'Zielvereinbarung', tab:'ziel'},
-      {icon:'📅', label:'Spielplan', tab:'spiele'}
+      {icon:'📅', label:'Spielplan / Selbstreflexion', tab:'spiele'}
     ].forEach(function(t){
-      html += '<div class="card" style="background:rgba(255,255,255,0.03); text-align:center; padding:20px 10px; cursor:pointer;" onclick="showPlayerTab(\''+t.tab+'\')">';
+      html += '<div class="card dash-tile" style="text-align:center; padding:20px 10px; cursor:pointer;" onclick="showPlayerTab(\''+t.tab+'\')">';
       html += '<div style="font-size:26px; margin-bottom:8px;">'+t.icon+'</div><div style="font-size:12.5px; color:#fff; font-weight:600;">'+t.label+'</div>';
       html += '</div>';
     });
@@ -2946,7 +3121,7 @@ function exportSkillsMasterPDF() {
   doc.setFont("Helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(150, 150, 150);
-  doc.text("System & Development by Dogus Kaplan", 14, 285);
+  doc.text("System development by D.K.", 14, 285);
   
   // Add a new page for Tricks list
   doc.addPage();
@@ -3017,7 +3192,7 @@ function exportSkillsMasterPDF() {
   doc.setFont("Helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(150, 150, 150);
-  doc.text("System & Development by Dogus Kaplan", 14, 285);
+  doc.text("System development by D.K.", 14, 285);
   
   doc.save("Team_Basel_OB_FE12_Skills_Master.pdf");
 }
@@ -3209,8 +3384,8 @@ function saveKaderPlayer() {
 }
 
 function resetKaderPlayerProgress(playerId) {
-  if (!confirm("Möchtest du den Fortschritt dieses Spielers wirklich komplett zurücksetzen?")) return;
-  sb.rpc("reset_player_progress", { p_player_id: playerId }).then(function(r) {
+  if (!confirm("Möchtest du den GESAMTEN Fortschritt dieses Spielers wirklich zurücksetzen?\n\nGelöscht werden: Lerninhalte/Quiz-Antworten, Skill-Challenges und die offizielle Jonglierreihe-Prüfung (alles auf 0).\nErhalten bleiben: Schach, Zielvereinbarung, Selbstreflexion und der Spitzname.\n\nDies kann nicht rückgängig gemacht werden!")) return;
+  sb.rpc("reset_player_progress", { p_player_id: playerId, p_reset_skills: true }).then(function(r) {
     if (r.error) {
       alert("Fehler beim Zurücksetzen: " + r.error.message);
     } else {
@@ -3463,21 +3638,29 @@ function doResetProgress() {
   var pid = el("reset-player").value || null;
   var mid = el("reset-mod").value || null;
   var quartal = el("reset-quartal").value ? parseInt(el("reset-quartal").value) : null;
-  
-  var confirmMsg = "Möchtest du diesen Fortschritt wirklich zurücksetzen? Die entsprechenden korrekten Antworten werden aus dem Protokoll gelöscht. Dies kann nicht rückgängig gemacht werden!";
+  var resetSkills = el("reset-skills") ? el("reset-skills").checked : false;
+
+  var confirmMsg = "Möchtest du diesen Fortschritt wirklich zurücksetzen? Die entsprechenden korrekten Antworten werden aus dem Protokoll gelöscht.";
+  if (resetSkills) {
+    confirmMsg += " Zusätzlich werden Skill-Challenges und die offizielle Jonglierreihe-Prüfung komplett zurückgesetzt (Schach, Zielvereinbarung & Selbstreflexion bleiben erhalten).";
+  }
+  confirmMsg += " Dies kann nicht rückgängig gemacht werden!";
   if (!confirm(confirmMsg)) return;
-  
+
   sb.rpc("reset_player_progress", {
     p_player_id: pid,
     p_module_id: mid,
-    p_quartal: quartal
+    p_quartal: quartal,
+    p_reset_skills: resetSkills
   }).then(function(r) {
     if (r.error) {
       el("reset-msg").style.color = "var(--bad)";
       el("reset-msg").textContent = "Fehler beim Zurücksetzen: " + r.error.message;
     } else {
       el("reset-msg").style.color = "var(--good)";
-      el("reset-msg").textContent = "✓ Fortschritt wurde erfolgreich gelöscht. Spieler/innen können die Fragen nun erneut beantworten.";
+      el("reset-msg").textContent = resetSkills
+        ? "✓ Lern-Fortschritt sowie Skill-Challenges & offizielle Jonglierreihe wurden zurückgesetzt."
+        : "✓ Fortschritt wurde erfolgreich gelöscht. Spieler/innen können die Fragen nun erneut beantworten.";
       loadUnlockForm();
     }
   });
@@ -5695,8 +5878,8 @@ var Ziel = (function(){
     html += '</div>';
     html += '<textarea id="ziel-comment-input-'+cycle.id+'" placeholder="Kommentar schreiben..." style="width:100%; min-height:60px; margin-bottom:8px;"></textarea>';
     if(isStaffView){
-      html += '<label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--gold); text-transform:none; letter-spacing:0; margin-bottom:8px; cursor:pointer;">';
-      html += '<input type="checkbox" id="ziel-comment-internal-'+cycle.id+'" style="width:auto;"/> Nur intern (nicht für den Spieler sichtbar — für den Trainer-Austausch)';
+      html += '<label id="ziel-comment-internal-label-'+cycle.id+'" style="display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-2); text-transform:none; letter-spacing:0; margin-bottom:8px; cursor:pointer; padding:8px 10px; border-radius:8px; border:1px solid var(--line); transition: all 0.15s ease;">';
+      html += '<input type="checkbox" id="ziel-comment-internal-'+cycle.id+'" style="width:18px; height:18px; accent-color:#f0c419; cursor:pointer;" onchange="toggleInternalCheckbox(this)"/> 🔒 Nur intern (nicht für den Spieler sichtbar — für den Trainer-Austausch)';
       html += '</label>';
     }
     html += '<button class="btn-ghost" style="font-size:13px; padding:8px 16px;" onclick="Ziel.addComment(\''+cycle.id+'\')">Senden</button>';
@@ -6016,8 +6199,18 @@ var Ziel = (function(){
     var mtypes = MILESTONES_BY_CYCLE[cycle.cycle_type] || [];
     var hint = nextMilestoneHint(mtypes, meetings);
 
+    // Dezenter Marken-Kopf (druckfreundlich: nur duenne Gold-Linie + Logo, kein Vollflaechenhintergrund)
+    if (typeof LOGO_BASE64 === "string" && LOGO_BASE64.indexOf("data:") === 0) {
+      try{ doc.addImage(LOGO_BASE64, "PNG", 182, 8, 14, 14); }catch(e){}
+    }
+    doc.setDrawColor(212, 175, 55);
+    doc.setLineWidth(0.8);
+    doc.line(14, 25, 196, 25);
+
     doc.setFont("helvetica","bold"); doc.setFontSize(16);
+    doc.setTextColor(150, 115, 20);
     doc.text("Zielvereinbarung "+(cycle.cycle_type==='vorrunde'?'Vorrunde':'Rueckrunde')+" "+cycle.season_label, 14, 18);
+    doc.setTextColor(0,0,0);
     doc.setFont("helvetica","normal"); doc.setFontSize(10);
     doc.text("Team Basel-Old Boys FE12", 150, 18);
     doc.text("Name: "+name, 14, 27);
@@ -6101,6 +6294,16 @@ var Ziel = (function(){
         if(y + wsplit.length*5 > 285){ doc.addPage(); y=20; }
         doc.text(wsplit, 14, y); y += wsplit.length*5 + 8;
       });
+    }
+
+    // Fusszeile mit Entwickler-Credit auf jeder Seite
+    var pageCountZiel = doc.internal.getNumberOfPages();
+    for(var pz=1; pz<=pageCountZiel; pz++){
+      doc.setPage(pz);
+      doc.setFont("helvetica","normal"); doc.setFontSize(8);
+      doc.setTextColor(150,150,150);
+      doc.text("System development by D.K.", 14, 290);
+      doc.text("Seite "+pz+" / "+pageCountZiel, 182, 290);
     }
 
     doc.save("Zielvereinbarung_"+(name||"Spieler").replace(/\s+/g,"_")+"_"+cycle.cycle_type+"_"+cycle.season_label.replace("/","-")+".pdf");
@@ -6587,8 +6790,16 @@ var Reflex = (function(){
       if(!first) doc.addPage();
       first = false;
       var y = 18;
+      if (typeof LOGO_BASE64 === "string" && LOGO_BASE64.indexOf("data:") === 0) {
+        try{ doc.addImage(LOGO_BASE64, "PNG", 182, 8, 14, 14); }catch(e){}
+      }
       doc.setFont("helvetica","bold"); doc.setFontSize(15);
-      doc.text("Selbstreflexion", 14, y); y += 9;
+      doc.setTextColor(150, 115, 20);
+      doc.text("Selbstreflexion", 14, y); y += 6;
+      doc.setTextColor(0,0,0);
+      doc.setDrawColor(212, 175, 55);
+      doc.setLineWidth(0.8);
+      doc.line(14, y, 196, y); y += 6;
       doc.setFont("helvetica","normal"); doc.setFontSize(10);
       doc.text("Spieler: "+e.name, 14, y); y += 6;
       doc.text("Spiel: vs. "+(match.opponent||"")+" ("+(match.home_away==='heim'?'Heim':'Auswaerts')+")", 14, y); y += 6;
@@ -6618,6 +6829,16 @@ var Reflex = (function(){
         y += 3;
       });
     });
+    // Fusszeile mit Entwickler-Credit auf jeder Seite
+    var pageCountRefl = doc.internal.getNumberOfPages();
+    for(var pr=1; pr<=pageCountRefl; pr++){
+      doc.setPage(pr);
+      doc.setFont("helvetica","normal"); doc.setFontSize(8);
+      doc.setTextColor(150,150,150);
+      doc.text("System development by D.K.", 14, 290);
+      doc.text("Seite "+pr+" / "+pageCountRefl, 182, 290);
+    }
+
     doc.save("Selbstreflexion_"+(match.opponent||"Spiel").replace(/\s+/g,"_")+"_"+match.match_date+".pdf");
   }
 
