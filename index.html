@@ -372,6 +372,24 @@ body {
 .nav-gap { flex-shrink:0; width:1px; align-self:stretch; margin: 8px 8px 0; background: var(--glass-border); }
 .dash-tile { background: rgba(255,255,255,0.03); transition: all var(--dur-base) var(--ease-out); }
 .dash-tile:hover { background: var(--accent-10); border-color: var(--accent-28); box-shadow: 0 0 20px var(--accent-18), var(--glow-sm); transform: translateY(-3px); }
+/* Checkbox-Label, das beim Ankreuzen deutlich sichtbar hervortritt (Farbe/Rahmen/Fettschrift) - wirkt sofort, auch ohne JS */
+.checkbox-label { transition: all 0.15s ease; }
+.checkbox-label:has(input:checked) {
+  background: rgba(230,180,40,0.20) !important;
+  border-color: rgba(230,180,40,0.7) !important;
+  color: #f0c419 !important;
+  font-weight: 700 !important;
+}
+.checkbox-label.checkbox-label-danger:has(input:checked) {
+  background: rgba(224,86,59,0.20) !important;
+  border-color: rgba(224,86,59,0.7) !important;
+  color: var(--bad) !important;
+}
+.checkbox-label.checkbox-label-good:has(input:checked) {
+  background: rgba(47,181,106,0.20) !important;
+  border-color: rgba(47,181,106,0.7) !important;
+  color: var(--good) !important;
+}
 
 /* Tabs (inline pill style) */
 .g-tabs { display: flex; gap: 2px; background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 3px; border-radius: var(--r-lg); }
@@ -907,7 +925,7 @@ footer {
       <div style="padding:28px 24px;">
         <div style="font-size:48px; margin-top:-60px; position:relative; z-index:2; filter:drop-shadow(0 4px 10px rgba(0,0,0,0.5));">🔒</div>
         <h2 style="margin-bottom:10px; color:#fff; margin-top:8px;">Die Akademie ist gerade geschlossen</h2>
-        <p class="muted" id="closed-msg">Gelernt wird immer am <b>Dienstag von 18:30–20:00 Uhr</b> sowie am <b>Sonntag von 16:00–18:00 Uhr</b>.</p>
+        <p class="muted" id="closed-msg">Die Trainingszeiten werden geladen...</p>
         <div id="closed-count" class="clock warn" style="display:inline-flex; margin-top:18px; justify-content:center;"></div>
         <p class="muted" style="margin-top:20px; font-size:13px;">Dein bisheriger Fortschritt ist sicher gespeichert – es geht genau dort weiter.</p>
         <div style="margin-top:24px; border-top:1px solid rgba(255,255,255,0.08); padding-top:20px;">
@@ -1344,98 +1362,15 @@ footer {
 
     <!-- Trainer-Tab: Skill-Leaderboards -->
     <div id="staff-skills" class="card hidden">
-      <div style="margin-bottom:16px;">
-        <p class="eyebrow">Rekorde</p>
-        <h3 style="color:#fff;">🎯 Skill-Challenge Bestenlisten</h3>
-        <p class="muted" style="font-size:13px; margin-top:4px;">Hier siehst du die aktuellen Bestleistungen deines Teams bei den 4 Skill-Challenges, live synchronisiert aus den Profilen der Spieler.</p>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+        <div>
+          <p class="eyebrow">Vergleich</p>
+          <h3 style="color:#fff;">🎯 Skill-Challenge Bestenliste</h3>
+          <p class="muted" style="font-size:13px; margin-top:4px;">Punktevergleich aller Spieler bei Jonglierreihe & Trick-Challenges. Klicke einen Namen an, um die genaue Aufschlüsselung pro Spieler zu sehen.</p>
+        </div>
+        <button class="btn-ghost" onclick="exportSkillsComparisonPDF()">📄 PDF exportieren</button>
       </div>
-
-      <!-- Grid der 4 Bestenlisten -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
-        <!-- Jonglieren -->
-        <div class="card" style="padding: 0; overflow: hidden; border-color: rgba(255,255,255,0.03); margin-bottom: 0;">
-          <div style="padding: 12px 14px; background: rgba(212, 175, 55, 0.08); border-bottom: 1px solid var(--line);">
-            <h4 style="font-size: 13px; font-weight: 700; color: var(--gold);">🥇 Jonglieren: Spannwechsel ⚽</h4>
-          </div>
-          <div class="table-container" style="border: none; border-radius: 0;">
-            <table class="trainer-table" style="font-size: 12px;">
-              <thead>
-                <tr>
-                  <th style="width: 50px; text-align: center; padding: 8px;">Rang</th>
-                  <th style="padding: 8px;">Spieler/in</th>
-                  <th style="width: 90px; text-align: center; padding: 8px;">Rekord</th>
-                </tr>
-              </thead>
-              <tbody id="tbl-skills-jonglieren">
-                <!-- Dynamisch -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Dribbling -->
-        <div class="card" style="padding: 0; overflow: hidden; border-color: rgba(255,255,255,0.03); margin-bottom: 0;">
-          <div style="padding: 12px 14px; background: rgba(212, 175, 55, 0.08); border-bottom: 1px solid var(--line);">
-            <h4 style="font-size: 13px; font-weight: 700; color: var(--gold);">🌍 Kleine Weltreise (Runden) 🏆</h4>
-          </div>
-          <div class="table-container" style="border: none; border-radius: 0;">
-            <table class="trainer-table" style="font-size: 12px;">
-              <thead>
-                <tr>
-                  <th style="width: 50px; text-align: center; padding: 8px;">Rang</th>
-                  <th style="padding: 8px;">Spieler/in</th>
-                  <th style="width: 90px; text-align: center; padding: 8px;">Rekord</th>
-                </tr>
-              </thead>
-              <tbody id="tbl-skills-dribbling">
-                <!-- Dynamisch -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Torlatte -->
-        <div class="card" style="padding: 0; overflow: hidden; border-color: rgba(255,255,255,0.03); margin-bottom: 0;">
-          <div style="padding: 12px 14px; background: rgba(212, 175, 55, 0.08); border-bottom: 1px solid var(--line);">
-            <h4 style="font-size: 13px; font-weight: 700; color: var(--gold);">💥 Trick-Combo 1 Mastery ⚡</h4>
-          </div>
-          <div class="table-container" style="border: none; border-radius: 0;">
-            <table class="trainer-table" style="font-size: 12px;">
-              <thead>
-                <tr>
-                  <th style="width: 50px; text-align: center; padding: 8px;">Rang</th>
-                  <th style="padding: 8px;">Spieler/in</th>
-                  <th style="width: 90px; text-align: center; padding: 8px;">Rekord</th>
-                </tr>
-              </thead>
-              <tbody id="tbl-skills-latte">
-                <!-- Dynamisch -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Wallpass -->
-        <div class="card" style="padding: 0; overflow: hidden; border-color: rgba(255,255,255,0.03); margin-bottom: 0;">
-          <div style="padding: 12px 14px; background: rgba(212, 175, 55, 0.08); border-bottom: 1px solid var(--line);">
-            <h4 style="font-size: 13px; font-weight: 700; color: var(--gold);">💫 Trick-Punkte (Gesamt) 🏆</h4>
-          </div>
-          <div class="table-container" style="border: none; border-radius: 0;">
-            <table class="trainer-table" style="font-size: 12px;">
-              <thead>
-                <tr>
-                  <th style="width: 50px; text-align: center; padding: 8px;">Rang</th>
-                  <th style="padding: 8px;">Spieler/in</th>
-                  <th style="width: 90px; text-align: center; padding: 8px;">Punkte</th>
-                </tr>
-              </thead>
-              <tbody id="tbl-skills-wallpass">
-                <!-- Dynamisch -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+      <div id="skills-compare-list"><div class="spinner"></div></div>
     </div>
     
     <!-- Trainer-Tab: Rangliste -->
@@ -1516,7 +1451,7 @@ footer {
           <select id="reset-mod"></select>
         </div>
       </div>
-      <label id="reset-skills-label" style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-2); cursor:pointer; padding:10px 12px; border-radius:8px; border:1px solid var(--line); margin-bottom:14px; max-width:520px; transition: all 0.15s ease;">
+      <label id="reset-skills-label" class="checkbox-label checkbox-label-danger" style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-2); cursor:pointer; padding:10px 12px; border-radius:8px; border:1px solid var(--line); margin-bottom:14px; max-width:520px;">
         <input type="checkbox" id="reset-skills" style="width:18px; height:18px; accent-color:var(--bad); cursor:pointer;" data-highlight="224,86,59" data-highlight-text="var(--bad)" onchange="toggleInternalCheckbox(this)"/>
         🎯 Zusätzlich Skill-Challenges & offizielle Jonglierreihe-Prüfung zurücksetzen (Schach, Zielvereinbarung & Selbstreflexion bleiben immer erhalten)
       </label>
@@ -1537,21 +1472,33 @@ footer {
       <h3 style="margin:8px 0 16px; color:#fff;">Status der Lernakademie festlegen</h3>
       
       <div style="margin-bottom:20px; background: rgba(255,255,255,0.02); padding: 20px; border-radius: 12px; border: 1px solid var(--line);">
-        <p class="muted" style="margin-bottom:18px; font-size:14px;">Bestimme, ob die Lernakademie für Spieler und Spielerinnen geöffnet ist. Standardmäßig ist die Akademie immer geöffnet.</p>
+        <p class="muted" style="margin-bottom:18px; font-size:14px;">Bestimme, ob die Lernakademie jederzeit erreichbar ist oder nur zu den unten festgelegten Trainingszeiten automatisch öffnet.</p>
         
         <label style="display:flex; align-items:center; gap:12px; cursor:pointer; margin-bottom:14px; background: rgba(47, 181, 106, 0.08); padding: 14px 16px; border-radius: 10px; border: 1px solid rgba(47, 181, 106, 0.2);">
           <input type="radio" id="zeit-status-open" name="zeit-status" value="open" style="width:20px; height:20px; cursor:pointer;" />
-          <span style="font-size:15px; color:#fff; font-weight:700; font-family:'Sora',sans-serif;">🟢 Immer geöffnet (24/7 unbegrenzt lernen)</span>
+          <span style="font-size:15px; color:#fff; font-weight:700; font-family:'Sora',sans-serif;">🟢 Immer geöffnet (24/7, Zeitfenster unten werden ignoriert)</span>
         </label>
         
         <label style="display:flex; align-items:center; gap:12px; cursor:pointer; background: rgba(224, 86, 59, 0.08); padding: 14px 16px; border-radius: 10px; border: 1px solid rgba(224, 86, 59, 0.2);">
           <input type="radio" id="zeit-status-closed" name="zeit-status" value="closed" style="width:20px; height:20px; cursor:pointer;" />
-          <span style="font-size:15px; color:#fff; font-weight:700; font-family:'Sora',sans-serif;">🔴 Geschlossen (Zugriff für alle Spieler/innen gesperrt)</span>
+          <span style="font-size:15px; color:#fff; font-weight:700; font-family:'Sora',sans-serif;">🔴 Nach Zeitplan (öffnet automatisch nur zu den Trainingszeiten unten)</span>
         </label>
       </div>
       
       <button class="btn" onclick="saveLernzeiten()">Status speichern</button>
       <p id="zeit-msg" class="muted" style="font-size:13px; margin-top:14px; font-weight:600;"></p>
+
+      <hr style="border:none; border-top:1px solid var(--line); margin:28px 0;"/>
+
+      <h3 style="margin:0 0 6px; color:#fff;">📅 Trainingszeiten (Öffnungsfenster)</h3>
+      <p class="muted" style="font-size:13px; margin-bottom:18px;">
+        Diese Zeiten gelten nur, wenn oben „Nach Zeitplan" gewählt ist. Beide Tage können unabhängig voneinander aktiviert/deaktiviert und angepasst werden.
+      </p>
+
+      <div id="access-windows-list" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:8px;">
+        <div class="spinner"></div>
+      </div>
+      <p id="access-windows-msg" class="muted" style="font-size:13px; margin-top:14px; font-weight:600;"></p>
     </div>
     
     <!-- Trainer-Tab: Runden-Manager -->
@@ -2064,46 +2011,64 @@ function showClosed(){
   var tl = el("tab-lernen"); if(tl) tl.classList.remove("hidden");
   hide("player-nav");
   var bn = el("warn-banner"); if(bn){ bn.classList.add("hidden"); bn.style.background=""; bn.style.borderColor=""; bn.style.color=""; }
-  
-  var dayName = "Dienstag";
-  var startTime = "18:30";
-  if(ACCESS && ACCESS.weekday && ACCESS.start_time){
-    var days = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
-    dayName = days[ACCESS.weekday - 1] || "Dienstag";
-    startTime = ACCESS.start_time;
-  }
-  
+
+  var windows = (ACCESS && ACCESS.windows) ? ACCESS.windows.filter(function(w){return w.active;}) : [];
+  var next = nextWindowInfo(ACCESS);
+  var dayName = next ? next.label : (windows[0] ? WEEKDAY_NAMES[windows[0].weekday] : "Dienstag");
+
   var c = el("clock");
   c.classList.add("warn");
   c.classList.remove("hidden");
   c.innerHTML = '<span class="dot"></span> Geschlossen · ' + dayName;
-  
-  if(ACCESS && ACCESS.configured && ACCESS.weekday && ACCESS.start_time && ACCESS.end_time){
-    var days = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
-    var formattedDay = days[ACCESS.weekday - 1] || "Dienstag";
-    el("closed-msg").innerHTML="Die Akademie ist nur am <b>" + formattedDay + " von " + ACCESS.start_time + " bis " + ACCESS.end_time + " Uhr</b> geöffnet.";
+
+  if(windows.length > 0){
+    var parts = windows.map(function(w){
+      return "<b>" + WEEKDAY_NAMES[w.weekday] + " von " + w.start_time + " bis " + w.end_time + " Uhr</b>";
+    });
+    var joined = parts.length > 1 ? (parts.slice(0, -1).join(", ") + " sowie " + parts[parts.length - 1]) : parts[0];
+    el("closed-msg").innerHTML = "Die Akademie ist nur am " + joined + " geöffnet.";
   } else {
-    el("closed-msg").innerHTML="Die Akademie ist nur am <b>Dienstag von 18:30 bis 20:00 Uhr</b> geöffnet.";
+    el("closed-msg").innerHTML = "Die Akademie ist gerade geschlossen. Frage deinen Trainer nach den aktuellen Trainingszeiten.";
   }
+
   var cc=el("closed-count");
-  if(ACCESS && ACCESS.server_time && ACCESS.weekday){
+  if(ACCESS && ACCESS.server_time && windows.length > 0){
     var secs=secondsUntilOpen(ACCESS);
     if(secs!=null){ cc.classList.remove("hidden"); cc.textContent="Öffnet in "+humanDur(secs); }
     else cc.classList.add("hidden");
   } else cc.classList.add("hidden");
 }
+/* Findet quer über alle aktiven Zeitfenster den naechsten Oeffnungszeitpunkt (Wochentag + Startzeit) */
+function nextWindowInfo(a){
+  try{
+    var windows = (a && a.windows) ? a.windows.filter(function(w){return w.active;}) : [];
+    if(windows.length === 0 || !a.server_time) return null;
+    var p=a.server_time.split(/[- :]/);
+    var now=new Date(+p[0],+p[1]-1,+p[2],+p[3],+p[4],+p[5]||0);
+    var best=null;
+    for(var d=0; d<8; d++){
+      for(var i=0; i<windows.length; i++){
+        var w=windows[i];
+        var hm=w.start_time.split(":"); var sh=+hm[0], sm=+hm[1];
+        var cand=new Date(now.getFullYear(),now.getMonth(),now.getDate()+d,sh,sm,0);
+        var iso=cand.getDay()===0?7:cand.getDay();
+        if(iso===w.weekday && cand>now){
+          if(!best || cand<best.date){ best={date:cand, label:WEEKDAY_NAMES[w.weekday], window:w}; }
+        }
+      }
+      if(best) break;
+    }
+    return best;
+  }catch(e){ return null; }
+}
 function secondsUntilOpen(a){
+  var next = nextWindowInfo(a);
+  if(!next) return null;
   try{
     var p=a.server_time.split(/[- :]/);
     var now=new Date(+p[0],+p[1]-1,+p[2],+p[3],+p[4],+p[5]||0);
-    var hm=a.start_time.split(":"); var sh=+hm[0],sm=+hm[1];
-    for(var d=0;d<8;d++){
-      var cand=new Date(now.getFullYear(),now.getMonth(),now.getDate()+d,sh,sm,0);
-      var iso=cand.getDay()===0?7:cand.getDay();
-      if(iso===a.weekday && cand>now) return Math.floor((cand-now)/1000);
-    }
-  }catch(e){}
-  return null;
+    return Math.floor((next.date-now)/1000);
+  }catch(e){ return null; }
 }
 function humanDur(s){var d=Math.floor(s/86400);s-=d*86400;var h=Math.floor(s/3600);s-=h*3600;var m=Math.floor(s/60);
   var out=[]; if(d)out.push(d+"T"); if(h||d)out.push(h+"h"); out.push(m+"min"); return out.join(" ");}
@@ -2752,8 +2717,8 @@ function loadJrStaffPlayer(){
 
     function checkRow(e){
       var checked = !!passed[e.id];
-      return '<label style="display:flex; align-items:flex-start; gap:10px; background:var(--glass-bg-2); border:1px solid var(--glass-border); border-radius:var(--r-md); padding:8px 10px; cursor:pointer;">'
-        + '<input type="checkbox" style="margin-top:3px; width:16px; height:16px; cursor:pointer;" '+(checked?'checked':'')+' onchange="toggleJrExercise(\''+pid+'\',\''+e.id+'\',this.checked)" />'
+      return '<label class="checkbox-label checkbox-label-good" style="display:flex; align-items:flex-start; gap:10px; background:var(--glass-bg-2); border:1px solid var(--glass-border); border-radius:var(--r-md); padding:8px 10px; cursor:pointer;">'
+        + '<input type="checkbox" style="margin-top:3px; width:18px; height:18px; cursor:pointer; accent-color:var(--good);" '+(checked?'checked':'')+' onchange="toggleJrExercise(\''+pid+'\',\''+e.id+'\',this.checked,this)" />'
         + '<div><b style="font-size:13px; color:var(--text-1);">'+esc(e.name)+'</b> <span class="muted" style="font-size:11px;">('+esc(e.count)+')</span>'
         + '<div class="muted" style="font-size:11px; margin-top:2px;">'+esc(e.desc)+(e.rules?' — '+esc(e.rules):'')+'</div></div></label>';
     }
@@ -2767,13 +2732,20 @@ function loadJrStaffPlayer(){
     html += '<div class="card g-card-sm"><p class="eyebrow" style="margin:0 0 8px;">👥 Team-Übungen</p><div style="display:flex; flex-direction:column; gap:6px;">';
     JUGGLING_TEAM.forEach(function(e){ html += checkRow(e); });
     html += '</div></div>';
+    html += '<p id="jr-save-msg" class="muted" style="font-size:12px; margin-top:10px;">Jede Änderung wird sofort gespeichert.</p>';
     body.innerHTML = html;
   });
 }
 
-function toggleJrExercise(playerId, exerciseId, checked){
+function toggleJrExercise(playerId, exerciseId, checked, cbEl){
   sb.rpc('mark_juggling_exercise', {p_player: playerId, p_exercise_id: exerciseId, p_passed: checked}).then(function(r){
-    if(r.error){ alert('Fehler: '+r.error.message); loadJrStaffPlayer(); }
+    var msg = el('jr-save-msg');
+    if(r.error){
+      alert('Fehler: '+r.error.message); loadJrStaffPlayer();
+    } else if(msg){
+      msg.style.color = 'var(--good)';
+      msg.textContent = '✓ Gespeichert · '+new Date().toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'});
+    }
   });
 }
 
@@ -3394,108 +3366,143 @@ function resetKaderPlayerProgress(playerId) {
   });
 }
 
+var TRICK_STATUS_LABEL = {0:'Noch nicht geschafft', 1:'Links klappt 🥉', 2:'Rechts klappt 🥉', 3:'L & R klappen 🥈', 4:'L/R Meister 🏆'};
+var JRP_STATUS_LABEL   = {0:'Noch nicht geschafft', 1:'Angefangen', 2:'Fortgeschritten', 3:'Fast geschafft', 4:'Ziel erreicht 🏆'};
+function skillPointsFor(score){ return {0:0,1:5,2:10,3:20,4:25}[score] || 0; }
+
 function loadStaffSkillsLeaderboards() {
-  el("tbl-skills-jonglieren").innerHTML = '<tr><td colspan="3" class="center muted">Lade...</td></tr>';
-  el("tbl-skills-dribbling").innerHTML = '<tr><td colspan="3" class="center muted">Lade...</td></tr>';
-  el("tbl-skills-latte").innerHTML = '<tr><td colspan="3" class="center muted">Lade...</td></tr>';
-  el("tbl-skills-wallpass").innerHTML = '<tr><td colspan="3" class="center muted">Lade...</td></tr>';
-  
-  sb.from("profiles").select("display_name, skills").eq("role", "spieler").then(function(r) {
+  var box = el("skills-compare-list");
+  if (box) box.innerHTML = '<div class="spinner"></div>';
+
+  sb.from("profiles").select("id, display_name, skills").eq("role", "spieler").then(function(r) {
     var players = r.data || [];
-    
-    // 1. Jonglieren: Spannwechsel
-    renderTable("tbl-skills-jonglieren", players, "jong_spann_wechsel", "max", "Kontakte");
-    
-    // 2. Kleine Weltreise
-    renderTable("tbl-skills-dribbling", players, "jong_weltreise", "max", "Runden");
-    
-    // 3. Trick-Combo 1
-    renderTable("tbl-skills-latte", players, "trick_combo1", "max", "Rating", true);
-    
-    // 4. Overall Trick Score
-    var overallList = players.map(function(p) {
+
+    var list = players.map(function(p) {
       var s = p.skills || {};
-      var sum = 0;
-      Object.keys(s).forEach(function(k) {
-        if (k.indexOf("trick_") === 0) {
-          sum += parseFloat(s[k]) || 0;
-        }
+      var total = 0, jrpDone = 0, jrpCount = 0, trickDone = 0, trickCount = 0;
+      var breakdown = [];
+      SKILL_CHALLENGES.forEach(function(c) {
+        var score = s[c.id] != null ? parseInt(s[c.id]) : 0;
+        total += skillPointsFor(score);
+        if (c.category === 'jrpractice') { jrpCount++; if (score >= 4) jrpDone++; }
+        else { trickCount++; if (score >= 4) trickDone++; }
+        breakdown.push({ id: c.id, title: c.title, category: c.category, score: score });
       });
-      var nameStr = formatPlayerName(p.display_name, p.skills);
-      return { name: nameStr, score: sum };
-    }).filter(function(p) { return p.score > 0; });
-    
-    overallList.sort(function(a, b) { return b.score - a.score; });
-    renderListToTable("tbl-skills-wallpass", overallList, "Punkte");
-  });
-}
+      return {
+        id: p.id,
+        name: formatPlayerName(p.display_name, p.skills),
+        total: total,
+        jrpDone: jrpDone, jrpCount: jrpCount,
+        trickDone: trickDone, trickCount: trickCount,
+        breakdown: breakdown
+      };
+    });
+    list.sort(function(a, b) { return b.total - a.total; });
+    window.__skillsCompareList = list; // fuer PDF-Export zwischenspeichern
 
-function renderTable(tbodyId, players, challengeId, type, unit, isRating) {
-  var list = players.map(function(p) {
-    var s = p.skills || {};
-    var val = s[challengeId] != null ? parseFloat(s[challengeId]) : null;
-    var nameStr = formatPlayerName(p.display_name, p.skills);
-    return { name: nameStr, score: val };
-  }).filter(function(p) {
-    return p.score != null && p.score > 0;
-  });
-  
-  list.sort(function(a, b) {
-    return type === 'max' ? b.score - a.score : a.score - b.score;
-  });
-  
-  var formattedList = list.map(function(p) {
-    var scoreStr = p.score;
-    if (isRating) {
-      if (p.score === 1) scoreStr = "Links 🥉";
-      else if (p.score === 2) scoreStr = "Rechts 🥉";
-      else if (p.score === 3) scoreStr = "L/R 🥈";
-      else if (p.score === 4) scoreStr = "Vid Ok 🏆";
-    } else {
-      scoreStr = p.score + " " + unit;
+    if (!box) return;
+    if (list.length === 0) {
+      box.innerHTML = '<p class="muted" style="font-size:13px;">Noch keine Spieler/innen vorhanden.</p>';
+      return;
     }
-    return { name: p.name, scoreStr: scoreStr };
+    var html = '<div class="table-container"><table class="trainer-table" style="font-size:13px;"><thead><tr>' +
+      '<th style="width:50px; text-align:center;">Rang</th><th>Spieler/in</th>' +
+      '<th style="width:110px; text-align:center;">Punkte</th>' +
+      '<th style="width:140px; text-align:center;">Jonglierreihe</th>' +
+      '<th style="width:140px; text-align:center;">Tricks Meister</th>' +
+      '<th style="width:100px;"></th>' +
+      '</tr></thead><tbody>';
+    list.forEach(function(p, idx) {
+      var medal = idx === 0 ? "🥇" : (idx === 1 ? "🥈" : (idx === 2 ? "🥉" : (idx + 1)));
+      html += '<tr>' +
+        '<td style="text-align:center; font-weight:800; color:var(--gold);">' + medal + '</td>' +
+        '<td style="font-weight:700; color:#fff;">' + esc(p.name) + '</td>' +
+        '<td style="text-align:center; font-weight:800; color:var(--gold);">' + p.total + '</td>' +
+        '<td style="text-align:center;">' + p.jrpDone + ' / ' + p.jrpCount + '</td>' +
+        '<td style="text-align:center;">' + p.trickDone + ' / ' + p.trickCount + '</td>' +
+        '<td style="text-align:center;"><button class="btn-ghost" style="font-size:11px; padding:5px 10px;" onclick="toggleSkillsDetail(\'' + p.id + '\')">Aufklappen</button></td>' +
+      '</tr>';
+      html += '<tr id="skills-detail-' + p.id + '" class="hidden"><td colspan="6" style="padding:12px 16px; background:rgba(255,255,255,0.02);">' + skillsDetailHtml(p) + '</td></tr>';
+    });
+    html += '</tbody></table></div>';
+    box.innerHTML = html;
   });
-  
-  renderFormattedListToTable(tbodyId, formattedList);
 }
 
-function renderFormattedListToTable(tbodyId, list) {
-  var tbody = el(tbodyId);
-  if (!tbody) return;
-  if (list.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" class="center muted" style="padding:12px;">Noch kein Rekord eingetragen</td></tr>';
-    return;
+function skillsDetailHtml(p){
+  var jrp = p.breakdown.filter(function(b){return b.category==='jrpractice';});
+  var tricks = p.breakdown.filter(function(b){return b.category!=='jrpractice';});
+  function rows(arr, labels){
+    return arr.map(function(b){
+      return '<div style="display:flex; justify-content:space-between; gap:10px; padding:4px 0; border-bottom:1px solid var(--line); font-size:12px;">' +
+        '<span class="muted">' + esc(b.title) + '</span><span style="color:#fff; font-weight:600;">' + esc(labels[b.score]||'-') + '</span></div>';
+    }).join('');
   }
-  var h = "";
-  list.forEach(function(p, idx) {
-    var medal = idx === 0 ? "🥇" : (idx === 1 ? "🥈" : (idx === 2 ? "🥉" : (idx + 1)));
-    h += '<tr>' +
-      '<td style="text-align:center; font-weight:800; color:var(--gold); padding:8px;">' + medal + '</td>' +
-      '<td style="font-weight:700; color:#fff; padding:8px;">' + esc(p.name) + '</td>' +
-      '<td style="text-align:center; font-weight:800; color:var(--gold); padding:8px;">' + esc(p.scoreStr) + '</td>' +
-    '</tr>';
-  });
-  tbody.innerHTML = h;
+  return '<div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">' +
+    '<div><p class="eyebrow" style="margin-bottom:6px;">🎓 Jonglierreihe</p>' + rows(jrp, JRP_STATUS_LABEL) + '</div>' +
+    '<div><p class="eyebrow" style="margin-bottom:6px;">✨ Trick-Challenges</p>' + rows(tricks, TRICK_STATUS_LABEL) + '</div>' +
+  '</div>';
 }
 
-function renderListToTable(tbodyId, list, unit) {
-  var tbody = el(tbodyId);
-  if (!tbody) return;
-  if (list.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" class="center muted" style="padding:12px;">Noch kein Rekord eingetragen</td></tr>';
-    return;
+function toggleSkillsDetail(playerId){
+  var row = el('skills-detail-' + playerId);
+  if (row) row.classList.toggle('hidden');
+}
+
+function exportSkillsComparisonPDF(){
+  var list = window.__skillsCompareList || [];
+  if (list.length === 0) { alert('Noch keine Daten geladen.'); return; }
+  var jsPDFctor = window.jspdf.jsPDF;
+  var doc = new jsPDFctor();
+
+  if (typeof LOGO_BASE64 === "string" && LOGO_BASE64.indexOf("data:") === 0) {
+    try{ doc.addImage(LOGO_BASE64, "PNG", 182, 8, 14, 14); }catch(e){}
   }
-  var h = "";
-  list.forEach(function(p, idx) {
-    var medal = idx === 0 ? "🥇" : (idx === 1 ? "🥈" : (idx === 2 ? "🥉" : (idx + 1)));
-    h += '<tr>' +
-      '<td style="text-align:center; font-weight:800; color:var(--gold); padding:8px;">' + medal + '</td>' +
-      '<td style="font-weight:700; color:#fff; padding:8px;">' + esc(p.name) + '</td>' +
-      '<td style="text-align:center; font-weight:800; color:var(--gold); padding:8px;">' + p.score + ' ' + unit + '</td>' +
-    '</tr>';
+  doc.setDrawColor(212, 175, 55); doc.setLineWidth(0.8); doc.line(14, 25, 196, 25);
+  doc.setFont("helvetica","bold"); doc.setFontSize(16); doc.setTextColor(150, 115, 20);
+  doc.text("Skill-Challenge Bestenliste", 14, 18);
+  doc.setTextColor(0,0,0); doc.setFont("helvetica","normal"); doc.setFontSize(10);
+  doc.text("Team Basel-Old Boys FE12", 150, 18);
+  doc.text("Exportiert am: " + new Date().toLocaleString("de-CH"), 14, 33);
+
+  var body = list.map(function(p, idx){
+    return [idx+1, p.name, p.total, p.jrpDone+' / '+p.jrpCount, p.trickDone+' / '+p.trickCount];
   });
-  tbody.innerHTML = h;
+  doc.autoTable({
+    startY: 40,
+    head: [["#","Spieler/in","Punkte","Jonglierreihe","Tricks Meister"]],
+    body: body,
+    theme: "striped",
+    headStyles: { fillColor: [212,175,55], textColor: [12,13,16], fontStyle: "bold" },
+    styles: { font: "Helvetica", fontSize: 10 }
+  });
+
+  // Detaillierte Aufschluesselung pro Spieler, je auf eigener Seite
+  list.forEach(function(p){
+    doc.addPage();
+    doc.setFont("helvetica","bold"); doc.setFontSize(14); doc.setTextColor(150,115,20);
+    doc.text(p.name + " - Detailansicht", 14, 20);
+    doc.setTextColor(0,0,0);
+    var jrpRows = p.breakdown.filter(function(b){return b.category==='jrpractice';}).map(function(b){return [b.title, JRP_STATUS_LABEL[b.score]||'-'];});
+    var trickRows = p.breakdown.filter(function(b){return b.category!=='jrpractice';}).map(function(b){return [b.title, TRICK_STATUS_LABEL[b.score]||'-'];});
+    doc.setFont("helvetica","bold"); doc.setFontSize(11);
+    doc.text("Jonglierreihe", 14, 30);
+    doc.autoTable({ startY: 34, head: [["Übung","Status"]], body: jrpRows, styles:{fontSize:8,cellPadding:2}, headStyles:{fillColor:[30,32,40]} });
+    var y2 = doc.lastAutoTable.finalY + 10;
+    doc.setFont("helvetica","bold"); doc.setFontSize(11);
+    doc.text("Trick-Challenges", 14, y2);
+    doc.autoTable({ startY: y2+4, head: [["Trick","Status"]], body: trickRows, styles:{fontSize:8,cellPadding:2}, headStyles:{fillColor:[30,32,40]} });
+  });
+
+  var pageCount = doc.internal.getNumberOfPages();
+  for(var pg=1; pg<=pageCount; pg++){
+    doc.setPage(pg);
+    doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(150,150,150);
+    doc.text("System development by D.K.", 14, 290);
+    doc.text("Seite "+pg+" / "+pageCount, 182, 290);
+  }
+
+  doc.save("FE12_Akademie_Skill_Bestenliste.pdf");
 }
 
 function loadUnlockForm(){
@@ -3667,6 +3674,8 @@ function doResetProgress() {
 }
 
 /* Lernzeiten (Lernfenster) */
+var WEEKDAY_NAMES = ["","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+
 function loadLernzeitenForm() {
   el("zeit-msg").textContent = "";
   sb.rpc("get_access_state").then(function(r) {
@@ -3674,6 +3683,58 @@ function loadLernzeitenForm() {
     var alwaysOpen = data.always_open || false;
     el("zeit-status-open").checked = alwaysOpen;
     el("zeit-status-closed").checked = !alwaysOpen;
+    renderAccessWindows(data.windows || []);
+  });
+}
+
+function renderAccessWindows(windows) {
+  var box = el("access-windows-list");
+  if (!box) return;
+  // Immer Dienstag (2) und Sonntag (7) anzeigen, auch falls noch kein Datensatz existiert
+  var byDay = {};
+  (windows || []).forEach(function (w) { byDay[w.weekday] = w; });
+  var days = [2, 7];
+  var html = "";
+  days.forEach(function (wd) {
+    var w = byDay[wd] || { weekday: wd, start_time: (wd === 2 ? "18:30" : "16:00"), end_time: (wd === 2 ? "20:00" : "18:00"), active: false };
+    html += '<div class="card g-card-sm" style="padding:16px;">';
+    html += '<p style="font-weight:700; color:#fff; margin-bottom:10px;">' + WEEKDAY_NAMES[wd] + '</p>';
+    html += '<label class="checkbox-label checkbox-label-good" style="display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-2); cursor:pointer; margin-bottom:12px; padding:8px 10px; border-radius:8px; border:1px solid var(--line);">';
+    html += '<input type="checkbox" id="aw-active-' + wd + '" ' + (w.active ? "checked" : "") + ' style="width:18px; height:18px; accent-color:var(--good); cursor:pointer;"/> Aktiv';
+    html += '</label>';
+    html += '<div style="display:flex; gap:8px; align-items:center;">';
+    html += '<div style="flex:1;"><label style="font-size:11px;">Von</label><input type="time" id="aw-start-' + wd + '" value="' + esc(w.start_time) + '"/></div>';
+    html += '<div style="flex:1;"><label style="font-size:11px;">Bis</label><input type="time" id="aw-end-' + wd + '" value="' + esc(w.end_time) + '"/></div>';
+    html += '</div>';
+    html += '<button class="btn-ghost" style="width:100%; margin-top:12px; font-size:12.5px; padding:8px;" onclick="saveAccessWindow(' + wd + ')">Speichern</button>';
+    html += '</div>';
+  });
+  box.innerHTML = html;
+}
+
+function saveAccessWindow(weekday) {
+  var startVal = el("aw-start-" + weekday).value;
+  var endVal = el("aw-end-" + weekday).value;
+  var active = el("aw-active-" + weekday).checked;
+  if (!startVal || !endVal) {
+    el("access-windows-msg").style.color = "var(--bad)";
+    el("access-windows-msg").textContent = "Bitte Start- und Endzeit für " + WEEKDAY_NAMES[weekday] + " angeben.";
+    return;
+  }
+  sb.rpc("set_access_window", {
+    p_weekday: weekday,
+    p_start_time: startVal,
+    p_end_time: endVal,
+    p_active: active
+  }).then(function (r) {
+    if (r.error) {
+      el("access-windows-msg").style.color = "var(--bad)";
+      el("access-windows-msg").textContent = "Fehler beim Speichern (" + WEEKDAY_NAMES[weekday] + "): " + r.error.message;
+    } else {
+      el("access-windows-msg").style.color = "var(--good)";
+      el("access-windows-msg").textContent = "✓ " + WEEKDAY_NAMES[weekday] + " gespeichert (" + startVal + "–" + endVal + " Uhr, " + (active ? "aktiv" : "inaktiv") + ").";
+      refreshAccess(false);
+    }
   });
 }
 
@@ -3683,20 +3744,14 @@ function toggleZeitInputs() {
 
 function saveLernzeiten() {
   var alwaysOpen = el("zeit-status-open").checked;
-  
-  sb.rpc("update_lern_fenster", {
-    p_weekday: 2,
-    p_start_time: "18:30",
-    p_end_time: "20:00",
-    p_active: true,
-    p_always_open: alwaysOpen
-  }).then(function(r) {
+
+  sb.rpc("set_academy_always_open", { p_always_open: alwaysOpen }).then(function(r) {
     if (r.error) {
       el("zeit-msg").style.color = "var(--bad)";
       el("zeit-msg").textContent = "Fehler beim Speichern: " + r.error.message;
     } else {
       el("zeit-msg").style.color = "var(--good)";
-      el("zeit-msg").textContent = alwaysOpen ? "✓ Die Akademie ist nun dauerhaft geöffnet (24/7)." : "✓ Die Akademie ist nun für Spieler/innen geschlossen.";
+      el("zeit-msg").textContent = alwaysOpen ? "✓ Die Akademie ist nun dauerhaft geöffnet (24/7)." : "✓ Die Akademie öffnet nun automatisch nach dem Zeitplan (Dienstag & Sonntag).";
       refreshAccess(false);
     }
   });
@@ -5815,23 +5870,26 @@ var Ziel = (function(){
     body.innerHTML = '<div class="spinner"></div>';
     Promise.all([
       sb.from("dev_goals").select("*").eq("cycle_id", c.id),
+      sb.from("dev_goals_player").select("*").eq("cycle_id", c.id),
       sb.from("dev_meetings").select("*").eq("cycle_id", c.id),
       sb.from("dev_comments").select("*").eq("cycle_id", c.id).order("created_at")
     ]).then(function(results){
       var goals = results[0].data || [];
-      var meetings = results[1].data || [];
-      var comments = results[2].data || [];
-      body.innerHTML = renderCycleHtml(c, goals, meetings, comments, false);
+      var goalsPlayer = results[1].data || [];
+      var meetings = results[2].data || [];
+      var comments = results[3].data || [];
+      body.innerHTML = renderCycleHtml(c, goals, goalsPlayer, meetings, comments, false);
     });
   }
 
-  function renderCycleHtml(cycle, goals, meetings, comments, isStaffView){
+  function renderCycleHtml(cycle, goals, goalsPlayer, meetings, comments, isStaffView){
     var goalsByBereich = {};
     goals.forEach(function(g){ goalsByBereich[g.bereich] = g; });
+    var goalsPlayerByBereich = {};
+    (goalsPlayer||[]).forEach(function(g){ goalsPlayerByBereich[g.bereich] = g; });
     var html = '';
 
     var mtypes = MILESTONES_BY_CYCLE[cycle.cycle_type] || [];
-    var hint = nextMilestoneHint(mtypes, meetings, cycle.season_label);
 
     // ---- Kopf im Formular-Stil ----
     html += '<div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:10px; margin-bottom:4px;">';
@@ -5850,14 +5908,35 @@ var Ziel = (function(){
     }
     html += '</div>';
 
-    // ---- 4-Zeilen-Tabelle TE/TA/ATH/ME ----
+    // ---- Eigene Einschätzung des Spielers (kein Fortschritt, wird zuerst ausgefüllt) ----
+    var filledCount = BEREICH_ORDER.filter(function(b){ var g=goalsPlayerByBereich[b]; return g && (g.thema||"").trim(); }).length;
+    var completeBadge = filledCount===4
+      ? '<span style="color:var(--good); font-weight:700; font-size:12px;">✅ Vollständig ausgefüllt (4/4)</span>'
+      : '<span style="color:#f0c419; font-weight:700; font-size:12px;">⏳ '+filledCount+'/4 Bereiche ausgefüllt</span>';
+    html += '<div class="card" style="background:rgba(255,255,255,0.02); margin:18px 0 14px; padding:14px 16px;">';
+    html += '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">';
+    html += '<p style="font-weight:700; color:#fff; margin:0;">🙋 Eigene Einschätzung '+(isStaffView?'des Spielers':'')+'</p>'+completeBadge;
+    html += '</div>';
+    html += '<p class="muted" style="font-size:12px; margin-bottom:10px;">'+(isStaffView
+      ? 'Das trägt der Spieler selbst ein, bevor du die offizielle Zielvereinbarung unten festlegst.'
+      : 'Trage hier zuerst deine eigene Einschätzung ein – dein Trainer erstellt danach die offizielle Zielvereinbarung unten.')+'</p>';
     html += '<div style="overflow-x:auto;">';
-    html += '<table style="width:100%; min-width:560px; border-collapse:collapse; margin-bottom:8px;">';
+    html += '<table style="width:100%; min-width:420px; border-collapse:collapse;">';
+    html += '<thead><tr><th style="width:46px;"></th><th>Eigenes Entwicklungsziel</th><th>Eigene Maßnahmen</th></tr></thead><tbody>';
+    BEREICH_ORDER.forEach(function(bereich){
+      html += playerGoalRowHtml(goalsPlayerByBereich[bereich], bereich, cycle.id, isStaffView);
+    });
+    html += '</tbody></table></div></div>';
+
+    // ---- 4-Zeilen-Tabelle TE/TA/ATH/ME: OFFIZIELL, nur Trainer/Leiter editierbar ----
+    html += '<p style="font-weight:700; color:#fff; margin:22px 0 4px;">📋 Offizielle Zielvereinbarung'+(isStaffView?'':' (durch deinen Trainer)')+'</p>';
+    html += '<div style="overflow-x:auto;">';
+    html += '<table style="width:100%; min-width:640px; border-collapse:collapse; margin-bottom:8px;">';
     html += '<thead><tr>';
-    html += '<th style="width:46px;"></th><th>Entwicklungsziele (Themen)</th><th>Maßnahme / Prozessziele</th><th style="width:220px;">Fortschritt</th>';
+    html += '<th style="width:46px;"></th><th>Entwicklungsziele (Themen)</th><th>Maßnahme / Prozessziele</th><th style="width:230px;">Fortschritt</th>';
     html += '</tr></thead><tbody>';
     BEREICH_ORDER.forEach(function(bereich){
-      html += goalRowHtml(goalsByBereich[bereich], bereich, cycle.id, isStaffView, hint);
+      html += goalRowHtml(goalsByBereich[bereich], bereich, cycle.id, isStaffView);
     });
     html += '</tbody></table></div>';
 
@@ -5878,7 +5957,7 @@ var Ziel = (function(){
     html += '</div>';
     html += '<textarea id="ziel-comment-input-'+cycle.id+'" placeholder="Kommentar schreiben..." style="width:100%; min-height:60px; margin-bottom:8px;"></textarea>';
     if(isStaffView){
-      html += '<label id="ziel-comment-internal-label-'+cycle.id+'" style="display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-2); text-transform:none; letter-spacing:0; margin-bottom:8px; cursor:pointer; padding:8px 10px; border-radius:8px; border:1px solid var(--line); transition: all 0.15s ease;">';
+      html += '<label id="ziel-comment-internal-label-'+cycle.id+'" class="checkbox-label" style="display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-2); text-transform:none; letter-spacing:0; margin-bottom:8px; cursor:pointer; padding:8px 10px; border-radius:8px; border:1px solid var(--line); transition: all 0.15s ease;">';
       html += '<input type="checkbox" id="ziel-comment-internal-'+cycle.id+'" style="width:18px; height:18px; accent-color:#f0c419; cursor:pointer;" onchange="toggleInternalCheckbox(this)"/> 🔒 Nur intern (nicht für den Spieler sichtbar — für den Trainer-Austausch)';
       html += '</label>';
     }
@@ -5887,26 +5966,32 @@ var Ziel = (function(){
     return html;
   }
 
-  // Nächster noch offener Gesprächstermin als Fortschritt-Hinweis (z.B. "bis Aug/Sep 2026 (Zwischengespräch)")
-  function nextMilestoneHint(mtypes, meetings, seasonLbl){
-    for(var i=0;i<mtypes.length;i++){
-      var mt = mtypes[i];
-      var m = meetings.find(function(x){return x.milestone_type===mt;});
-      if(!m || m.status!=='erledigt'){
-        var datePart = (m && m.geplant_datum) ? ('bis '+fmtD(m.geplant_datum)) : milestoneWindow(mt, seasonLbl);
-        return datePart+' ('+MILESTONE_LABEL[mt]+')';
-      }
+  function playerGoalRowHtml(goal, bereich, cycleId, isStaffView){
+    var uid = bereich + '_' + cycleId;
+    var thema = goal ? goal.thema : '';
+    var massnahmen = goal ? goal.massnahmen : '';
+    var readonlyAttr = isStaffView ? ' disabled' : '';
+    var html = '<tr style="border-top:1px solid var(--line); vertical-align:top;">';
+    html += '<td style="padding:10px 6px; font-weight:800; color:var(--gold); text-align:center;">'+BEREICH_KUERZEL[bereich]+'</td>';
+    html += '<td style="padding:10px 6px;"><textarea id="gtp-thema-'+uid+'" placeholder="Eigenes Entwicklungsziel im Bereich '+BEREICH_LABEL[bereich]+'" style="width:100%; min-height:50px;"'+readonlyAttr+'>'+esc(thema||"")+'</textarea></td>';
+    html += '<td style="padding:10px 6px;"><textarea id="gtp-massnahmen-'+uid+'" placeholder="Eigene Maßnahmen" style="width:100%; min-height:50px;"'+readonlyAttr+'>'+esc(massnahmen||"")+'</textarea></td>';
+    html += '</tr>';
+    if(!isStaffView){
+      html += '<tr><td></td><td colspan="2" style="padding:0 6px 12px;"><button class="btn-ghost" style="font-size:11.5px; padding:5px 10px;" onclick="Ziel.savePlayerGoalRow(\''+cycleId+'\',\''+bereich+'\',\''+uid+'\')">Zeile speichern</button></td></tr>';
     }
-    return 'Alle Gespräche erledigt';
+    return html;
   }
 
-  function goalRowHtml(goal, bereich, cycleId, isStaffView, hint){
+  function goalRowHtml(goal, bereich, cycleId, isStaffView){
     var uid = bereich + '_' + cycleId;
     var thema = goal ? goal.thema : '';
     var massnahmen = goal ? goal.massnahmen : '';
     var fortschritt = goal ? goal.fortschritt : '';
     var status = goal ? goal.fortschritt_status : 'offen';
-    var readonlyAttr = isStaffView ? ' disabled' : '';
+    var erfasstAm = goal ? goal.erfasst_am : '';
+    var zielBis = goal ? goal.ziel_bis : '';
+    // Nur Trainer/Leiter duerfen die offizielle Zielvereinbarung bearbeiten - Spieler sehen sie schreibgeschuetzt
+    var readonlyAttr = isStaffView ? '' : ' disabled';
 
     var statusOpts = ['offen','in_arbeit','erreicht'].map(function(k){
       var lbl = {offen:'Offen',in_arbeit:'In Arbeit',erreicht:'Erreicht 🏆'}[k];
@@ -5918,12 +6003,21 @@ var Ziel = (function(){
     html += '<td style="padding:10px 6px;"><textarea id="gt-thema-'+uid+'" placeholder="Entwicklungsziel im Bereich '+BEREICH_LABEL[bereich]+'" style="width:100%; min-height:60px;"'+readonlyAttr+'>'+esc(thema||"")+'</textarea></td>';
     html += '<td style="padding:10px 6px;"><textarea id="gt-massnahmen-'+uid+'" placeholder="Maßnahmen / Prozessziele" style="width:100%; min-height:60px;"'+readonlyAttr+'>'+esc(massnahmen||"")+'</textarea></td>';
     html += '<td style="padding:10px 6px;">';
-    html += '<p class="muted" style="font-size:11px; margin-bottom:4px;">'+esc(hint)+'</p>';
+    if(isStaffView){
+      html += '<div style="display:flex; gap:6px; margin-bottom:6px;">';
+      html += '<div style="flex:1;"><label style="font-size:10px;">Erfasst am</label><input type="date" id="gt-erfasst-'+uid+'" value="'+esc(erfasstAm||"")+'" style="font-size:11px; padding:5px 6px;"/></div>';
+      html += '<div style="flex:1;"><label style="font-size:10px;">Ziel bis</label><input type="date" id="gt-zielbis-'+uid+'" value="'+esc(zielBis||"")+'" style="font-size:11px; padding:5px 6px;"/></div>';
+      html += '</div>';
+    } else {
+      html += '<p class="muted" style="font-size:11px; margin-bottom:6px;">'
+        + (erfasstAm ? 'Erfasst am '+fmtD(erfasstAm) : 'Noch nicht erfasst')
+        + (zielBis ? ' · Ziel bis '+fmtD(zielBis) : '') + '</p>';
+    }
     html += '<select id="gt-status-'+uid+'" style="width:100%; margin-bottom:4px; font-size:12px;"'+readonlyAttr+'>'+statusOpts+'</select>';
     html += '<textarea id="gt-fortschritt-'+uid+'" placeholder="Notiz zum Fortschritt" style="width:100%; min-height:40px; font-size:12px;"'+readonlyAttr+'>'+esc(fortschritt||"")+'</textarea>';
     html += '</td></tr>';
-    if(!isStaffView){
-      html += '<tr><td></td><td colspan="3" style="padding:0 6px 12px;"><button class="btn-ghost" style="font-size:11.5px; padding:5px 10px;" onclick="Ziel.saveGoalRow(\''+cycleId+'\',\''+bereich+'\',\''+uid+'\')">Zeile speichern</button></td></tr>';
+    if(isStaffView){
+      html += '<tr><td></td><td colspan="3" style="padding:0 6px 12px;"><button class="btn" style="font-size:11.5px; padding:6px 12px;" onclick="Ziel.saveGoalRow(\''+cycleId+'\',\''+bereich+'\',\''+uid+'\')">💾 Zeile speichern</button></td></tr>';
     }
     return html;
   }
@@ -5981,12 +6075,25 @@ var Ziel = (function(){
     var massnahmen = el("gt-massnahmen-"+uid).value.trim();
     var fortschritt = el("gt-fortschritt-"+uid).value.trim();
     var status = el("gt-status-"+uid).value;
-    sb.rpc("upsert_dev_goal", {p_cycle_id: cycleId, p_bereich: bereich, p_thema: thema, p_massnahmen: massnahmen}).then(function(r){
+    var erfasstEl = el("gt-erfasst-"+uid);
+    var zielBisEl = el("gt-zielbis-"+uid);
+    var erfasstAm = erfasstEl ? (erfasstEl.value || null) : null;
+    var zielBis = zielBisEl ? (zielBisEl.value || null) : null;
+    sb.rpc("upsert_dev_goal", {p_cycle_id: cycleId, p_bereich: bereich, p_thema: thema, p_massnahmen: massnahmen, p_erfasst_am: erfasstAm, p_ziel_bis: zielBis}).then(function(r){
       if(r.error){ alert("Fehler: "+r.error.message); return; }
       sb.rpc("update_dev_goal_progress", {p_goal_id: r.data, p_fortschritt: fortschritt, p_fortschritt_status: status}).then(function(r2){
         if(r2.error){ alert("Fehler: "+r2.error.message); return; }
         if(state.isStaff) staffRenderCycle(); else renderActiveCycle();
       });
+    });
+  }
+
+  function savePlayerGoalRow(cycleId, bereich, uid){
+    var thema = el("gtp-thema-"+uid).value.trim();
+    var massnahmen = el("gtp-massnahmen-"+uid).value.trim();
+    sb.rpc("upsert_dev_goal_player", {p_cycle_id: cycleId, p_bereich: bereich, p_thema: thema, p_massnahmen: massnahmen}).then(function(r){
+      if(r.error){ alert("Fehler: "+r.error.message); return; }
+      if(state.isStaff) staffRenderCycle(); else renderActiveCycle();
     });
   }
 
@@ -6092,12 +6199,13 @@ var Ziel = (function(){
     area.innerHTML = '<div class="spinner"></div>';
     Promise.all([
       sb.from("dev_goals").select("*").eq("cycle_id", c.id),
+      sb.from("dev_goals_player").select("*").eq("cycle_id", c.id),
       sb.from("dev_meetings").select("*").eq("cycle_id", c.id),
       sb.from("dev_comments").select("*").eq("cycle_id", c.id).order("created_at"),
       sb.from("dev_warnings").select("*").eq("cycle_id", c.id).order("issued_at",{ascending:false})
     ]).then(function(results){
-      var goals = results[0].data||[], meetings = results[1].data||[], comments = results[2].data||[], warnings = results[3].data||[];
-      var html = renderCycleHtml(c, goals, meetings, comments, true);
+      var goals = results[0].data||[], goalsPlayer = results[1].data||[], meetings = results[2].data||[], comments = results[3].data||[], warnings = results[4].data||[];
+      var html = renderCycleHtml(c, goals, goalsPlayer, meetings, comments, true);
       html += '<h4 style="color:#fff; font-size:14px; margin:26px 0 10px;">🟨 Gelbe Karte</h4>';
       warnings.forEach(function(w){
         html += '<div class="card" style="background:rgba(230,180,40,0.06); border:1px solid rgba(230,180,40,0.3); margin-bottom:8px; padding:12px;">'+
@@ -6114,8 +6222,8 @@ var Ziel = (function(){
         '<button class="btn" style="margin-top:10px;" onclick="Ziel.staffIssueWarning(\''+pid+'\',\''+c.id+'\')">🟨 Gelbe Karte ausstellen</button>'+
         '</div>';
       html += '<div style="margin-top:20px;">';
-      html += '<label style="display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-3); text-transform:none; letter-spacing:0; margin-bottom:10px; cursor:pointer;">';
-      html += '<input type="checkbox" id="ziel-pdf-internal-'+c.id+'" checked style="width:auto;"/> Interne Kommentare im PDF einschliessen';
+      html += '<label id="ziel-pdf-internal-label-'+c.id+'" class="checkbox-label" style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-3); text-transform:none; letter-spacing:0; margin-bottom:10px; cursor:pointer; padding:8px 10px; border-radius:8px; border:1px solid var(--line);">';
+      html += '<input type="checkbox" id="ziel-pdf-internal-'+c.id+'" checked style="width:18px; height:18px; accent-color:#f0c419; cursor:pointer;" onchange="toggleInternalCheckbox(this)"/> 🔒 Interne Kommentare im PDF einschliessen';
       html += '</label>';
       html += '<button class="btn-ghost" onclick="Ziel.exportPdf(\''+c.id+'\')">📄 Entwicklungsplan als PDF</button></div>';
       area.innerHTML = html;
@@ -6179,25 +6287,25 @@ var Ziel = (function(){
     Promise.all([
       sb.from("dev_cycles").select("*, profiles!dev_cycles_player_id_fkey(vorname,nachname,display_name,geburtsdatum)").eq("id",cycleId).single(),
       sb.from("dev_goals").select("*").eq("cycle_id",cycleId),
+      sb.from("dev_goals_player").select("*").eq("cycle_id",cycleId),
       sb.from("dev_meetings").select("*").eq("cycle_id",cycleId),
       sb.from("dev_comments").select("*").eq("cycle_id",cycleId).order("created_at"),
       sb.from("dev_warnings").select("*").eq("cycle_id",cycleId).order("issued_at",{ascending:false})
     ]).then(function(results){
-      var cycle = results[0].data, goals = results[1].data||[], meetings = results[2].data||[], warnings = results[4].data||[];
-      var comments = (results[3].data||[]).filter(function(cm){ return includeInternal || !cm.is_internal; });
+      var cycle = results[0].data, goals = results[1].data||[], goalsPlayer = results[2].data||[], meetings = results[3].data||[], warnings = results[5].data||[];
+      var comments = (results[4].data||[]).filter(function(cm){ return includeInternal || !cm.is_internal; });
       if(!cycle){ alert("Zyklus nicht gefunden."); return; }
-      buildDevPdf(cycle, goals, meetings, comments, warnings);
+      buildDevPdf(cycle, goals, goalsPlayer, meetings, comments, warnings);
     });
   }
 
-  function buildDevPdf(cycle, goals, meetings, comments, warnings){
+  function buildDevPdf(cycle, goals, goalsPlayer, meetings, comments, warnings){
     var jsPDFctor = window.jspdf.jsPDF;
     var doc = new jsPDFctor();
     var p = cycle.profiles || {};
     var name = (p.vorname||p.nachname) ? ((p.vorname||"")+" "+(p.nachname||"")).trim() : (p.display_name||"");
     var geb = p.geburtsdatum ? fmtD(p.geburtsdatum) : "-";
     var mtypes = MILESTONES_BY_CYCLE[cycle.cycle_type] || [];
-    var hint = nextMilestoneHint(mtypes, meetings);
 
     // Dezenter Marken-Kopf (druckfreundlich: nur duenne Gold-Linie + Logo, kein Vollflaechenhintergrund)
     if (typeof LOGO_BASE64 === "string" && LOGO_BASE64.indexOf("data:") === 0) {
@@ -6224,19 +6332,40 @@ var Ziel = (function(){
     var staerkeSplit = doc.splitTextToSize(cycle.staerke_text || "-", 180);
     doc.text(staerkeSplit, 14, 60);
 
+    var goalsPlayerByBereich = {};
+    (goalsPlayer||[]).forEach(function(g){ goalsPlayerByBereich[g.bereich] = g; });
+    var playerRows = BEREICH_ORDER.map(function(bereich){
+      var g = goalsPlayerByBereich[bereich] || {};
+      return [BEREICH_KUERZEL[bereich], g.thema||"-", g.massnahmen||"-"];
+    });
+    doc.setFont("helvetica","bold"); doc.setFontSize(10);
+    doc.text("Eigene Einschaetzung des Spielers:", 14, 60 + staerkeSplit.length*5 + 6);
+    doc.autoTable({
+      startY: 60 + staerkeSplit.length*5 + 10,
+      head: [["","Eigenes Entwicklungsziel","Eigene Massnahmen"]],
+      body: playerRows,
+      styles: { fontSize: 8, cellPadding: 3 },
+      headStyles: { fillColor: [60,55,30] }
+    });
+
     var goalsByBereich = {};
     goals.forEach(function(g){ goalsByBereich[g.bereich] = g; });
     var rows = BEREICH_ORDER.map(function(bereich){
       var g = goalsByBereich[bereich] || {};
+      var statusTxt = g.fortschritt_status ? (g.fortschritt_status==='erreicht'?'Erreicht':(g.fortschritt_status==='in_arbeit'?'In Arbeit':'Offen')) : 'Offen';
+      var datesTxt = (g.erfasst_am ? ('Erfasst: '+fmtD(g.erfasst_am)) : 'Noch nicht erfasst') + (g.ziel_bis ? (' · Ziel bis: '+fmtD(g.ziel_bis)) : '');
       return [
         BEREICH_KUERZEL[bereich],
         g.thema||"",
         g.massnahmen||"",
-        hint + (g.fortschritt_status ? ("\n"+(g.fortschritt_status==='erreicht'?'Erreicht':(g.fortschritt_status==='in_arbeit'?'In Arbeit':'Offen'))) : "") + (g.fortschritt?("\n"+g.fortschritt):"")
+        datesTxt + "\n" + statusTxt + (g.fortschritt?("\n"+g.fortschritt):"")
       ];
     });
+    doc.setFont("helvetica","bold"); doc.setFontSize(10);
+    var officialY = doc.lastAutoTable.finalY + 10;
+    doc.text("Offizielle Zielvereinbarung (Trainer):", 14, officialY);
     doc.autoTable({
-      startY: 60 + staerkeSplit.length*5 + 6,
+      startY: officialY + 4,
       head: [["","Entwicklungsziele (Themen)","Massnahme / Prozessziele","Fortschritt"]],
       body: rows,
       styles: { fontSize: 8, cellPadding: 3 },
@@ -6315,6 +6444,7 @@ var Ziel = (function(){
     switchCycle: switchCycle,
     confirmWarning: confirmWarning,
     saveGoalRow: saveGoalRow,
+    savePlayerGoalRow: savePlayerGoalRow,
     saveStaerke: saveStaerke,
     addComment: addComment,
     staffInit: staffInit,
