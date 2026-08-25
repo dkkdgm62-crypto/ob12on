@@ -1279,6 +1279,7 @@ footer {
       <button id="stab-log" class="btn-ghost" onclick="showStaffTab('log')">Logins</button>
       <button id="stab-vor" class="btn-ghost" onclick="showStaffTab('vor')">Module ansehen</button>
       <button id="stab-spieler" class="btn-ghost" onclick="showStaffTab('spieler')">🔐 Spieler verwalten</button>
+      <button id="stab-consent" class="btn-ghost" onclick="showStaffTab('consent')">🖊️ Eltern-Einverständnis</button>
       <button id="stab-inhalte" class="btn-ghost" onclick="showStaffTab('inhalte')" style="border-color:var(--accent); color:var(--accent);">✏️ Inhalte bearbeiten</button>
     <button id="stab-jonglier" class="btn-ghost" onclick="showStaffTab('jonglier')">🎓 Jonglierreihe</button>
     <button id="stab-ziel" class="btn-ghost" onclick="showStaffTab('ziel')">🎯 Zielvereinbarungen</button>
@@ -1596,7 +1597,29 @@ footer {
       <input type="hidden" id="inv-name" /><input type="hidden" id="inv-email" />
     </div>
 
-    <!-- ✏️ INHALTE BEARBEITEN -->
+    <!-- 🖊️ ELTERN-EINVERSTÄNDNIS -->
+    <div id="staff-consent" class="card hidden">
+      <p class="eyebrow">Kinderschutz & Datensicherheit</p>
+      <h3 style="color:#fff; margin:8px 0 14px;">🖊️ Eltern-Einverständnis</h3>
+      <div class="card" style="background:rgba(255,255,255,0.03); margin-bottom:20px; padding:16px;">
+        <p style="font-size:12px; color:var(--text-2); line-height:1.6; margin:0;">
+          <b style="color:#fff;">Hinweis zur Nutzung durch Minderjährige:</b> Da die Nutzerinnen und Nutzer dieser Lern-Akademie grösstenteils minderjährig sind, wird die Einwilligung der Erziehungsberechtigten
+          persönlich durch den Trainer <b style="color:#fff;">ausserhalb dieses Systems</b> (schriftlich oder mündlich mit schriftlicher/elektronischer Bestätigung) eingeholt. Diese Ansicht dient
+          ausschliesslich der internen Dokumentation dieser bereits erteilten Einwilligung gemäss Schweizer Datenschutzgesetz (nDSG) — es findet hier keine automatisierte Einholung statt. Die erfassten
+          Daten (Status, Datum) sind nur für Trainer/Leiter sichtbar und werden nicht an Dritte weitergegeben.
+        </p>
+      </div>
+      <div class="card" style="background:rgba(255,255,255,0.02); margin-bottom:20px; padding:16px;">
+        <p class="eyebrow" style="margin-bottom:8px;">Musterformulierung (für das persönliche Gespräch / Formular mit den Eltern)</p>
+        <p style="font-size:12.5px; color:var(--text-2); line-height:1.6; font-style:italic; margin:0;">
+          „Ich/Wir als Erziehungsberechtigte(r) von [Name des Kindes] bin/sind damit einverstanden, dass mein/unser Kind einen persönlichen Zugang zur FOOTECO Lern-Akademie
+          von BSC Old Boys Basel FE12 erhält. Die Plattform dient der individuellen fussballerischen und persönlichen Entwicklung und wird ausschliesslich vom Trainerteam verwaltet.
+          Es werden nur trainingsbezogene Daten (Fortschritt, Ziele, Punktzahlen) gespeichert, gehostet in der Schweiz. Eine Weitergabe an Dritte erfolgt nicht. Die Einwilligung kann
+          jederzeit formlos beim Trainerteam widerrufen werden."
+        </p>
+      </div>
+      <div id="consent-table"><div class="spinner"></div></div>
+    </div>
     <div id="staff-inhalte" class="hidden">
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
         <div>
@@ -1666,7 +1689,7 @@ footer {
     <div id="staff-reflex" class="card hidden">
       <p class="eyebrow">Spielnachbearbeitung</p>
       <h3 style="margin:8px 0 6px; color:#fff;">🪞 Selbstreflexion — Übersicht</h3>
-      <p class="muted" style="font-size:13px; margin-bottom:16px;">Pro Spiel siehst du, wer die Selbstreflexion bereits ausgefüllt hat (🟢) oder noch offen ist (🟠). Klicke ein Spiel an, um die Details zu öffnen.</p>
+      <p class="muted" style="font-size:13px; margin-bottom:16px;">Pro Spiel siehst du, wer die Selbstreflexion bereits fest abgeschlossen hat (🔒), nur als Entwurf gespeichert hat (📝) oder noch offen ist (🟠). Klicke ein Spiel an, um die Details zu öffnen.</p>
       <div id="reflex-staff-list"><div class="spinner"></div></div>
     </div>
 
@@ -2678,6 +2701,7 @@ function loadStaffDashboard(){
       {icon:'🪪', label:'Logins', tab:'log'},
       {icon:'📚', label:'Module ansehen', tab:'vor'},
       {icon:'🔐', label:'Spieler verwalten', tab:'spieler'},
+      {icon:'🖊️', label:'Eltern-Einverständnis', tab:'consent'},
       {icon:'✏️', label:'Inhalte bearbeiten', tab:'inhalte'},
       {icon:'🎓', label:'Jonglierreihe', tab:'jonglier'},
       {icon:'🎯', label:'Zielvereinbarungen', tab:'ziel'},
@@ -2695,7 +2719,7 @@ function loadStaffDashboard(){
 function showStaffTab(t){
   scrollToTop();
   staffTab = t;
-  ["dashboard","kader","skills","rang","frei","zeit","runden","log","vor","spieler","inhalte","jonglier","ziel","spiele","reflex","archiv"].forEach(function(k){
+  ["dashboard","kader","skills","rang","frei","zeit","runden","log","vor","spieler","consent","inhalte","jonglier","ziel","spiele","reflex","archiv"].forEach(function(k){
     var btn = el("stab-"+k); if(btn) btn.className = k===t?"active":"btn-ghost";
     var content = el("staff-"+k); if(content) content.classList.toggle("hidden", k!==t);
   });
@@ -2720,6 +2744,7 @@ function showStaffTab(t){
   }
   if(t==="vor")  loadStaffModules();
   if(t==="spieler") loadInvitations();
+  if(t==="consent") loadConsentTable();
   if(t==="inhalte") CE.load();
   if(t==="jonglier") loadJrStaffForm();
   if(t==="ziel") Ziel.staffInit();
@@ -2728,9 +2753,68 @@ function showStaffTab(t){
   if(t==="archiv") SeasonArchiv.init();
 }
 
-/* ====================================================================
-   FUSION SYSTEM EXTRA FUNCTIONS: SKILLS & KADER
-   ==================================================================== */
+/* ════════════════════════════════════════════════════════════
+   🖊️ ELTERN-EINVERSTÄNDNIS — Dokumentation der (ausserhalb erteilten) Einwilligung
+   ════════════════════════════════════════════════════════════ */
+function loadConsentTable(){
+  var box = el("consent-table");
+  if(!box) return;
+  box.innerHTML = '<div class="spinner"></div>';
+  Promise.all([
+    sb.from("profiles").select("id,display_name").eq("role","spieler").order("display_name"),
+    sb.from("parent_consents").select("*")
+  ]).then(function(results){
+    var players = results[0].data || [];
+    var consents = {};
+    (results[1].data || []).forEach(function(c){ consents[c.player_id] = c; });
+
+    if(players.length===0){ box.innerHTML = '<p class="muted" style="font-size:13px;">Noch keine Spieler/innen vorhanden.</p>'; return; }
+
+    var given = players.filter(function(p){ return consents[p.id] && consents[p.id].consent_given; }).length;
+    var html = '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">';
+    html += '<p class="muted" style="font-size:12.5px; margin:0;">Status: <b style="color:'+(given===players.length?'var(--good)':'#f0c419')+';">'+given+' / '+players.length+' erteilt</b></p>';
+    html += '</div>';
+    html += '<div style="display:flex; flex-direction:column; gap:10px;">';
+
+    players.forEach(function(p){
+      var c = consents[p.id] || {consent_given:false, confirmed_at:null, written_date:null, email_date:null};
+      var uid = 'consent-'+p.id;
+      html += '<div class="card g-card-sm" style="padding:14px 16px;">';
+      html += '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:10px;">';
+      html += '<b style="color:#fff; font-size:13.5px;">'+esc(p.display_name)+'</b>';
+      html += '<label class="checkbox-label checkbox-label-good" style="display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-2); cursor:pointer; padding:6px 12px; border-radius:8px; border:1px solid var(--line);">'
+        + '<input type="checkbox" id="'+uid+'-given" '+(c.consent_given?'checked':'')+' style="width:18px; height:18px; accent-color:var(--good); cursor:pointer;" onchange="toggleInternalCheckbox(this)"/> Einverständnis erteilt'
+        + '</label>';
+      html += '</div>';
+      html += '<p class="muted" style="font-size:11.5px; margin-bottom:10px;">'
+        + (c.confirmed_at ? ('Im System erfasst am: <b style="color:var(--text-1);">'+fmtDT(c.confirmed_at)+'</b>') : 'Noch nicht im System erfasst.')
+        + '</p>';
+      html += '<div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">';
+      html += '<div style="flex:1; min-width:160px;"><label style="font-size:10.5px;">Schriftlich bestätigt am</label><input type="date" id="'+uid+'-written" value="'+esc(c.written_date||"")+'" style="font-size:12px;"/></div>';
+      html += '<div style="flex:1; min-width:160px;"><label style="font-size:10.5px;">Per E-Mail bestätigt am</label><input type="date" id="'+uid+'-email" value="'+esc(c.email_date||"")+'" style="font-size:12px;"/></div>';
+      html += '<button class="btn-ghost" style="font-size:11.5px; padding:8px 14px;" onclick="saveConsent(\''+p.id+'\')">Speichern</button>';
+      html += '</div>';
+      html += '<p id="'+uid+'-msg" class="muted" style="font-size:11px; margin-top:8px;"></p>';
+      html += '</div>';
+    });
+    html += '</div>';
+    box.innerHTML = html;
+  });
+}
+
+function saveConsent(playerId){
+  var uid = 'consent-'+playerId;
+  var given = el(uid+'-given').checked;
+  var written = el(uid+'-written').value || null;
+  var emailD = el(uid+'-email').value || null;
+  sb.rpc("upsert_parent_consent", {p_player_id: playerId, p_consent_given: given, p_written_date: written, p_email_date: emailD}).then(function(r){
+    var msg = el(uid+'-msg');
+    if(r.error){ if(msg){ msg.style.color = "var(--bad)"; msg.textContent = "Fehler: "+r.error.message; } return; }
+    if(msg){ msg.style.color = "var(--good)"; msg.textContent = "✓ Gespeichert · "+new Date().toLocaleString("de-CH"); }
+    loadConsentTable();
+  });
+}
+
 /* ════════════════════════════════════════════════════════════
    🎓 JONGLIERREIHE — Offizielle Prüfung FE12 → U15
    Quelle: Partnerschaft Basel Jonglierreihe PDF.
@@ -6826,8 +6910,12 @@ var Reflex = (function(){
     var refl = myReflections[match.id];
     var html = '<div style="border-top:1px solid var(--line); margin-top:10px; padding-top:10px;">';
     html += '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">';
-    if(refl){
-      html += '<span style="color:#3ecf6d; font-size:12px; font-weight:700;">🟢 Selbstreflexion ausgefüllt · '+fmtDT(refl.updated_at)+'</span>';
+    if(refl && refl.finalized_at){
+      html += '<span style="color:var(--gold); font-size:12px; font-weight:700;">🔒 Abgeschlossen · '+fmtDT(refl.finalized_at)+'</span>';
+      html += '<div style="display:flex; gap:8px;"><button class="btn-ghost" style="font-size:11px; padding:4px 10px;" onclick="Reflex.toggleForm(\''+match.id+'\')">Ansehen</button>'+
+        '<button class="btn-ghost" style="font-size:11px; padding:4px 10px;" onclick="Reflex.exportPdf(\''+match.id+'\')">📄 PDF</button></div>';
+    } else if(refl){
+      html += '<span style="color:#3ecf6d; font-size:12px; font-weight:700;">🟢 Entwurf gespeichert · '+fmtDT(refl.updated_at)+' <span class="muted" style="font-weight:500;">(noch nicht abgeschlossen)</span></span>';
       html += '<div style="display:flex; gap:8px;"><button class="btn-ghost" style="font-size:11px; padding:4px 10px;" onclick="Reflex.toggleForm(\''+match.id+'\')">Bearbeiten</button>'+
         '<button class="btn-ghost" style="font-size:11px; padding:4px 10px;" onclick="Reflex.exportPdf(\''+match.id+'\')">📄 PDF</button></div>';
     } else if(isCurrent){
@@ -6847,6 +6935,17 @@ var Reflex = (function(){
     if(!box) return;
     if(box.innerHTML.trim()!==""){ box.innerHTML=""; return; }
     var refl = myReflections[matchId];
+
+    if(refl && refl.finalized_at){
+      // Abgeschlossen: nur noch Ansicht, keine Bearbeitung mehr moeglich
+      var html = '<div class="card" style="background:rgba(255,255,255,0.03); margin-top:10px; padding:16px;">';
+      html += '<p style="font-size:12px; color:var(--gold); font-weight:700; margin-bottom:14px;">🔒 Diese Selbstreflexion ist abgeschlossen und wurde am '+fmtDT(refl.finalized_at)+' fest eingetragen. Sie kann nicht mehr geändert werden.</p>';
+      html += staffDetailHtml(refl, true);
+      html += '</div>';
+      box.innerHTML = html;
+      return;
+    }
+
     var answers = refl ? (refl.answers||{}) : {};
     var texts = refl ? (refl.texts||{}) : {};
 
@@ -6875,7 +6974,11 @@ var Reflex = (function(){
     });
 
     html += '<p style="font-size:12px; color:var(--text-3); margin:14px 0; font-style:italic;">Danke fürs Ausfüllen! 🎉 Sei stolz auf das, was du gut gemacht hast – und wähle eine Sache, die du beim nächsten Spiel verbessern willst.</p>';
-    html += '<button class="btn" onclick="Reflex.submit(\''+matchId+'\')">Speichern</button>';
+    html += '<div style="display:flex; gap:10px; flex-wrap:wrap;">';
+    html += '<button class="btn-ghost" onclick="Reflex.submit(\''+matchId+'\', false)">Als Entwurf speichern</button>';
+    html += '<button class="btn" onclick="Reflex.submit(\''+matchId+'\', true)">✅ Ausfüllen abschliessen</button>';
+    html += '</div>';
+    html += '<p class="muted" style="font-size:11px; margin-top:8px;">⚠️ Nach dem Abschliessen kann diese Selbstreflexion nicht mehr geändert werden — sie wird mit Datum und Uhrzeit fest für dieses Spiel eingetragen und ist für dich und deinen Trainer sichtbar.</p>';
     html += '</div>';
     box.innerHTML = html;
     box.dataset.answers = JSON.stringify(answers);
@@ -6891,19 +6994,22 @@ var Reflex = (function(){
     SCALE.forEach(function(s, i){ btns[i].className = (answers[key]===s.v) ? "btn" : "btn-ghost"; });
   }
 
-  function submit(matchId){
+  function submit(matchId, finalize){
     var box = el("reflex-form-"+matchId);
     var answers = JSON.parse(box.dataset.answers||"{}");
     var qCount = allQuestions().length;
     if(Object.keys(answers).length < qCount){
       if(!confirm("Nicht alle Fragen beantwortet. Trotzdem speichern?")) return;
     }
+    if(finalize){
+      if(!confirm("Sicher? Nach dem Abschliessen kannst du diese Selbstreflexion nicht mehr ändern. Sie wird mit Datum und Uhrzeit fest für dieses Spiel eingetragen und ist für dich und deinen Trainer sichtbar.")) return;
+    }
     var texts = {};
     allTextFields().forEach(function(t){
       var f = el("reflex-text-"+matchId+"-"+t.key);
       if(f) texts[t.key] = f.value.trim();
     });
-    sb.rpc("submit_self_reflection", {p_match_id:matchId, p_answers:answers, p_texts:texts}).then(function(r){
+    sb.rpc("submit_self_reflection", {p_match_id:matchId, p_answers:answers, p_texts:texts, p_finalize: !!finalize}).then(function(r){
       if(r.error){ alert("Fehler: "+r.error.message); return; }
       Spielplan.loadPlayerView();
     });
@@ -6943,7 +7049,7 @@ var Reflex = (function(){
         players.forEach(function(p){
           var refl = matchRefl.find(function(x){return x.player_id===p.id;});
           html += '<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-top:1px solid var(--line);">';
-          html += '<span style="font-size:13px; color:#fff;">'+(refl?'🟢':'🟠')+' '+esc(p.display_name)+'</span>';
+          html += '<span style="font-size:13px; color:#fff;">'+(refl?(refl.finalized_at?'🔒':'📝'):'🟠')+' '+esc(p.display_name)+'</span>';
           if(refl){
             html += '<div style="display:flex; gap:6px;"><button class="btn-ghost" style="font-size:11px; padding:4px 8px;" onclick="Reflex.staffToggleDetail(\''+refl.id+'\')">Details</button>'+
               '<button class="btn-ghost" style="font-size:11px; padding:4px 8px; color:var(--bad);" onclick="Reflex.staffReset(\''+refl.id+'\')">Reset</button></div>';
@@ -6963,6 +7069,11 @@ var Reflex = (function(){
 
   function staffDetailHtml(refl){
     var html = '';
+    if(refl.finalized_at){
+      html += '<p style="font-size:12px; color:var(--gold); font-weight:700; margin-bottom:6px;">🔒 Abgeschlossen (fest eingetragen) · '+fmtDT(refl.finalized_at)+'</p>';
+    } else {
+      html += '<p style="font-size:12px; color:#f0c419; font-weight:700; margin-bottom:6px;">📝 Entwurf — noch nicht abgeschlossen</p>';
+    }
     SECTIONS.forEach(function(section){
       var hasContent = section.questions.some(function(q){return (refl.answers||{})[q.key];}) || section.texts.some(function(t){return (refl.texts||{})[t.key];});
       if(!hasContent) return;
@@ -6977,7 +7088,7 @@ var Reflex = (function(){
         if(v) html += '<p style="font-size:12px; color:#fff; margin-top:2px;"><b>'+esc(t.label)+':</b> '+esc(v)+'</p>';
       });
     });
-    html += '<p class="muted" style="font-size:11px; margin-top:8px;">Ausgefüllt: '+fmtDT(refl.updated_at)+'</p>';
+    html += '<p class="muted" style="font-size:11px; margin-top:8px;">Zuletzt gespeichert: '+fmtDT(refl.updated_at)+'</p>';
     return html;
   }
 
