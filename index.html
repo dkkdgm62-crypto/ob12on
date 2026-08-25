@@ -942,6 +942,8 @@ footer {
       </div>
     </div>
     
+    <div id="jr-section" style="margin-bottom:32px;"></div>
+
     <div id="skills-grid">
       <!-- Dynamisch befüllt (Jonglieren & Tricks) -->
     </div>
@@ -1059,6 +1061,7 @@ footer {
       <button id="stab-vor" class="btn-ghost" onclick="showStaffTab('vor')">Module ansehen</button>
       <button id="stab-spieler" class="btn-ghost" onclick="showStaffTab('spieler')">🔐 Spieler verwalten</button>
       <button id="stab-inhalte" class="btn-ghost" onclick="showStaffTab('inhalte')" style="border-color:var(--accent); color:var(--accent);">✏️ Inhalte bearbeiten</button>
+    <button id="stab-jonglier" class="btn-ghost" onclick="showStaffTab('jonglier')">🎓 Jonglierreihe</button>
     </div>
 
     <!-- Trainer-Tab: Kader & Fortschritt -->
@@ -1431,6 +1434,18 @@ footer {
       <div id="ce-module-list" style="display:flex; flex-direction:column; gap:10px;"></div>
 
       <!-- Modul-Editor Modal wird dynamisch erzeugt -->
+    </div>
+
+    <!-- Trainer-Tab: Jonglierreihe bestätigen -->
+    <div id="staff-jonglier" class="card hidden">
+      <p class="eyebrow">Offizielle Prüfung</p>
+      <h3 style="margin:8px 0 16px; color:#fff;">🎓 Jonglierreihe — Übungen bestätigen</h3>
+      <p class="muted" style="font-size:13px; margin-bottom:16px;">Wähle einen Spieler und hake jede Übung ab, sobald sie erfolgreich vorgezeigt wurde. Erst wenn ein Niveau komplett ist, wird für den Spieler das nächste sichtbar.</p>
+      <div style="max-width:340px; margin-bottom:20px;">
+        <label>Spieler/in</label>
+        <select id="jr-staff-player" onchange="loadJrStaffPlayer()"></select>
+      </div>
+      <div id="jr-staff-body"><p class="muted" style="font-size:13px;">Bitte Spieler/in auswählen.</p></div>
     </div>
 
   </div>
@@ -2162,7 +2177,7 @@ function exportLeaderboardPDF() {
 function openStaff(){ hide("player-nav"); only("view-staff"); show("app-head"); showStaffTab("kader"); }
 function showStaffTab(t){
   scrollToTop();
-  ["kader","skills","rang","frei","zeit","runden","log","vor","spieler","inhalte"].forEach(function(k){
+  ["kader","skills","rang","frei","zeit","runden","log","vor","spieler","inhalte","jonglier"].forEach(function(k){
     var btn = el("stab-"+k); if(btn) btn.className = k===t?"active":"btn-ghost";
     var content = el("staff-"+k); if(content) content.classList.toggle("hidden", k!==t);
   });
@@ -2187,11 +2202,150 @@ function showStaffTab(t){
   if(t==="vor")  loadStaffModules();
   if(t==="spieler") loadInvitations();
   if(t==="inhalte") CE.load();
+  if(t==="jonglier") loadJrStaffForm();
 }
 
 /* ====================================================================
    FUSION SYSTEM EXTRA FUNCTIONS: SKILLS & KADER
    ==================================================================== */
+/* ════════════════════════════════════════════════════════════
+   🎓 JONGLIERREIHE — Offizielle Prüfung FE12 → U15
+   Quelle: Partnerschaft Basel Jonglierreihe PDF.
+   Bestehen wird ausschliesslich vom Trainer bestätigt (mark_juggling_exercise RPC).
+   ════════════════════════════════════════════════════════════ */
+var JUGGLING_DATA = {
+  1: { label: 'FE12 · Niveau 1', exercises: [
+    {id:'jr_fe12_frei', name:'Frei', desc:'Frei jonglieren', rules:'Jedes Körperteil bis auf Arme erlaubt', count:'100x'},
+    {id:'jr_fe12_lire', name:'Li/Re Fuss', desc:'Abwechselnd Li/Re Fuss', rules:'Ball nicht höher wie Hüfte, wenig Rotation', count:'100x'},
+    {id:'jr_fe12_kreis', name:'Kleiner Kreis', desc:'Re Fuss – Re Knie – Li Knie – Li Fuss', rules:'Es darf gerettet werden, z.B. 2x mit Fuss. Reihenfolge muss eingehalten werden', count:'10x'}
+  ]},
+  2: { label: 'FE13 · Niveau 2', exercises: [
+    {id:'jr_fe13_kopfball', name:'Kopfball', desc:'Mit Kopf jonglieren', rules:'Nur mit Kopf erlaubt', count:'20x'},
+    {id:'jr_fe13_grosserkreis', name:'Grosser Kreis', desc:'Re Fuss – Re Knie – Kopf – Li Knie – Li Fuss', rules:'Es darf gerettet werden, z.B. 2x mit Fuss. Reihenfolge muss eingehalten werden', count:'10x'},
+    {id:'jr_fe13_ueberkopf', name:'Über Kopf', desc:'Mit Füssen jonglieren und 1x Re/Li über Kopf spielen, drehen und weiter jonglieren', rules:'Mit den Füssen jonglieren: Kontakte unbegrenzt', count:'10x'},
+    {id:'jr_fe13_innenaussen', name:'Innen-/Aussenseite', desc:'Re Fuss Aussenseite/Innenseite – Li Fuss Aussenseite/Innenseite', rules:'Jeweils ein Kontakt, kein Retten möglich', count:'5x Re / 5x Li'},
+    {id:'jr_fe13_nacken', name:'Nacken', desc:'Jonglieren mit Füssen – Ball in Nacken nehmen', rules:'Frei jonglieren mit den Füssen, Ball in Nacken nehmen, 5 Sek. halten', count:'3x'},
+    {id:'jr_fe13_fussboden', name:'Fuss am Boden', desc:'Ball während dem Jonglieren auf den flachen Fuss fallen lassen / Re Fuss – Li Fuss', rules:'Fuss muss flach am Boden sein, direkt weiter jonglieren', count:'10x'}
+  ]},
+  3: { label: 'FE14 · Niveau 3', exercises: [
+    {id:'jr_fe14_crossover', name:'Crossover Trick', desc:'Ein Bein spielt den Ball in der Luft, das andere dreht von Aussen nach Innen über den Ball', rules:'Beide Beine in der Luft', count:'5x Re / 5x Li'},
+    {id:'jr_fe14_crossoverstehend', name:'Crossover stehend', desc:'Das Standbein bleibt am Boden, das andere dreht von Aussen nach Innen über den Ball', rules:'', count:'5x Re / 5x Li'},
+    {id:'jr_fe14_atw', name:'Around the World', desc:'ATW innen/aussen sowie aussen/innen mit Re Fuss und Li Fuss durchführen', rules:'Es darf gerettet werden', count:'je 1x'},
+    {id:'jr_fe14_aussenseite', name:'Aussenseite', desc:'Re Fuss Aussenseite – Li Fuss Aussenseite', rules:'Jeweils ein Kontakt, kein Retten möglich', count:'10x'},
+    {id:'jr_fe14_hochnehmen', name:'Ball hochnehmen', desc:'Trick: Ball vom Boden aufnehmen', rules:'Der Ausbildner entscheidet, ob der Trick geschafft ist', count:'3x Li/Re'}
+  ]},
+  4: { label: 'U15 · Niveau 4', exercises: [
+    {id:'jr_u15_brasilkreis', name:'Brasilianischer Kreis', desc:'Re Fuss – Re Knie – Re Schulter – Kopf – Li Schulter – Li Knie – Li Fuss', rules:'Es darf gerettet werden, z.B. 2x mit Fuss. Reihenfolge muss eingehalten werden', count:'10x'},
+    {id:'jr_u15_ferse', name:'Ferse', desc:'Re Fuss – Li Fuss – Re Ferse – Li Fuss – Re Fuss – Li Ferse', rules:'Ablauf muss genauso eingehalten werden, kein Retten möglich', count:'10x'},
+    {id:'jr_u15_brust', name:'Brust', desc:'Im Laufen abwechselnd Fuss – Brust', rules:'Jeweils ein Kontakt Fuss-Brust, welcher Fuss egal', count:'Grundlinie zu Mittellinie'},
+    {id:'jr_u15_kopf', name:'Kopf', desc:'Im Laufen abwechselnd Fuss – Kopf', rules:'Jeweils ein Kontakt Fuss-Kopf, welcher Fuss egal', count:'Grundlinie zu Mittellinie'},
+    {id:'jr_u15_pancake', name:'Pancake Trick', desc:'Ball mit dem Aussenrist am Boden auffangen und weiter jonglieren', rules:'', count:'5x Re / 5x Li'}
+  ]}
+};
+var JUGGLING_TEAM = [
+  {id:'jr_team_twotouch', name:'Zu Zweit two touch', desc:'Ball zu zweit jonglieren hin und her', rules:'Two touch, immer rechts links', count:'50x'},
+  {id:'jr_team_onetouch', name:'Zu Zweit one touch', desc:'Ball zu zweit jonglieren hin und her', rules:'One touch', count:'50x'},
+  {id:'jr_team_brust', name:'Zu Zweit two touch Brust', desc:'Ball zu zweit jonglieren hin und her mit Fuss auf Brust', rules:'Brustannahme und mit Fuss dem Gegenüber auf Brust spielen', count:'je 20x'},
+  {id:'jr_team_kopf', name:'Zu Zweit Kopf', desc:'Ball zu zweit jonglieren hin und her', rules:'Nur mit Kopf', count:'30x'},
+  {id:'jr_team_kopftwotouch', name:'Zu Zweit Kopf two touch', desc:'Ball zu zweit jonglieren hin und her', rules:'Nur mit Kopf, two touch', count:'20x'},
+  {id:'jr_team_laufenseitlich', name:'Zu zweit laufen (seitlich)', desc:'Ball zu zweit jonglieren hin und her im Laufen (seitlich)', rules:'Maximal two touch', count:'Grundlinie bis Mittellinie'},
+  {id:'jr_team_laufenrueckwaerts', name:'Zu zweit laufen (rückwärts/gerade)', desc:'Ball zu zweit jonglieren hin und her im Laufen (rückwärts und gerade)', rules:'Maximal two touch', count:'Grundlinie bis Mittellinie'},
+  {id:'jr_team_laufenkopf', name:'Zu zweit laufen (Kopf)', desc:'Ball zu zweit jonglieren hin und her im Laufen (rückwärts und gerade)', rules:'Nur Kopf', count:'Grundlinie bis Mittellinie'}
+];
+
+function jrRow(e, ok){
+  return '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; background:var(--glass-bg-2); border:1px solid var(--glass-border); border-radius:var(--r-md); padding:8px 10px;">'
+    + '<div><b style="font-size:13px; color:var(--text-1);">'+esc(e.name)+'</b> <span class="muted" style="font-size:11px;">('+esc(e.count)+')</span>'
+    + '<div class="muted" style="font-size:11px; margin-top:2px;">'+esc(e.desc)+(e.rules?' — '+esc(e.rules):'')+'</div></div>'
+    + '<span style="font-size:18px; flex-shrink:0;" title="'+(ok?'Bestanden':'Noch nicht bestanden')+'">'+(ok?'✅':'⏳')+'</span></div>';
+}
+
+function renderJugglingReihe(){
+  var box = el('jr-section');
+  if(!box || !ME) return;
+  box.innerHTML = '<p class="muted" style="font-size:12px;">Lade Jonglierreihe...</p>';
+  sb.from('juggling_progress').select('exercise_id,passed').eq('player_id', ME.id).then(function(r){
+    if(!box) return;
+    var passed = {};
+    (r.data||[]).forEach(function(row){ if(row.passed) passed[row.exercise_id]=true; });
+    function levelDone(lv){ return JUGGLING_DATA[lv].exercises.every(function(e){ return !!passed[e.id]; }); }
+
+    var html = '<h3 style="color:#fff; font-family:\'Sora\'; font-size:18px; margin:0 0 4px; display:flex; align-items:center; gap:8px;">🎓 Jonglierreihe — Offizielle Prüfung</h3>';
+    html += '<p class="muted" style="font-size:12px; margin-bottom:16px;">FE12 → U15. Der Trainer bestätigt jede Übung nach Vorführung. Erst wenn alle Übungen eines Niveaus bestanden sind, schaltet sich das nächste frei.</p>';
+
+    for(var lv=1; lv<=4; lv++){
+      var data = JUGGLING_DATA[lv];
+      var unlocked = (lv===1) || levelDone(lv-1);
+      var complete = levelDone(lv);
+      html += '<div class="card g-card-sm" style="margin-bottom:12px; opacity:'+(unlocked?1:0.45)+';">';
+      html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">';
+      html += '<p class="eyebrow" style="margin:0;">'+(complete?'✅ ':(unlocked?'🔓 ':'🔒 '))+esc(data.label)+'</p>';
+      if(!unlocked) html += '<span class="muted" style="font-size:11px;">Erst nach Niveau '+(lv-1)+'</span>';
+      html += '</div><div style="display:flex; flex-direction:column; gap:6px;">';
+      data.exercises.forEach(function(e){ html += jrRow(e, !!passed[e.id]); });
+      html += '</div></div>';
+    }
+
+    html += '<div class="card g-card-sm" style="margin-bottom:8px;">';
+    html += '<p class="eyebrow" style="margin:0 0 8px;">👥 Team-Übungen (immer offen, egal auf welcher Stufe)</p>';
+    html += '<div style="display:flex; flex-direction:column; gap:6px;">';
+    JUGGLING_TEAM.forEach(function(e){ html += jrRow(e, !!passed[e.id]); });
+    html += '</div></div>';
+
+    box.innerHTML = html;
+  });
+}
+
+function loadJrStaffForm(){
+  sb.from("profiles").select("id,display_name").eq("role","spieler").order("display_name").then(function(r){
+    var pData = r.data || [];
+    var sel = el("jr-staff-player");
+    if(!sel) return;
+    var current = sel.value;
+    sel.innerHTML = '<option value="">— Spieler wählen —</option>' + pData.map(function(p){
+      return '<option value="'+p.id+'">'+esc(p.display_name)+'</option>';
+    }).join('');
+    if(current){ sel.value = current; }
+  });
+}
+
+function loadJrStaffPlayer(){
+  var pid = el("jr-staff-player").value;
+  var body = el("jr-staff-body");
+  if(!body) return;
+  if(!pid){ body.innerHTML = '<p class="muted" style="font-size:13px;">Bitte Spieler/in auswählen.</p>'; return; }
+  body.innerHTML = '<p class="muted" style="font-size:13px;">Lade...</p>';
+  sb.from('juggling_progress').select('exercise_id,passed').eq('player_id', pid).then(function(r){
+    var passed = {};
+    (r.data||[]).forEach(function(row){ if(row.passed) passed[row.exercise_id]=true; });
+
+    function checkRow(e){
+      var checked = !!passed[e.id];
+      return '<label style="display:flex; align-items:flex-start; gap:10px; background:var(--glass-bg-2); border:1px solid var(--glass-border); border-radius:var(--r-md); padding:8px 10px; cursor:pointer;">'
+        + '<input type="checkbox" style="margin-top:3px; width:16px; height:16px; cursor:pointer;" '+(checked?'checked':'')+' onchange="toggleJrExercise(\''+pid+'\',\''+e.id+'\',this.checked)" />'
+        + '<div><b style="font-size:13px; color:var(--text-1);">'+esc(e.name)+'</b> <span class="muted" style="font-size:11px;">('+esc(e.count)+')</span>'
+        + '<div class="muted" style="font-size:11px; margin-top:2px;">'+esc(e.desc)+(e.rules?' — '+esc(e.rules):'')+'</div></div></label>';
+    }
+
+    var html = '';
+    for(var lv=1; lv<=4; lv++){
+      html += '<div class="card g-card-sm" style="margin-bottom:12px;"><p class="eyebrow" style="margin:0 0 8px;">'+esc(JUGGLING_DATA[lv].label)+'</p><div style="display:flex; flex-direction:column; gap:6px;">';
+      JUGGLING_DATA[lv].exercises.forEach(function(e){ html += checkRow(e); });
+      html += '</div></div>';
+    }
+    html += '<div class="card g-card-sm"><p class="eyebrow" style="margin:0 0 8px;">👥 Team-Übungen</p><div style="display:flex; flex-direction:column; gap:6px;">';
+    JUGGLING_TEAM.forEach(function(e){ html += checkRow(e); });
+    html += '</div></div>';
+    body.innerHTML = html;
+  });
+}
+
+function toggleJrExercise(playerId, exerciseId, checked){
+  sb.rpc('mark_juggling_exercise', {p_player: playerId, p_exercise_id: exerciseId, p_passed: checked}).then(function(r){
+    if(r.error){ alert('Fehler: '+r.error.message); loadJrStaffPlayer(); }
+  });
+}
+
 var SKILL_CHALLENGES = [
   // JONGLIEREN (JUGGLING)
   {
@@ -2305,6 +2459,7 @@ function getBadge(score, limits, type) {
 }
 
 function renderPlayerSkills() {
+  renderJugglingReihe();
   var userSkills = PROFILE.skills || {};
   var html = "";
   
