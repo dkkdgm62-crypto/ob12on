@@ -800,16 +800,13 @@ footer {
       <div style="padding:28px 24px;">
         <div style="font-size:48px; margin-top:-60px; position:relative; z-index:2; filter:drop-shadow(0 4px 10px rgba(0,0,0,0.5));">🔒</div>
         <h2 style="margin-bottom:10px; color:#fff; margin-top:8px;">Die Akademie ist gerade geschlossen</h2>
-        <p class="muted" id="closed-msg">Gelernt wird immer am <b>Dienstag von 18:30 bis 20:00 Uhr</b>.</p>
+        <p class="muted" id="closed-msg">Gelernt wird immer am <b>Dienstag von 18:30–20:00 Uhr</b> sowie am <b>Sonntag von 16:00–18:00 Uhr</b>.</p>
         <div id="closed-count" class="clock warn" style="display:inline-flex; margin-top:18px; justify-content:center;"></div>
         <p class="muted" style="margin-top:20px; font-size:13px;">Dein bisheriger Fortschritt ist sicher gespeichert – es geht genau dort weiter.</p>
         <div style="margin-top:24px; border-top:1px solid rgba(255,255,255,0.08); padding-top:20px;">
           <p style="font-size:13.5px; color:#fff; font-weight:600; margin-bottom:12px;">Trotzdem trainieren?</p>
           <button class="btn" style="width:100%; display:inline-flex; align-items:center; justify-content:center; gap:8px; margin-bottom:10px;" onclick="openSkillsOnly()">
-            🎯 Skill-Challenges öffnen & eintragen
-          </button>
-          <button class="btn-ghost" style="width:100%; display:inline-flex; align-items:center; justify-content:center; gap:8px;" onclick="downloadSommerprogrammPDF()">
-            📄 SKILLS Master PDF herunterladen
+            🎯 Skill-Challenges ansehen
           </button>
         </div>
       </div>
@@ -937,9 +934,6 @@ footer {
       <p style="font-size:13px; line-height:1.5; margin-top:12px; color:var(--gold); font-weight:700; border-top: 1px solid var(--line); padding-top:12px;">
         👉 <em>Ferien und Zeit mit der Familie sind wichtig, um Kraft zu tanken! Erholung gehört zum Sport dazu. Wenn du wieder trainierst, bleib motiviert dabei. Du hast dir den Platz im Team Basel Old Boys durch deinen Fleiß verdient. Nutze diesen Sommer, um dich spielerisch vorzubereiten. Jeder Schritt bringt dich deinen Zielen – wie der FE13 oder dem FC Basel U13 – ein Stück näher! Wir glauben an dich! ⚽🚀</em>
       </p>
-      <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
-        <button class="btn" style="padding: 10px 16px; font-size: 13px;" onclick="downloadSommerprogrammPDF()">📄 SKILLS Master PDF herunterladen</button>
-      </div>
     </div>
     
     <div id="skills-grid">
@@ -1514,6 +1508,7 @@ var MODULES = [];                 // Modulstatus des Spielers
 var QZ = null;                    // aktuelles Quiz
 var clockTimer = null, secsLeft = null, syncTimer = null, closingShown = false;
 var playerTab = "lernen";
+var SKILLS_READONLY = false;
 var currentLefilter = "round";
 
 var CATEGORY_NAMES = {
@@ -1725,8 +1720,8 @@ function onWindowClosed(){
   if(isStaff()){return;}
   closingShown=true; stopClock();
   only("view-closed"); show("app-head");
-  var days = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
-  var dayName = (ACCESS && ACCESS.weekday) ? (days[ACCESS.weekday - 1] || "Dienstag") : "Dienstag";
+  var next = nextWindowInfo(ACCESS);
+  var dayName = next ? next.label : "Dienstag";
   el("closed-msg").innerHTML="Stark gelernt heute! 👏 Die Lernakademie schliesst wieder und öffnet am nächsten " + dayName + ".";
   el("closed-count").classList.add("hidden");
   
@@ -1791,13 +1786,15 @@ function humanDur(s){var d=Math.floor(s/86400);s-=d*86400;var h=Math.floor(s/360
    SPIELER
    ==================================================================== */
 function openPlayer(){
+  SKILLS_READONLY = false;
   hide("view-staff"); show("app-head"); show("player-nav"); showPlayerTab(playerTab||"lernen");
 }
 
-/* Skills sind IMMER offen — auch bei geschlossener Akademie */
+/* Skills sind bei geschlossener Akademie nur ANSEHBAR (read-only) */
 function openSkillsOnly(){
   scrollToTop();
   stopClock();
+  SKILLS_READONLY = true;
   show("app-head");
   /* Nur Skills + Rangliste in der Nav, Lernen ausblenden (Lernen nur im Fenster) */
   el("tab-lernen").classList.add("hidden");
@@ -1810,7 +1807,7 @@ function openSkillsOnly(){
     b.style.background = "rgba(212,175,55,0.1)";
     b.style.borderColor = "var(--gold)";
     b.style.color = "#f3d47a";
-    b.innerHTML = "🎯 Die Lern-Module sind nur im Lernfenster offen. Deine Skill-Challenges kannst du aber jederzeit trainieren und eintragen! Zurück zur <a href='#' onclick='showClosed();return false;' style='color:#fff; text-decoration:underline;'>Übersicht</a>.";
+    b.innerHTML = "🔒 Die Akademie ist geschlossen. Du kannst deine Skill-Challenges nur ansehen, nicht bearbeiten. Zurück zur <a href='#' onclick='showClosed();return false;' style='color:#fff; text-decoration:underline;'>Übersicht</a>.";
   }
 }
 function showPlayerTab(t){
@@ -2097,13 +2094,16 @@ function loadLeaderboard(targetId, roundNr){
     if(!rows.length){ el(targetId).innerHTML='<p class="muted center">Noch keine Punkte eingetragen in diesem Bereich.</p>'; return; }
     
     var h='<div style="font-size:12px; color:var(--gold); font-weight:700; margin-bottom:10px;">Auswertung für: '+esc(roundName)+'</div>';
-    h+='<table id="leaderboard-table"><thead><tr><th class="rank">#</th><th>Spieler / Spielerinnen</th><th>Gesamtpunkte</th><th>Meister-Module</th><th>⭐</th></tr></thead><tbody>';
+    h+='<table id="leaderboard-table"><thead><tr><th class="rank">#</th><th>Spieler / Spielerinnen</th><th>Titel</th><th>Gesamtpunkte</th><th>Meister-Module</th><th>⭐</th></tr></thead><tbody>';
     rows.forEach(function(x){
       var me = ME && x.player_id===ME.id;
       var rc = x.rang===1?"r1":(x.rang===2?"r2":(x.rang===3?"r3":""));
       var medal = x.rang===1?"🥇":(x.rang===2?"🥈":(x.rang===3?"🥉":x.rang));
+      var titelEmoji = {"Legende":"👑","Star":"🌟","Champion":"🏆","Talent":"🔥"};
+      var titelHtml = x.rang_titel ? ('<span style="font-weight:800; color:var(--gold);">'+(titelEmoji[x.rang_titel]||'')+' '+esc(x.rang_titel)+'</span>') : '–';
       h+='<tr class="'+(me?"me":"")+'"><td class="rank '+rc+'">'+medal+'</td>'+
          '<td style="color:#fff; font-weight:600;">'+esc(x.display_name)+(me?' <span class="tag">du</span>':'')+'</td>'+
+         '<td>'+titelHtml+'</td>'+
          '<td class="pts">'+x.gesamt+'</td>'+
          '<td>'+x.module_bestanden+' / 4</td>'+
          '<td>'+(x.meister>0?('⭐ '+x.meister):'–')+'</td></tr>';
@@ -2465,6 +2465,7 @@ function renderPlayerSkills() {
 }
 
 function savePlayerSkill(challengeId) {
+  if (SKILLS_READONLY) { kickToClosedDueToAction(); return; }
   var valEl = el("input-skill-" + challengeId);
   var val = valEl.value.trim();
   if (val === "" || isNaN(val) || parseFloat(val) <= 0) {
@@ -2493,7 +2494,15 @@ function savePlayerSkill(challengeId) {
   });
 }
 
+function kickToClosedDueToAction(){
+  var t = document.createElement('div');
+  t.textContent = '🔒 Die Akademie ist geschlossen. Du wirst abgemeldet...';
+  t.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--bg-card);border:1px solid var(--neon-rose);color:#fff;padding:10px 18px;border-radius:var(--r-md);z-index:10001;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.5);';
+  document.body.appendChild(t);
+  setTimeout(function(){ doLogout(); }, 1200);
+}
 function savePlayerSkillSelect(challengeId) {
+  if (SKILLS_READONLY) { kickToClosedDueToAction(); return; }
   var selEl = el("select-skill-" + challengeId);
   var score = parseInt(selEl.value);
   var fbEl = el("fb-skill-" + challengeId);
@@ -4616,6 +4625,15 @@ return {
 var CHAL = (function(){
   var presenceCh = null, inboxCh = null;
   var online = {}; // id -> {name, role}
+  var pointsCache = {}; // id -> gesamt-Punkte
+
+  function refreshPointsCache(cb){
+    sb.rpc("get_leaderboard").then(function(r){
+      pointsCache = {};
+      (r.data||[]).forEach(function(row){ pointsCache[row.player_id] = row.gesamt; });
+      if(cb) cb();
+    });
+  }
   var pendingOutgoingId = null, pendingOutgoingOpponentId = null, pendingOutgoingTimer = null;
   var pendingIncoming = null, pendingIncomingTimer = null;
 
@@ -4637,7 +4655,9 @@ var CHAL = (function(){
     if(ids.length===0){ box.innerHTML = '<p class="muted" style="font-size:12px;padding:6px;">Niemand sonst online.</p>'; return; }
     var html = '';
     ids.forEach(function(id){
-      html += '<div style="padding:6px 8px;font-size:13px;color:var(--text-1);">🟢 '+esc(online[id].name)+'</div>';
+      var pts = pointsCache[id];
+      var ptsLabel = (pts!=null) ? (' · <span style="color:var(--gold); font-weight:700;">'+pts+' Pkt</span>') : '';
+      html += '<div style="padding:6px 8px;font-size:13px;color:var(--text-1);">🟢 '+esc(online[id].name)+ptsLabel+'</div>';
     });
     box.innerHTML = html;
   }
@@ -4649,8 +4669,10 @@ var CHAL = (function(){
     if(ids.length===0){ list.innerHTML = '<p class="muted" style="font-size:12px;">Niemand sonst online...</p>'; return; }
     var html = '';
     ids.forEach(function(id){
+      var pts = pointsCache[id];
+      var ptsLabel = (pts!=null) ? (' · <span style="color:var(--gold); font-weight:700;">'+pts+' Pkt</span>') : '';
       html += '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--glass-bg-2);border:1px solid var(--glass-border);border-radius:var(--r-md);padding:6px 10px;">'
-        + '<span style="font-size:13px;color:var(--text-1);">🟢 '+esc(online[id].name)+'</span>'
+        + '<span style="font-size:13px;color:var(--text-1);">🟢 '+esc(online[id].name)+ptsLabel+'</span>'
         + '<button class="btn-ghost" style="font-size:11px;padding:4px 8px;border-color:var(--accent);color:var(--accent);" onclick="CHAL.challenge(\''+id+'\')">⚔ Fordern</button>'
         + '</div>';
     });
@@ -4715,6 +4737,7 @@ var CHAL = (function(){
           if(state[id] && state[id][0]) online[id] = {name: state[id][0].name, role: state[id][0].role};
         });
         renderPill(); renderDropdown(); renderOnlineList();
+        refreshPointsCache(function(){ renderDropdown(); renderOnlineList(); });
       }).subscribe(function(status){
         if(status==='SUBSCRIBED'){ presenceCh.track({name: myName(), role: PROFILE.role}); }
       });
