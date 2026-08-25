@@ -2582,33 +2582,143 @@ function staffDashTile(icon, value, label, tab){
   '</div>';
 }
 
+function totalJrExercises(){
+  var c = 0;
+  for(var lv=1; lv<=4; lv++){ if(JUGGLING_DATA[lv]) c += JUGGLING_DATA[lv].exercises.length; }
+  c += JUGGLING_TEAM.length;
+  return c;
+}
+
+function fmtDateShort(dstr){
+  if(!dstr) return '–';
+  var d = new Date(dstr+"T00:00:00");
+  if(isNaN(d.getTime())) return dstr;
+  var dd = ('0'+d.getDate()).slice(-2), mm = ('0'+(d.getMonth()+1)).slice(-2);
+  return dd+"."+mm+"."+d.getFullYear();
+}
+
 function loadStaffDashboard(){
   var box = el("dashboard-staff-body");
   if(!box) return;
   box.innerHTML = '<div class="spinner"></div>';
   Promise.all([
-    sb.from("profiles").select("id,is_active").eq("role","spieler"),
+    sb.from("profiles").select("id,display_name,is_active,player_nr,skills").eq("role","spieler"),
     sb.from("dev_warnings").select("id").eq("status","aktiv"),
     sb.from("matches").select("*").order("match_date"),
-    sb.from("self_reflections").select("match_id")
+    sb.from("self_reflections").select("match_id,player_id"),
+    sb.rpc("get_leaderboard", { p_round_nr: ACCESS.current_round }),
+    sb.from("juggling_progress").select("player_id,exercise_id,passed")
   ]).then(function(results){
     var players = results[0].data||[];
     var warnings = results[1].data||[];
     var matches = results[2].data||[];
     var reflections = results[3].data||[];
-    var activePlayers = players.filter(function(p){return p.is_active!==false;}).length;
+    var leaderboard = results[4].data||[];
+    var jrRows = results[5].data||[];
+
+    var activePlayersArr = players.filter(function(p){return p.is_active!==false;});
+    var activePlayers = activePlayersArr.length;
+
     var todayStart = new Date(new Date().toDateString());
     var upcoming = matches.filter(function(m){return new Date(m.match_date+"T00:00:00")>=todayStart;});
     var past = matches.filter(function(m){return new Date(m.match_date+"T00:00:00")<todayStart;});
     var nextMatch = upcoming[0];
-    var lastMatch = past[past.length-1];
-    var lastMatchFilled = lastMatch ? reflections.filter(function(r){return r.match_id===lastMatch.id;}).length : 0;
+    var last3Matches = past.slice(-3).reverse();
 
-    var html = '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(170px,1fr)); gap:14px; margin-bottom:26px;">';
+    var lMap = {};
+    leaderboard.forEach(function(row){ lMap[row.player_id] = row; });
+
+    var jrByPlayer = {};
+    jrRows.forEach(function(row){
+      if(!row.passed) return;
+      jrByPlayer[row.player_id] = (jrByPlayer[row.player_id]||0) + 1;
+    });
+    var jrTotal = totalJrExercises();
+
+    var reflByMatch = {};
+    reflections.forEach(function(r){
+      if(!reflByMatch[r.match_id]) reflByMatch[r.match_id] = {};
+      reflByMatch[r.match_id][r.player_id] = true;
+    });
+
+    var html = '';
+
+    /* ===== 1) Selbstreflexionen — letzte 3 Spiele ===== */
+    html += '<div style="margin-bottom:28px;">';
+    html += '<h3 style="color:#fff; font-size:15px; margin-bottom:12px;">🪞 Selbstreflexionen — Letzte 3 Spiele</h3>';
+    if(last3Matches.length===0){
+      html += '<p class="muted" style="font-size:13px;">Noch keine vergangenen Spiele erfasst.</p>';
+    } else {
+      html += '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(230px,1fr)); gap:14px;">';
+      last3Matches.forEach(function(m){
+        var filledMap = reflByMatch[m.id]||{};
+        var filledCount = activePlayersArr.filter(function(p){return filledMap[p.id];}).length;
+        var missing = activePlayersArr.filter(function(p){return !filledMap[p.id];});
+        var pct = activePlayers>0 ? Math.round((filledCount/activePlayers)*100) : 0;
+        var barColor = pct===100 ? 'var(--good)' : (pct>=50 ? 'var(--gold)' : 'var(--bad)');
+        html += '<div class="card" style="padding:16px; cursor:pointer;" onclick="showStaffTab(\'reflex\')">';
+        html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">';
+        html += '<span style="font-weight:700; color:#fff; font-size:13.5px;">'+esc(m.opponent||'Spiel')+'</span>';
+        html += '<span class="muted" style="font-size:11.5px;">'+fmtDateShort(m.match_date)+'</span>';
+        html += '</div>';
+        html += '<div class="bar" style="margin-bottom:8px;"><i style="width:'+pct+'%; background:'+barColor+';"></i></div>';
+        html += '<div style="display:flex; justify-content:space-between; align-items:center;">';
+        html += '<span style="font-size:12px; font-weight:700; color:'+barColor+';">'+filledCount+' / '+activePlayers+' ausgefüllt</span>';
+        if(missing.length>0){
+          html += '<span class="muted" style="font-size:11px;" title="Offen: '+esc(missing.map(function(p){return p.display_name;}).join(', '))+'">'+missing.length+' offen</span>';
+        } else {
+          html += '<span style="font-size:11px; color:var(--good); font-weight:700;">✓ komplett</span>';
+        }
+        html += '</div></div>';
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+
+    /* ===== 2) Gesamt-Statistik: Lernen / Skills / Jonglieren ===== */
+    html += '<div style="margin-bottom:28px;">';
+    html += '<h3 style="color:#fff; font-size:15px; margin-bottom:12px;">📊 Gesamt-Statistik — Lernen, Skills &amp; Jonglieren</h3>';
+    var statsPlayers = activePlayersArr.slice().sort(function(a,b){
+      var na = a.player_nr ? parseInt(a.player_nr) : 999;
+      var nb = b.player_nr ? parseInt(b.player_nr) : 999;
+      return na-nb;
+    });
+    if(statsPlayers.length===0){
+      html += '<p class="muted" style="font-size:13px;">Keine aktiven Spieler/innen.</p>';
+    } else {
+      html += '<div class="table-container"><table class="trainer-table" style="font-size:13px;"><thead><tr>';
+      html += '<th style="width:50px; text-align:center;">Nr.</th><th>Spieler/in</th>';
+      html += '<th style="text-align:center;">📖 Lernen</th>';
+      html += '<th style="text-align:center;">🎯 Skill-Punkte</th>';
+      html += '<th style="text-align:center;">🎓 Jonglierreihe</th>';
+      html += '</tr></thead><tbody>';
+      statsPlayers.forEach(function(p){
+        var l = lMap[p.id] || { module_bestanden: 0 };
+        var lernPct = Math.round((Math.min(l.module_bestanden,4)/4)*100);
+        var skillTotal = 0;
+        SKILL_CHALLENGES.forEach(function(c){
+          var score = (p.skills && p.skills[c.id]!=null) ? parseInt(p.skills[c.id]) : 0;
+          skillTotal += skillPointsFor(score);
+        });
+        var jrDone = jrByPlayer[p.id]||0;
+        var name = formatPlayerName(p.display_name, p.skills);
+        html += '<tr>';
+        html += '<td style="text-align:center; font-weight:800; color:var(--gold);">'+esc(p.player_nr||'–')+'</td>';
+        html += '<td style="font-weight:700; color:#fff;">'+esc(name)+'</td>';
+        html += '<td style="text-align:center;">'+l.module_bestanden+' / 4 <span class="muted" style="font-size:11px;">('+lernPct+'%)</span></td>';
+        html += '<td style="text-align:center; font-weight:800; color:var(--gold);">'+skillTotal+'</td>';
+        html += '<td style="text-align:center;">'+jrDone+' / '+jrTotal+'</td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+    html += '</div>';
+
+    /* ===== 3) KPI-Kacheln ===== */
+    html += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(170px,1fr)); gap:14px; margin-bottom:26px;">';
     html += staffDashTile('👥', activePlayers, 'Aktive Spieler', 'kader');
     html += staffDashTile('🟨', warnings.length, 'Aktive Gelbe Karten', 'ziel');
     html += staffDashTile('📅', nextMatch ? nextMatch.match_date : '–', 'Nächstes Spiel', 'spiele');
-    html += staffDashTile('🪞', lastMatch ? (lastMatchFilled+'/'+activePlayers) : '–', 'Selbstreflexion letztes Spiel', 'reflex');
     html += '</div>';
 
     html += '<h3 style="color:#fff; font-size:14px; margin-bottom:12px;">Schnellzugriff</h3>';
