@@ -370,6 +370,15 @@ body {
   box-shadow: var(--glow-sm);
 }
 .nav-gap { flex-shrink:0; width:1px; align-self:stretch; margin: 8px 8px 0; background: var(--glass-border); }
+/* Trainer-Dashboard hat sehr viele Tabs - statt mühsamem horizontalen Scrollen brechen sie sauber um */
+.nav-wrap {
+  flex-wrap: wrap;
+  overflow-x: visible;
+  row-gap: 8px;
+}
+.nav-wrap button, .nav-wrap .g-tab {
+  border-radius: var(--r-md);
+}
 .dash-tile { background: rgba(255,255,255,0.03); transition: all var(--dur-base) var(--ease-out); }
 .dash-tile:hover { background: var(--accent-10); border-color: var(--accent-28); box-shadow: 0 0 20px var(--accent-18), var(--glow-sm); transform: translateY(-3px); }
 /* Checkbox-Label, das beim Ankreuzen deutlich sichtbar hervortritt (Farbe/Rahmen/Fettschrift) - wirkt sofort, auch ohne JS */
@@ -797,8 +806,8 @@ footer {
   <div id="view-setup" class="hidden">
     <div class="card">
       <p class="eyebrow">Setup</p>
-      <h2 style="margin:8px 0 12px">Supabase-Zugang fehlt</h2>
-      <p class="muted">Trage in der App-Konfiguration deine <b>SUPABASE_URL</b> und deinen <b>SUPABASE_ANON_KEY</b> ein. Der anon-Key darf öffentlich sein.</p>
+      <h2 style="margin:8px 0 12px">Verbindung nicht eingerichtet</h2>
+      <p class="muted">Die Zugangsdaten für die Datenanbindung fehlen in der App-Konfiguration. Bitte prüfe die Einrichtung, bevor die Akademie öffentlich zugänglich ist.</p>
     </div>
   </div>
 
@@ -810,7 +819,9 @@ footer {
       <img src="Fussball SpielZ.jpeg" alt="" style="width:100%; height:100%; object-fit:cover; filter:brightness(0.5) saturate(1.15);"/>
       <div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(8,6,26,0.05) 0%, rgba(8,6,26,0.35) 45%, var(--bg-deep) 96%);"></div>
       <div style="position:absolute; left:0; right:0; bottom:0; text-align:center; padding:0 var(--sp-4) 4px;">
-        <img id="login-logo" src="" alt="Logo" style="width:104px; height:104px; border-radius:24px; object-fit:cover; border:2px solid rgba(255,255,255,0.28); box-shadow:0 12px 34px rgba(0,0,0,0.6); background:#000; margin-bottom:12px;"/>
+        <div style="width:172px; height:172px; margin:0 auto 14px; border-radius:36px; overflow:hidden; border:2px solid rgba(255,255,255,0.28); box-shadow:0 14px 38px rgba(0,0,0,0.6); background:#000;">
+          <img id="login-logo" src="" alt="Logo" style="width:100%; height:100%; object-fit:contain; object-position:center; display:block;"/>
+        </div>
         <h1 style="font-size:30px; font-family:'Sora'; font-weight:800; color:#fff; margin:0; text-shadow:0 3px 16px rgba(0,0,0,0.65);">FE12 - OB Online</h1>
         <p style="font-size:12px; letter-spacing:0.16em; text-transform:uppercase; margin-top:6px; font-weight:700; color:var(--gold);">Team Basel-Old Boys · DNA</p>
       </div>
@@ -866,7 +877,7 @@ footer {
         <p class="eyebrow">Sicherheit & Kinderschutz</p>
         <h2 style="margin:6px 0 10px; color:#fff;">🔒 Verantwortungsvoll für unsere Spieler</h2>
         <p class="muted" style="font-size:13.5px; line-height:1.65;">
-          Da unsere Spieler grösstenteils minderjährig sind, legen wir besonderen Wert auf Sicherheit: Die Akademie wird in der Schweiz gehostet, Inhalte dürfen nicht kopiert, geklont oder an Dritte weitergegeben werden. Die Nutzung erfolgt in Absprache mit den Erziehungsberechtigten bzw. dem Verein; die Verantwortung für die Kontonutzung liegt beim Verein BSC Old Boys Basel FE12.
+          Da unsere Spieler grösstenteils minderjährig sind, legen wir besonderen Wert auf Sicherheit: Die Akademie wird in der Schweiz (Zürich) gehostet, Inhalte dürfen nicht kopiert, geklont oder an Dritte weitergegeben werden. Die Nutzung erfolgt in Absprache mit den Erziehungsberechtigten bzw. dem Verein; die Verantwortung für die Kontonutzung liegt beim Verein BSC Old Boys Basel FE12.
         </p>
       </div>
 
@@ -924,6 +935,10 @@ footer {
       <img src="Fussball SpielZ.jpeg" alt="" style="width:100%; height:160px; object-fit:cover; border-bottom:1px solid rgba(212,175,55,0.15); filter: brightness(60%) contrast(110%);" />
       <div style="padding:28px 24px;">
         <div style="font-size:48px; margin-top:-60px; position:relative; z-index:2; filter:drop-shadow(0 4px 10px rgba(0,0,0,0.5));">🔒</div>
+        <div id="closed-hours-banner" class="hidden" style="background:linear-gradient(135deg, rgba(212,175,55,0.18), rgba(212,175,55,0.08)); border:2px solid rgba(212,175,55,0.5); border-radius:14px; padding:16px 14px; margin:6px 0 18px; text-align:center;">
+          <p style="font-size:12.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--gold); font-weight:800; margin:0 0 10px;">📅 Wann ist die Akademie offen?</p>
+          <div id="closed-hours-list" style="display:flex; flex-direction:column; gap:6px;"></div>
+        </div>
         <h2 style="margin-bottom:10px; color:#fff; margin-top:8px;">Die Akademie ist gerade geschlossen</h2>
         <p class="muted" id="closed-msg">Die Trainingszeiten werden geladen...</p>
         <div id="closed-count" class="clock warn" style="display:inline-flex; margin-top:18px; justify-content:center;"></div>
@@ -1246,14 +1261,14 @@ footer {
 
       <div class="card g-card-sm">
         <p style="font-weight:700; color:#fff; margin-bottom:6px;">🔒 Sicherheit & Daten</p>
-        <p class="muted" style="font-size:13px; line-height:1.6;">Die Akademie wird in der Schweiz gehostet und ist ausschliesslich für unser Team bestimmt. Deine Daten dienen nur deiner individuellen Entwicklung und werden nicht weitergegeben. Zugang gibt es nur an den vom Trainer festgelegten Trainingstagen.</p>
+        <p class="muted" style="font-size:13px; line-height:1.6;">Die Akademie wird in der Schweiz (Zürich) gehostet und ist ausschliesslich für unser Team bestimmt. Deine Daten dienen nur deiner individuellen Entwicklung und werden nicht weitergegeben. Zugang gibt es nur an den vom Trainer festgelegten Trainingstagen.</p>
       </div>
     </div>
   </div>
 
   <!-- TRAINER-DASHBOARD -->
   <div id="view-staff" class="hidden">
-    <div class="nav">
+    <div id="staff-nav" class="nav nav-wrap">
       <button id="stab-dashboard" class="active" onclick="showStaffTab('dashboard')">🏠 Dashboard</button>
       <button id="stab-kader" class="btn-ghost" onclick="showStaffTab('kader')">📋 Kader & Fortschritt</button>
       <button id="stab-skills" class="btn-ghost" onclick="showStaffTab('skills')">🎯 Skill-Leaderboards</button>
@@ -1713,7 +1728,7 @@ footer {
         <div id="reg-success" class="hidden" style="text-align:center; padding:20px;">
           <div style="font-size:40px; margin-bottom:12px;">⚠️</div>
           <h3 style="color:var(--gold); margin-bottom:8px;">Account erstellt — aber Login noch nicht möglich!</h3>
-          <p class="muted" style="font-size:13px; margin-bottom:16px;">Die E-Mail-Bestätigung ist in Supabase noch <b>eingeschaltet</b>. Bitte deinen Trainer, diese in Supabase unter <em>Authentication → Email → Confirm email</em> auszuschalten. Danach kannst du dich mit deinem Passwort einloggen.</p>
+          <p class="muted" style="font-size:13px; margin-bottom:16px;">Dein Konto wurde erstellt, muss aber vom Trainerteam noch freigeschaltet werden. Bitte wende dich kurz an deinen Trainer — danach kannst du dich mit deinem Passwort einloggen.</p>
           <button class="btn" style="padding:10px 24px;" onclick="location.href=location.origin+location.pathname">Zum Login</button>
         </div>
       </div>
@@ -1992,12 +2007,12 @@ function tick(){
 function onWindowClosed(){
   if(isStaff()){return;}
   closingShown=true; stopClock();
-  only("view-closed"); show("app-head");
+  showClosed();
   var next = nextWindowInfo(ACCESS);
   var dayName = next ? next.label : "Dienstag";
   el("closed-msg").innerHTML="Stark gelernt heute! 👏 Die Lernakademie schliesst wieder und öffnet am nächsten " + dayName + ".";
   el("closed-count").classList.add("hidden");
-  
+
   var c = el("clock");
   c.classList.add("warn");
   c.classList.remove("hidden");
@@ -2022,12 +2037,26 @@ function showClosed(){
   c.innerHTML = '<span class="dot"></span> Geschlossen · ' + dayName;
 
   if(windows.length > 0){
+    var hoursBanner = el("closed-hours-banner");
+    var hoursList = el("closed-hours-list");
+    if(hoursBanner && hoursList){
+      hoursList.innerHTML = windows.map(function(w){
+        return '<div style="display:flex; align-items:center; justify-content:center; gap:10px; font-size:19px; font-weight:800; color:#fff;">'
+          + '<span style="font-size:22px;">📆</span>'
+          + '<span style="color:var(--gold);">' + WEEKDAY_NAMES[w.weekday] + '</span>'
+          + '<span class="muted" style="font-weight:700; font-size:17px; color:#fff;">' + w.start_time + ' – ' + w.end_time + ' Uhr</span>'
+          + '</div>';
+      }).join('');
+      hoursBanner.classList.remove("hidden");
+    }
     var parts = windows.map(function(w){
       return "<b>" + WEEKDAY_NAMES[w.weekday] + " von " + w.start_time + " bis " + w.end_time + " Uhr</b>";
     });
     var joined = parts.length > 1 ? (parts.slice(0, -1).join(", ") + " sowie " + parts[parts.length - 1]) : parts[0];
     el("closed-msg").innerHTML = "Die Akademie ist nur am " + joined + " geöffnet.";
   } else {
+    var hoursBanner2 = el("closed-hours-banner");
+    if(hoursBanner2) hoursBanner2.classList.add("hidden");
     el("closed-msg").innerHTML = "Die Akademie ist gerade geschlossen. Frage deinen Trainer nach den aktuellen Trainingszeiten.";
   }
 
@@ -3456,20 +3485,22 @@ function exportSkillsComparisonPDF(){
   var doc = new jsPDFctor();
 
   if (typeof LOGO_BASE64 === "string" && LOGO_BASE64.indexOf("data:") === 0) {
-    try{ doc.addImage(LOGO_BASE64, "PNG", 182, 8, 14, 14); }catch(e){}
+    try{ doc.addImage(LOGO_BASE64, "PNG", 178, 8, 18, 15.6); }catch(e){}
   }
-  doc.setDrawColor(212, 175, 55); doc.setLineWidth(0.8); doc.line(14, 25, 196, 25);
-  doc.setFont("helvetica","bold"); doc.setFontSize(16); doc.setTextColor(150, 115, 20);
-  doc.text("Skill-Challenge Bestenliste", 14, 18);
-  doc.setTextColor(0,0,0); doc.setFont("helvetica","normal"); doc.setFontSize(10);
-  doc.text("Team Basel-Old Boys FE12", 150, 18);
-  doc.text("Exportiert am: " + new Date().toLocaleString("de-CH"), 14, 33);
+  doc.setFont("helvetica","bold"); doc.setFontSize(15); doc.setTextColor(150, 115, 20);
+  doc.text("Skill-Challenge Bestenliste", 14, 15);
+  doc.setTextColor(90,90,90); doc.setFont("helvetica","normal"); doc.setFontSize(9);
+  doc.text("Team Basel-Old Boys FE12", 14, 22);
+  doc.setTextColor(0,0,0);
+  doc.setDrawColor(212, 175, 55); doc.setLineWidth(0.8); doc.line(14, 29, 196, 29);
+  doc.setFontSize(10);
+  doc.text("Exportiert am: " + new Date().toLocaleString("de-CH"), 14, 38);
 
   var body = list.map(function(p, idx){
     return [idx+1, p.name, p.total, p.jrpDone+' / '+p.jrpCount, p.trickDone+' / '+p.trickCount];
   });
   doc.autoTable({
-    startY: 40,
+    startY: 46,
     head: [["#","Spieler/in","Punkte","Jonglierreihe","Tricks Meister"]],
     body: body,
     theme: "striped",
@@ -4306,7 +4337,7 @@ function doCreatePlayer() {
     if (!userId) {
       document.getElementById("cp-loading").classList.add("hidden");
       btn.disabled = false;
-      errEl.textContent = "Kein User-ID erhalten. Supabase Email-Confirm prüfen.";
+      errEl.textContent = "Konto konnte nicht abgeschlossen werden. Bitte wende dich an deinen Trainer.";
       errEl.classList.remove("hidden"); return;
     }
     // Step 2: ensure_profile sets name, role, team_id, etc.
@@ -6309,28 +6340,31 @@ var Ziel = (function(){
 
     // Dezenter Marken-Kopf (druckfreundlich: nur duenne Gold-Linie + Logo, kein Vollflaechenhintergrund)
     if (typeof LOGO_BASE64 === "string" && LOGO_BASE64.indexOf("data:") === 0) {
-      try{ doc.addImage(LOGO_BASE64, "PNG", 182, 8, 14, 14); }catch(e){}
+      try{ doc.addImage(LOGO_BASE64, "PNG", 178, 8, 18, 15.6); }catch(e){}
     }
+    doc.setFont("helvetica","bold"); doc.setFontSize(15);
+    doc.setTextColor(150, 115, 20);
+    doc.text("Zielvereinbarung "+(cycle.cycle_type==='vorrunde'?'Vorrunde':'Rueckrunde')+" "+cycle.season_label, 14, 15);
+    doc.setTextColor(90,90,90);
+    doc.setFont("helvetica","normal"); doc.setFontSize(9);
+    doc.text("Team Basel-Old Boys FE12", 14, 22);
+    doc.setTextColor(0,0,0);
+
     doc.setDrawColor(212, 175, 55);
     doc.setLineWidth(0.8);
-    doc.line(14, 25, 196, 25);
+    doc.line(14, 29, 196, 29);
 
-    doc.setFont("helvetica","bold"); doc.setFontSize(16);
-    doc.setTextColor(150, 115, 20);
-    doc.text("Zielvereinbarung "+(cycle.cycle_type==='vorrunde'?'Vorrunde':'Rueckrunde')+" "+cycle.season_label, 14, 18);
-    doc.setTextColor(0,0,0);
-    doc.setFont("helvetica","normal"); doc.setFontSize(10);
-    doc.text("Team Basel-Old Boys FE12", 150, 18);
-    doc.text("Name: "+name, 14, 27);
-    doc.text("Geburtsdatum: "+geb, 14, 33);
-    doc.text("Zeitraum: "+fmtD(cycle.start_date)+" - "+fmtD(cycle.end_date), 14, 39);
-    doc.text("Erstellt am: "+fmtD(new Date().toISOString()), 14, 45);
+    doc.setFontSize(10);
+    doc.text("Name: "+name, 14, 38);
+    doc.text("Geburtsdatum: "+geb, 14, 44);
+    doc.text("Zeitraum: "+fmtD(cycle.start_date)+" - "+fmtD(cycle.end_date), 14, 50);
+    doc.text("Erstellt am: "+fmtD(new Date().toISOString()), 14, 56);
 
     doc.setFont("helvetica","bold"); doc.setFontSize(10);
-    doc.text("Besondere Faehigkeiten (Staerken):", 14, 54);
+    doc.text("Besondere Faehigkeiten (Staerken):", 14, 65);
     doc.setFont("helvetica","normal");
     var staerkeSplit = doc.splitTextToSize(cycle.staerke_text || "-", 180);
-    doc.text(staerkeSplit, 14, 60);
+    doc.text(staerkeSplit, 14, 71);
 
     var goalsPlayerByBereich = {};
     (goalsPlayer||[]).forEach(function(g){ goalsPlayerByBereich[g.bereich] = g; });
@@ -6339,9 +6373,9 @@ var Ziel = (function(){
       return [BEREICH_KUERZEL[bereich], g.thema||"-", g.massnahmen||"-"];
     });
     doc.setFont("helvetica","bold"); doc.setFontSize(10);
-    doc.text("Eigene Einschaetzung des Spielers:", 14, 60 + staerkeSplit.length*5 + 6);
+    doc.text("Eigene Einschaetzung des Spielers:", 14, 71 + staerkeSplit.length*5 + 7);
     doc.autoTable({
-      startY: 60 + staerkeSplit.length*5 + 10,
+      startY: 71 + staerkeSplit.length*5 + 11,
       head: [["","Eigenes Entwicklungsziel","Eigene Massnahmen"]],
       body: playerRows,
       styles: { fontSize: 8, cellPadding: 3 },
