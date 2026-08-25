@@ -989,6 +989,7 @@ footer {
           <div style="display:flex; gap:6px; justify-content:flex-end;">
             <span style="font-size:11px; color:var(--text-3); align-self:center;">🔑 Manuell:</span>
             <button class="btn-ghost" style="font-size:12px; padding:5px 12px;" onclick="SC.startMP()">Raum-Code</button>
+            <button class="btn-ghost" style="font-size:12px; padding:5px 12px;" onclick="SC.showArchive()">📜 Archiv</button>
           </div>
         </div>
       </div>
@@ -4100,7 +4101,17 @@ function moveToSan(mv){ return toAlg(mv.from)+toAlg(mv.to)+(mv.promo?FILES[mv.pr
 
 /* ── Canvas Renderer ─────────────────────────────────────── */
 var game, canvas, ctx, selected=-1, hints=[], flipped=false;
-var mode=null, aiDepth=1, mpChannel=null, mpRole=null, roomId=null;
+var mode=null, aiDepth=1, mpChannel=null, mpRole=null, roomId=null, oppId=null, gameEnded=false;
+
+function finalizeMPGame(winnerColorLetter, reason){
+  if(mode!=='multiplayer' || !roomId || !oppId || !ME) return;
+  var whiteId = mpRole==='white' ? ME.id : oppId;
+  var blackId = mpRole==='white' ? oppId : ME.id;
+  var winnerId = null;
+  if(winnerColorLetter==='W') winnerId = whiteId;
+  else if(winnerColorLetter==='B') winnerId = blackId;
+  sb.rpc('record_chess_game', {p_room_id: roomId, p_white: whiteId, p_black: blackId, p_winner: winnerId, p_reason: reason});
+}
 var timerW=600, timerB=600, timerInt=null;
 var moveLog=[];
 
@@ -4183,7 +4194,7 @@ function handleClick(x,y){
     if(game.turn!==myC) return;
   }
 
-  if(game.isCheckmate()||game.isStalemate()) return;
+  if(gameEnded || game.isCheckmate()||game.isStalemate()) return;
 
   if(selected>=0 && hints.indexOf(idx)>=0){
     // Execute move
@@ -4245,9 +4256,11 @@ function updateSidebar(){
     var winner=game.turn===W?'⬛ Schwarz':'⬜ Weiss';
     scStatus('🏆 Schachmatt! '+winner+' gewinnt!','var(--neon-amber)');
     stopTimer(); showEl('sc-new'); hideEl('sc-resign');
+    if(!gameEnded){ gameEnded=true; finalizeMPGame(game.turn===W?'B':'W','checkmate'); }
   } else if(game.isStalemate()){
     scStatus('🤝 Patt — Remis!','var(--neon-cyan)');
     stopTimer(); showEl('sc-new'); hideEl('sc-resign');
+    if(!gameEnded){ gameEnded=true; finalizeMPGame(null,'stalemate'); }
   } else if(game.inCheck(game.turn)){
     scStatus('⚠️ Schach! '+(game.turn===W?'⬜ Weiss':'⬛ Schwarz')+' muss reagieren.','var(--neon-rose)');
   } else {
@@ -4274,8 +4287,8 @@ function startTimer(min){
   stopTimer();
   timerInt=setInterval(function(){
     if(!game||game.isCheckmate()||game.isStalemate()){stopTimer();return;}
-    if(game.turn===W){timerW=Math.max(0,timerW-1);if(timerW===0){scStatus('⏱ Zeit! ⬛ Schwarz gewinnt.','var(--neon-rose)');stopTimer();showEl('sc-new');hideEl('sc-resign');}}
-    else{timerB=Math.max(0,timerB-1);if(timerB===0){scStatus('⏱ Zeit! ⬜ Weiss gewinnt.','var(--neon-rose)');stopTimer();showEl('sc-new');hideEl('sc-resign');}}
+    if(game.turn===W){timerW=Math.max(0,timerW-1);if(timerW===0 && !gameEnded){gameEnded=true;scStatus('⏱ Zeit! ⬛ Schwarz gewinnt.','var(--neon-rose)');stopTimer();showEl('sc-new');hideEl('sc-resign');if(mode==='multiplayer'){if(mpChannel)mpChannel.send({type:'broadcast',event:'timeout',payload:{winner:'B'}});finalizeMPGame('B','timeout');}}}
+    else{timerB=Math.max(0,timerB-1);if(timerB===0 && !gameEnded){gameEnded=true;scStatus('⏱ Zeit! ⬜ Weiss gewinnt.','var(--neon-rose)');stopTimer();showEl('sc-new');hideEl('sc-resign');if(mode==='multiplayer'){if(mpChannel)mpChannel.send({type:'broadcast',event:'timeout',payload:{winner:'W'}});finalizeMPGame('W','timeout');}}}
     updateTimerDisplay(); updateTimerHighlight();
   },1000);
 }
@@ -4307,6 +4320,7 @@ function sendMPMove(mv){
 /* ── Public API ─────────────────────────────────────────────── */
 function resetGame(){
   game=new State(); game.reset();
+  gameEnded=false;
   selected=-1; hints=[]; moveLog=[];
   if(document.getElementById('sc-moves')) document.getElementById('sc-moves').innerHTML='';
   if(document.getElementById('sc-captured')) document.getElementById('sc-captured').innerHTML='';
@@ -4341,13 +4355,17 @@ return {
     else { rid='chess-'+code; role='black'; }
     this._connectRoom(rid, role, true);
   },
-  joinChallengeRoom: function(rid, role){
-    this._connectRoom(rid, role, false);
+  joinChallengeRoom: function(rid, role, knownOppId){
+    this._connectRoom(rid, role, false, knownOppId||null);
   },
-  _connectRoom: function(rid, role, manual){
+  isBusy: function(){
+    return mode==='multiplayer' && !!mpChannel && !gameEnded;
+  },
+  _connectRoom: function(rid, role, manual, knownOppId){
     stopTimer();
     if(mpChannel){sb.removeChannel(mpChannel);mpChannel=null;}
     mode='multiplayer'; roomId=rid; mpRole=role; flipped=(role==='black');
+    gameEnded=false; oppId = knownOppId || null;
     resetGame(); initCanvas();
     if(role==='white'){
       var disp=roomId.replace('chess-','');
@@ -4372,21 +4390,88 @@ return {
       if(!mv&&lms.length>0) for(var j=0;j<lms.length;j++) if(lms[j].to===d.t){mv=lms[j];break;}
       if(mv){executeMove(mv);}
     }).on('broadcast',{event:'join'},function(pl){
+      if(pl.payload.id) oppId = pl.payload.id;
       if(mpRole==='white'){
         document.getElementById('sc-mp-info').innerHTML='✓ <b style="color:var(--neon-green)">'+esc(pl.payload.name)+'</b> ist dabei!';
         scStatus('⬜ Du bist dran. Viel Spass!');
+        var myNm=PROFILE?(PROFILE.display_name||'Spieler'):'Spieler';
+        mpChannel.send({type:'broadcast',event:'joinAck',payload:{name:myNm, id: ME?ME.id:null}});
       }
+    }).on('broadcast',{event:'joinAck'},function(pl){
+      if(pl.payload.id) oppId = pl.payload.id;
+    }).on('broadcast',{event:'resign'},function(pl){
+      if(gameEnded) return;
+      gameEnded=true; stopTimer(); hideEl('sc-resign'); showEl('sc-new');
+      scStatus('🏳 Gegner hat aufgegeben — Du hast gewonnen! 🏆','var(--neon-green)');
+    }).on('broadcast',{event:'timeout'},function(pl){
+      if(gameEnded) return;
+      gameEnded=true; stopTimer(); hideEl('sc-resign'); showEl('sc-new');
+      var myColor=mpRole==='white'?W:B;
+      var iWon=(pl.payload.winner==='W'&&myColor===W)||(pl.payload.winner==='B'&&myColor===B);
+      scStatus(iWon?'⏱ Zeit beim Gegner! Du hast gewonnen! 🏆':'⏱ Deine Zeit ist um — Gegner gewinnt.','var(--neon-rose)');
     }).subscribe(function(status){
       if(status==='SUBSCRIBED'&&mpRole==='black'){
         var name=PROFILE?(PROFILE.display_name||'Spieler'):'Spieler';
-        mpChannel.send({type:'broadcast',event:'join',payload:{name:name}});
+        mpChannel.send({type:'broadcast',event:'join',payload:{name:name, id: ME?ME.id:null}});
       }
     });
   },
+  showArchive: function(){
+    if(!ME) return;
+    var modalId='sc-archive-modal';
+    var ex=document.getElementById(modalId); if(ex) ex.remove();
+    var ov=document.createElement('div');
+    ov.id=modalId;
+    ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.78);backdrop-filter:blur(6px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;';
+    ov.innerHTML='<div style="background:var(--bg-card);border:1px solid var(--glass-border-2);border-radius:var(--r-2xl);padding:24px;max-width:480px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,0.7);">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'
+      +'<h3 style="color:#fff;margin:0;">📜 Meine letzten Partien</h3>'
+      +'<button class="btn-ghost" style="padding:4px 10px;" onclick="document.getElementById(\''+modalId+'\').remove()">✕</button>'
+      +'</div><div id="sc-archive-list"><p class="muted" style="font-size:13px;">Lade...</p></div></div>';
+    document.body.appendChild(ov);
+    sb.from('chess_games')
+      .select('id,winner_id,created_at,white_id,black_id,white:white_id(display_name),black:black_id(display_name)')
+      .or('white_id.eq.'+ME.id+',black_id.eq.'+ME.id)
+      .order('created_at',{ascending:false})
+      .limit(20)
+      .then(function(r){
+        var list=document.getElementById('sc-archive-list');
+        if(!list) return;
+        if(r.error || !r.data || r.data.length===0){
+          list.innerHTML='<p class="muted" style="font-size:13px;">Noch keine gespeicherten Partien.</p>';
+          return;
+        }
+        var html='';
+        r.data.forEach(function(g){
+          var iAmWhite=g.white_id===ME.id;
+          var oppName=iAmWhite?(g.black?g.black.display_name:'?'):(g.white?g.white.display_name:'?');
+          var result,color2;
+          if(g.winner_id===null){ result='🤝 Remis'; color2='var(--neon-cyan)'; }
+          else if(g.winner_id===ME.id){ result='✅ Gewonnen'; color2='var(--neon-green)'; }
+          else { result='❌ Verloren'; color2='var(--neon-rose)'; }
+          var d=new Date(g.created_at);
+          var dstr=d.toLocaleDateString('de-CH')+' '+d.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'});
+          html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid var(--glass-border);font-size:13px;">'
+            +'<div><b style="color:var(--text-1);">vs. '+esc(oppName)+'</b><br><span class="muted" style="font-size:11px;">'+dstr+' · '+(iAmWhite?'⬜':'⬛')+'</span></div>'
+            +'<span style="font-weight:700;color:'+color2+';">'+result+'</span></div>';
+        });
+        list.innerHTML=html;
+      });
+  },
   resign: function(){
+    if(mode!=='multiplayer'){
+      if(!confirm('Wirklich aufgeben?')) return;
+      gameEnded=true; stopTimer(); hideEl('sc-resign'); showEl('sc-new');
+      scStatus('🏳 Aufgegeben. Gutes Spiel!','var(--neon-amber)');
+      return;
+    }
+    if(gameEnded) return;
     if(!confirm('Wirklich aufgeben?')) return;
-    scStatus('🏳 Aufgegeben. Gutes Spiel!','var(--neon-amber)');
-    stopTimer(); hideEl('sc-resign'); showEl('sc-new');
+    gameEnded=true; stopTimer(); hideEl('sc-resign'); showEl('sc-new');
+    scStatus('🏳 Du hast aufgegeben.','var(--neon-amber)');
+    if(mpChannel) mpChannel.send({type:'broadcast', event:'resign', payload:{}});
+    var myColor=mpRole==='white'?W:B;
+    finalizeMPGame(myColor===W?'B':'W','resign');
   },
   restart: function(){
     if(mode==='ai') this.startAI(aiDepth);
@@ -4407,7 +4492,7 @@ return {
 var CHAL = (function(){
   var presenceCh = null, inboxCh = null;
   var online = {}; // id -> {name, role}
-  var pendingOutgoingId = null, pendingOutgoingTimer = null;
+  var pendingOutgoingId = null, pendingOutgoingOpponentId = null, pendingOutgoingTimer = null;
   var pendingIncoming = null, pendingIncomingTimer = null;
 
   function myName(){ return (PROFILE && PROFILE.display_name) || (ME && ME.email) || 'Spieler'; }
@@ -4483,6 +4568,14 @@ var CHAL = (function(){
     if(pendingIncomingTimer){ clearTimeout(pendingIncomingTimer); pendingIncomingTimer=null; }
   }
 
+  function outsideCloseHandler(ev){
+    var box = document.getElementById('presence-dropdown');
+    var pill = document.getElementById('presence-pill');
+    if(!box) return;
+    if(box.contains(ev.target) || (pill && pill.contains(ev.target))) return;
+    box.classList.add('hidden');
+  }
+
   return {
     init: function(){
       if(!ME || !PROFILE) return;
@@ -4512,7 +4605,7 @@ var CHAL = (function(){
         if(pl.payload.accepted){
           toast('✅ Herausforderung angenommen!', 'var(--neon-green)');
           showPlayerTab('schach');
-          setTimeout(function(){ SC.joinChallengeRoom(pl.payload.roomId, 'white'); }, 150);
+          setTimeout(function(){ SC.joinChallengeRoom(pl.payload.roomId, 'white', pendingOutgoingOpponentId); pendingOutgoingOpponentId=null; }, 150);
         } else {
           toast('❌ Herausforderung abgelehnt', 'var(--neon-rose)');
         }
@@ -4528,15 +4621,26 @@ var CHAL = (function(){
     },
     togglePresenceDropdown: function(){
       var box = document.getElementById('presence-dropdown');
-      if(box) box.classList.toggle('hidden');
+      if(!box) return;
+      var willOpen = box.classList.contains('hidden');
+      box.classList.toggle('hidden');
+      if(willOpen){
+        setTimeout(function(){
+          document.addEventListener('click', outsideCloseHandler, {capture:true, once:true});
+        }, 0);
+      }
     },
     challenge: function(opponentId){
       if(!online[opponentId]) return;
+      if(typeof SC!=='undefined' && SC.isBusy && SC.isBusy()){
+        toast('⚠️ Du spielst bereits eine Partie — erst beenden.', 'var(--neon-rose)');
+        return;
+      }
       var opponentName = online[opponentId].name;
       sb.rpc('create_chess_challenge', {p_opponent: opponentId}).then(function(r){
         if(r.error){ toast('⚠️ '+(r.error.message||'Anfrage fehlgeschlagen'), 'var(--neon-rose)'); return; }
         var challengeId = r.data;
-        pendingOutgoingId = challengeId;
+        pendingOutgoingId = challengeId; pendingOutgoingOpponentId = opponentId;
         var targetCh = sb.channel('inbox-'+opponentId, {config:{broadcast:{self:false}}});
         targetCh.subscribe(function(status){
           if(status==='SUBSCRIBED'){
@@ -4560,6 +4664,10 @@ var CHAL = (function(){
       if(!pendingIncoming) return;
       var ch = pendingIncoming;
       closeIncomingModal(); pendingIncoming = null;
+      if(accept && typeof SC!=='undefined' && SC.isBusy && SC.isBusy()){
+        accept = false;
+        toast('⚠️ Du spielst bereits eine Partie — Anfrage automatisch abgelehnt.', 'var(--neon-rose)');
+      }
       sb.rpc('respond_chess_challenge', {p_challenge_id: ch.id, p_accept: accept}).then(function(r){
         if(r.error){ toast('⚠️ '+(r.error.message||'Fehler'), 'var(--neon-rose)'); return; }
         var inboxTarget = sb.channel('inbox-'+ch.from, {config:{broadcast:{self:false}}});
@@ -4574,7 +4682,7 @@ var CHAL = (function(){
         if(accept){
           toast('✅ Angenommen! Du spielst ⬛ Schwarz.', 'var(--neon-green)');
           showPlayerTab('schach');
-          setTimeout(function(){ SC.joinChallengeRoom(r.data, 'black'); }, 150);
+          setTimeout(function(){ SC.joinChallengeRoom(r.data, 'black', ch.from); }, 150);
         }
       });
     }
