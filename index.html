@@ -179,16 +179,30 @@ body {
 /* Alle Player-Views bekommen einheitliches Padding */
 #view-modules, #view-learn, #view-quiz, #view-result,
 #view-rang, #view-skills, #view-schach, #view-register,
-#view-closed, #view-setup, #player-stats-card {
+#view-closed, #view-setup, #player-stats-card,
+#view-ziel, #view-spiele, #view-dashboard-player, #view-staff {
   padding-left: var(--sp-5);
   padding-right: var(--sp-5);
 }
 @media(max-width:640px){
   #view-modules, #view-learn, #view-quiz, #view-result,
   #view-rang, #view-skills, #view-schach, #view-register,
-  #view-closed, #view-setup, #player-stats-card {
+  #view-closed, #view-setup, #player-stats-card,
+  #view-ziel, #view-spiele, #view-dashboard-player, #view-staff {
     padding-left: var(--sp-3);
     padding-right: var(--sp-3);
+  }
+}
+/* Grosse Bildschirme (Desktop/TV): Inhalt zentriert begrenzen statt ueber die ganze Breite zu ziehen */
+@media(min-width:1600px){
+  #view-modules, #view-learn, #view-quiz, #view-result,
+  #view-rang, #view-skills, #view-schach, #view-register,
+  #view-closed, #view-setup,
+  #view-ziel, #view-spiele, #view-dashboard-player, #view-staff,
+  .nav {
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
@@ -717,6 +731,7 @@ p  { color: var(--text-2); font-size: var(--text-sm); line-height: 1.6; }
   .g-grid-2,.g-grid-3,.g-grid-4 { grid-template-columns: 1fr; }
   .topbar { padding: 0 var(--sp-4); }
   h1 { font-size: var(--text-2xl); }
+  .reflex-scale-row { flex-direction: column; }
 }
 
 /* Footer */
@@ -5634,7 +5649,7 @@ var Ziel = (function(){
 
     // ---- 4-Zeilen-Tabelle TE/TA/ATH/ME ----
     html += '<div style="overflow-x:auto;">';
-    html += '<table style="width:100%; border-collapse:collapse; margin-bottom:8px;">';
+    html += '<table style="width:100%; min-width:560px; border-collapse:collapse; margin-bottom:8px;">';
     html += '<thead><tr>';
     html += '<th style="width:46px;"></th><th>Entwicklungsziele (Themen)</th><th>Maßnahme / Prozessziele</th><th style="width:220px;">Fortschritt</th>';
     html += '</tr></thead><tbody>';
@@ -6346,7 +6361,7 @@ var Reflex = (function(){
         html += '<div style="margin-bottom:14px;">';
         html += '<p style="font-size:13px; color:#fff; font-weight:600; margin-bottom:2px;">'+esc(q.label)+'</p>';
         html += '<p style="font-size:12px; color:var(--text-2); margin-bottom:6px;">'+esc(q.text)+'</p>';
-        html += '<div style="display:flex; gap:8px;" id="reflex-scale-'+matchId+'-'+q.key+'">';
+        html += '<div class="reflex-scale-row" style="display:flex; gap:8px;" id="reflex-scale-'+matchId+'-'+q.key+'">';
         SCALE.forEach(function(s){
           var active = answers[q.key]===s.v;
           html += '<button type="button" class="'+(active?'btn':'btn-ghost')+'" style="flex:1; font-size:11.5px; padding:8px 4px;" onclick="Reflex.pickAnswer(\''+matchId+'\',\''+q.key+'\','+s.v+')">'+'⭐'.repeat(s.v)+' '+s.label+' '+s.emoji+'</button>';
