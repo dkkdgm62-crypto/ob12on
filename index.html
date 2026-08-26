@@ -881,7 +881,7 @@ footer {
         <p class="eyebrow">Sicherheit & Kinderschutz</p>
         <h2 style="margin:6px 0 10px; color:#fff;">🔒 Verantwortungsvoll für unsere Spieler</h2>
         <p class="muted" style="font-size:13.5px; line-height:1.65;">
-          Da unsere Spieler grösstenteils minderjährig sind, legen wir besonderen Wert auf Sicherheit: Die Lernplattform wird in der Schweiz (Zürich) gehostet, Inhalte dürfen nicht kopiert, geklont oder an Dritte weitergegeben werden. Die Nutzung erfolgt in Absprache mit den Erziehungsberechtigten bzw. dem Verein; die Verantwortung für die Kontonutzung liegt beim Verein BSC Old Boys Basel FE12.
+          Da unsere Spieler grösstenteils minderjährig sind, legen wir besonderen Wert auf Sicherheit: Die Lernplattform wird sicher in der Schweiz gehostet, Inhalte dürfen nicht kopiert, geklont oder an Dritte weitergegeben werden. Die Nutzung erfolgt in Absprache mit den Erziehungsberechtigten bzw. dem Verein; die Verantwortung für die Kontonutzung liegt beim Verein BSC Old Boys Basel FE12.
         </p>
       </div>
 
@@ -1290,7 +1290,7 @@ footer {
 
       <div class="card g-card-sm">
         <p style="font-weight:700; color:#fff; margin-bottom:6px;">🔒 Sicherheit & Daten</p>
-        <p class="muted" style="font-size:13px; line-height:1.7;">Die Lernplattform wird in der Schweiz (Zürich) gehostet und ist ausschliesslich für unser Team bestimmt. Deine Daten dienen nur deiner individuellen Entwicklung und werden nicht an Dritte weitergegeben. Zugang gibt es nur an den vom Trainer festgelegten Trainingstagen. Gib dein Passwort niemals an andere weiter — auch nicht an Teamkolleg:innen. Bei Problemen beim Anmelden wende dich an deinen Trainer/deine Trainerin oder nutze das Kontaktformular auf der Startseite.</p>
+        <p class="muted" style="font-size:13px; line-height:1.7;">Die Lernplattform wird sicher in der Schweiz gehostet und ist ausschliesslich für unser Team bestimmt. Deine Daten dienen nur deiner individuellen Entwicklung und werden nicht an Dritte weitergegeben. Zugang gibt es nur an den vom Trainer festgelegten Trainingstagen. Gib dein Passwort niemals an andere weiter — auch nicht an Teamkolleg:innen. Bei Problemen beim Anmelden wende dich an deinen Trainer/deine Trainerin oder nutze das Kontaktformular auf der Startseite.</p>
       </div>
     </div>
   </div>
@@ -1836,7 +1836,7 @@ footer {
     <div id="legal-datenschutz" class="hidden card" style="background:rgba(255,255,255,0.02); margin-bottom:12px; padding:16px;">
       <p class="eyebrow">Datenschutzerklärung (kurz, nDSG)</p>
       <p style="font-size:12.5px; color:var(--text-2); line-height:1.7; margin:6px 0 0;">
-        Wir verarbeiten ausschliesslich trainingsbezogene Personendaten (Name, Fortschritt, Ziele, Punktzahlen, Anwesenheit), gehostet in der Schweiz (Zürich), gemäss dem
+        Wir verarbeiten ausschliesslich trainingsbezogene Personendaten (Name, Fortschritt, Ziele, Punktzahlen, Anwesenheit), gehostet in der Schweiz, gemäss dem
         Schweizer Bundesgesetz über den Datenschutz (nDSG). Eine Weitergabe an Dritte erfolgt nicht. Da die Nutzer/innen grösstenteils minderjährig sind, erfolgt die Nutzung
         in Absprache mit den Erziehungsberechtigten; die entsprechende Einwilligung wird durch das Trainerteam persönlich eingeholt und dokumentiert. Erziehungsberechtigte
         können jederzeit Auskunft über die gespeicherten Daten ihres Kindes verlangen oder die Löschung des Zugangs beantragen — über das Kontaktformular unten.
@@ -1871,7 +1871,7 @@ footer {
       <p id="cf-msg" class="muted" style="font-size:12px; margin-top:10px;"></p>
     </div>
 
-    <p class="muted" style="text-align:center; font-size:10.5px; margin-top:8px;">© Team Basel-Old Boys FE12 · Online-Lernplattform · Schweiz (Zürich)</p>
+    <p class="muted" style="text-align:center; font-size:10.5px; margin-top:8px;">© Team Basel-Old Boys FE12 · Online-Lernplattform · Schweiz</p>
   </div>
 
   <footer>System development by D.K.</footer>
@@ -1918,6 +1918,16 @@ function el(id){return document.getElementById(id);}
 function show(id){el(id).classList.remove("hidden");}
 function hide(id){el(id).classList.add("hidden");}
 function esc(s){var d=document.createElement("div");d.textContent=(s==null?"":s);return d.innerHTML;}
+/* Normalisiert Text auf NFC, bevor er in ein PDF geschrieben wird.
+   Grund: manche Geraete/Tastaturen liefern Umlaute in zerlegter Form
+   (z.B. "u" + Kombinations-Trema statt "ü"). jsPDF's Standard-Schriftart
+   (Helvetica/WinAnsi) kennt nur die zusammengesetzte Form - bei zerlegtem
+   Text faellt das Trema/der Umlaut sonst lautlos weg (z.B. "Prüfung" -> "Prufung"). */
+function nfc(s){
+  if(s==null) return "";
+  s = String(s);
+  return (typeof s.normalize === "function") ? s.normalize("NFC") : s;
+}
 function fmtDT(ts){
   if(!ts) return '–';
   var d = new Date(ts);
@@ -2782,6 +2792,62 @@ function dashboardLeaderboardHtml(rows){
   return html;
 }
 
+var DASH_BEREICH_LABEL = {technik:'Technik', taktik:'Taktik', athletik:'Athletik', mental:'Mental'};
+var DASH_BEREICH_ICON  = {technik:'⚙️', taktik:'♟', athletik:'🏃', mental:'🧠'};
+var DASH_BEREICH_ORDER = ['technik','taktik','athletik','mental'];
+
+function dashboardReflexionStatusHtml(match, refl){
+  if(refl && refl.finalized_at){
+    return '<span style="color:var(--gold); font-size:12px; font-weight:700;">🔒 Selbstreflexion abgeschlossen</span>';
+  } else if(refl){
+    return '<span style="color:#3ecf6d; font-size:12px; font-weight:700;">📝 Selbstreflexion als Entwurf gespeichert</span>';
+  }
+  return '<span style="color:#f0c419; font-size:12px; font-weight:700;">🟠 Selbstreflexion noch offen — jetzt ausfüllen →</span>';
+}
+
+function dashboardZieleHtml(goals){
+  var withThema = (goals||[]).filter(function(g){ return g.thema; });
+  if(withThema.length===0) return '';
+  var html = '<div class="card" style="margin-bottom:14px; padding:14px 16px; cursor:pointer;" onclick="showPlayerTab(\'ziel\')">';
+  html += '<p class="eyebrow" style="margin-bottom:8px;">🎯 Deine aktuellen Ziele</p>';
+  DASH_BEREICH_ORDER.forEach(function(bereich){
+    var g = withThema.find(function(x){ return x.bereich===bereich; });
+    if(!g) return;
+    var statusColor = g.fortschritt_status==='erreicht' ? '#3ecf6d' : (g.fortschritt_status==='in_arbeit' ? 'var(--gold)' : 'var(--text-3)');
+    html += '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; padding:6px 0; border-top:1px solid var(--line);">';
+    html += '<div><span style="font-size:12.5px;">'+(DASH_BEREICH_ICON[bereich]||'')+' <b style="color:#fff;">'+esc(DASH_BEREICH_LABEL[bereich]||bereich)+':</b> <span class="muted">'+esc(g.thema)+'</span></span></div>';
+    if(g.ziel_bis){
+      html += '<span style="font-size:11px; color:'+statusColor+'; font-weight:700; white-space:nowrap;">bis '+fmtD(g.ziel_bis)+'</span>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function dashboardLernenHtml(modules, myPoints){
+  if(!modules || modules.length===0) return '';
+  var openModules = modules.filter(function(m){ return m.offen; });
+  var passedOpen = openModules.filter(function(m){ return m.passed; }).length;
+  var resume = openModules.find(function(m){ return !m.passed && m.mastered>0; })
+            || openModules.find(function(m){ return !m.passed; });
+
+  var html = '<div class="card" style="margin-bottom:14px; padding:14px 16px; cursor:pointer;" onclick="showPlayerTab(\'lernen\')">';
+  html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">';
+  html += '<p class="eyebrow" style="margin:0;">📖 Lernfortschritt</p>';
+  html += '<span style="font-size:12px; font-weight:800; color:var(--gold);">'+(myPoints!=null?myPoints+' Pkt':'')+'</span>';
+  html += '</div>';
+  html += '<p style="font-size:13px; color:#fff; margin-bottom:6px;">'+passedOpen+' / '+openModules.length+' Modulen gemeistert</p>';
+  html += '<div style="height:6px; border-radius:99px; background:rgba(255,255,255,0.08); overflow:hidden; margin-bottom:10px;"><div style="height:100%; width:'+(openModules.length?Math.round(passedOpen/openModules.length*100):0)+'%; background:linear-gradient(90deg,var(--accent2),var(--accent)); border-radius:99px;"></div></div>';
+  if(resume){
+    html += '<p class="muted" style="font-size:12px;">Weiter geht’s: <b style="color:#fff;">'+esc((resume.titel||"").replace(/^.*?- /,""))+'</b> ('+resume.mastered+'/'+resume.total_q+') →</p>';
+  } else if(openModules.length>0){
+    html += '<p class="muted" style="font-size:12px;">🎉 Alle offenen Module gemeistert!</p>';
+  }
+  html += '</div>';
+  return html;
+}
+
 function loadPlayerDashboard(){
   var box = el("dashboard-player-body");
   if(!box) return;
@@ -2790,58 +2856,81 @@ function loadPlayerDashboard(){
   Promise.all([
     sb.from("matches").select("*").order("match_date"),
     sb.from("dev_warnings").select("*").eq("player_id",ME.id).eq("status","aktiv").order("issued_at",{ascending:false}),
-    sb.rpc("get_leaderboard", {p_round_nr: ACCESS.current_round})
+    sb.rpc("get_leaderboard", {p_round_nr: ACCESS.current_round}),
+    sb.from("self_reflections").select("*").eq("player_id", ME.id),
+    sb.from("dev_cycles").select("*").eq("player_id", ME.id).order("created_at",{ascending:false}).limit(1),
+    sb.rpc("get_module_status")
   ]).then(function(results){
     var matches = results[0].data||[];
     var warnings = results[1].data||[];
     var lbRows = results[2].data||[];
+    var reflections = results[3].data||[];
+    var recentCycle = (results[4].data||[])[0];
+    var modules = results[5].data||[];
+
     var todayStart = new Date(new Date().toDateString());
     var upcoming = matches.filter(function(m){return new Date(m.match_date+"T00:00:00")>=todayStart;});
     var past = matches.filter(function(m){return new Date(m.match_date+"T00:00:00")<todayStart;});
     var nextMatch = upcoming[0];
     var lastMatch = past[past.length-1];
+    var lastMatchRefl = lastMatch ? reflections.find(function(r){return r.match_id===lastMatch.id;}) : null;
 
-    var html = '<h2 style="color:#fff; margin-bottom:4px;">Willkommen zurück, '+esc(name)+'! 👋</h2>';
-    html += '<p style="font-size:13.5px; color:var(--gold); font-weight:600; margin-bottom:20px;">'+esc(randomDnaMessage())+'</p>';
+    var myRow = lbRows.find(function(x){ return x.player_id===ME.id; });
+    var myPoints = myRow ? myRow.gesamt : null;
 
-    if(warnings.length>0){
-      html += '<div style="background:rgba(230,180,40,0.12); border:1px solid rgba(230,180,40,0.4); border-radius:12px; padding:14px 16px; margin-bottom:16px; cursor:pointer;" onclick="showPlayerTab(\'ziel\')">';
-      html += '<b style="color:#f0c419;">🟨 Du hast eine aktive Gelbe Karte</b> <span class="muted" style="font-size:12px;"> — Details in der Zielvereinbarung</span>';
+    var goalsPromise = recentCycle
+      ? sb.from("dev_goals").select("*").eq("cycle_id", recentCycle.id)
+      : Promise.resolve({data:[]});
+
+    goalsPromise.then(function(gr){
+      var goals = gr.data || [];
+
+      var html = '<h2 style="color:#fff; margin-bottom:4px;">Willkommen zurück, '+esc(name)+'! 👋</h2>';
+      html += '<p style="font-size:13.5px; color:var(--gold); font-weight:600; margin-bottom:20px;">'+esc(randomDnaMessage())+'</p>';
+
+      if(warnings.length>0){
+        html += '<div style="background:rgba(230,180,40,0.12); border:1px solid rgba(230,180,40,0.4); border-radius:12px; padding:14px 16px; margin-bottom:16px; cursor:pointer;" onclick="showPlayerTab(\'ziel\')">';
+        html += '<b style="color:#f0c419;">🟨 Du hast eine aktive Gelbe Karte</b> <span class="muted" style="font-size:12px;"> — Details in der Zielvereinbarung</span>';
+        html += '</div>';
+      }
+
+      /* ---- Kern-Übersicht: Lernfortschritt & aktuelle Ziele — sofort sichtbar ---- */
+      html += dashboardLernenHtml(modules, myPoints);
+      html += dashboardZieleHtml(goals);
+
+      if(lastMatch){
+        html += '<div class="card" style="background:rgba(255,255,255,0.02); margin-bottom:14px; padding:14px 16px; cursor:pointer;" onclick="showPlayerTab(\'spiele\')">';
+        html += '<p class="eyebrow" style="margin-bottom:6px;">Letztes Spiel</p>';
+        html += '<b style="color:#fff;">vs. '+esc(lastMatch.opponent)+'</b> <span class="muted" style="font-size:12px;"> · '+esc(lastMatch.match_date)+'</span>';
+        html += '<p style="margin-top:6px;">'+dashboardReflexionStatusHtml(lastMatch, lastMatchRefl)+'</p>';
+        html += '</div>';
+      }
+      if(nextMatch){
+        html += '<div class="card" style="background:rgba(255,255,255,0.02); margin-bottom:20px; padding:14px 16px; cursor:pointer;" onclick="showPlayerTab(\'spiele\')">';
+        html += '<p class="eyebrow" style="margin-bottom:6px;">Nächstes Spiel</p>';
+        html += '<b style="color:#fff;">vs. '+esc(nextMatch.opponent)+'</b> <span class="muted" style="font-size:12px;"> · '+esc(nextMatch.match_date)+(nextMatch.kickoff_time?(' · '+esc(nextMatch.kickoff_time)+' Uhr'):'')+'</span>';
+        html += '</div>';
+      }
+
+      html += dashboardLeaderboardHtml(lbRows);
+
+      html += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:12px; margin-top:20px;">';
+      [
+        {icon:'📖', label:'Lernen', tab:'lernen'},
+        {icon:'🎯', label:'Skill-Challenges', tab:'skills'},
+        {icon:'♟', label:'Schach', tab:'schach'},
+        {icon:'🏆', label:'Rangliste', tab:'rang'},
+        {icon:'🎯', label:'Zielvereinbarung', tab:'ziel'},
+        {icon:'📅', label:'Spielplan / Selbstreflexion', tab:'spiele'}
+      ].forEach(function(t){
+        html += '<div class="card dash-tile" style="text-align:center; padding:20px 10px; cursor:pointer;" onclick="showPlayerTab(\''+t.tab+'\')">';
+        html += '<div style="font-size:26px; margin-bottom:8px;">'+t.icon+'</div><div style="font-size:12.5px; color:#fff; font-weight:600;">'+t.label+'</div>';
+        html += '</div>';
+      });
       html += '</div>';
-    }
 
-    if(lastMatch){
-      html += '<div class="card" style="background:rgba(255,255,255,0.02); margin-bottom:14px; padding:14px 16px; cursor:pointer;" onclick="showPlayerTab(\'spiele\')">';
-      html += '<p class="eyebrow" style="margin-bottom:6px;">Letztes Spiel</p>';
-      html += '<b style="color:#fff;">vs. '+esc(lastMatch.opponent)+'</b> <span class="muted" style="font-size:12px;"> · '+esc(lastMatch.match_date)+'</span>';
-      html += '<p class="muted" style="font-size:12px; margin-top:4px;">Jetzt Selbstreflexion ausfüllen →</p>';
-      html += '</div>';
-    }
-    if(nextMatch){
-      html += '<div class="card" style="background:rgba(255,255,255,0.02); margin-bottom:20px; padding:14px 16px; cursor:pointer;" onclick="showPlayerTab(\'spiele\')">';
-      html += '<p class="eyebrow" style="margin-bottom:6px;">Nächstes Spiel</p>';
-      html += '<b style="color:#fff;">vs. '+esc(nextMatch.opponent)+'</b> <span class="muted" style="font-size:12px;"> · '+esc(nextMatch.match_date)+(nextMatch.kickoff_time?(' · '+esc(nextMatch.kickoff_time)+' Uhr'):'')+'</span>';
-      html += '</div>';
-    }
-
-    html += dashboardLeaderboardHtml(lbRows);
-
-    html += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:12px; margin-top:20px;">';
-    [
-      {icon:'📖', label:'Lernen', tab:'lernen'},
-      {icon:'🎯', label:'Skill-Challenges', tab:'skills'},
-      {icon:'♟', label:'Schach', tab:'schach'},
-      {icon:'🏆', label:'Rangliste', tab:'rang'},
-      {icon:'🎯', label:'Zielvereinbarung', tab:'ziel'},
-      {icon:'📅', label:'Spielplan / Selbstreflexion', tab:'spiele'}
-    ].forEach(function(t){
-      html += '<div class="card dash-tile" style="text-align:center; padding:20px 10px; cursor:pointer;" onclick="showPlayerTab(\''+t.tab+'\')">';
-      html += '<div style="font-size:26px; margin-bottom:8px;">'+t.icon+'</div><div style="font-size:12.5px; color:#fff; font-weight:600;">'+t.label+'</div>';
-      html += '</div>';
+      box.innerHTML = html;
     });
-    html += '</div>';
-
-    box.innerHTML = html;
   });
 }
 
@@ -6773,142 +6862,206 @@ var Ziel = (function(){
     var jsPDFctor = window.jspdf.jsPDF;
     var doc = new jsPDFctor();
     var p = cycle.profiles || {};
-    var name = (p.vorname||p.nachname) ? ((p.vorname||"")+" "+(p.nachname||"")).trim() : (p.display_name||"");
-    var geb = p.geburtsdatum ? fmtD(p.geburtsdatum) : "-";
-    var mtypes = MILESTONES_BY_CYCLE[cycle.cycle_type] || [];
+    var name = nfc((p.vorname||p.nachname) ? ((p.vorname||"")+" "+(p.nachname||"")).trim() : (p.display_name||""));
+    var geb = p.geburtsdatum ? fmtD(p.geburtsdatum) : "\u2013";
+    var seasonLabel = nfc(cycle.season_label || "");
+    var GOLD = [212,175,55];
+    var HEAD_FILL = [24,24,24];   // einheitlich dunkel fuer beide Tabellenkoepfe
+    var HEAD_TEXT = GOLD;
+    var MARGIN = 14;
+    var PAGE_W = 210, PAGE_H = 297;
 
-    // Dezenter Marken-Kopf (druckfreundlich: nur duenne Gold-Linie + Logo, kein Vollflaechenhintergrund)
+    function checkBreak(y, needed){
+      if(y + needed > PAGE_H - 22){ doc.addPage(); return 20; }
+      return y;
+    }
+    // Zeichnet eine Sektions-Ueberschrift mit duenner Gold-Linie darunter, gibt neues y zurueck
+    function sectionHeader(title, y){
+      y = checkBreak(y, 14);
+      doc.setFont("helvetica","bold"); doc.setFontSize(11.5);
+      doc.setTextColor(20,20,20);
+      doc.text(nfc(title), MARGIN, y);
+      doc.setDrawColor(GOLD[0],GOLD[1],GOLD[2]);
+      doc.setLineWidth(0.5);
+      doc.line(MARGIN, y+2, PAGE_W-MARGIN, y+2);
+      return y + 9;
+    }
+
+    // ===== Kopf: Logo, Titel, duenne Gold-Trennlinie =====
     if (typeof LOGO_BASE64 === "string" && LOGO_BASE64.indexOf("data:") === 0) {
       try{ doc.addImage(LOGO_BASE64, "PNG", 178, 8, 18, 15.6); }catch(e){}
     }
-    doc.setFont("helvetica","bold"); doc.setFontSize(15);
-    doc.setTextColor(150, 115, 20);
-    doc.text("Zielvereinbarung "+(cycle.cycle_type==='vorrunde'?'Vorrunde':'Rueckrunde')+" "+cycle.season_label, 14, 15);
-    doc.setTextColor(90,90,90);
+    doc.setFont("helvetica","bold"); doc.setFontSize(16);
+    doc.setTextColor(20,20,20);
+    doc.text("Zielvereinbarung "+(cycle.cycle_type==='vorrunde'?'Vorrunde':'R\u00fcckrunde')+" "+seasonLabel, MARGIN, 16);
+    doc.setTextColor(110,110,110);
     doc.setFont("helvetica","normal"); doc.setFontSize(9);
-    doc.text("Team Basel-Old Boys FE12", 14, 22);
+    doc.text("Team Basel-Old Boys FE12", MARGIN, 22.5);
     doc.setTextColor(0,0,0);
 
-    doc.setDrawColor(212, 175, 55);
+    doc.setDrawColor(GOLD[0],GOLD[1],GOLD[2]);
     doc.setLineWidth(0.8);
-    doc.line(14, 29, 196, 29);
+    doc.line(MARGIN, 27, PAGE_W-MARGIN, 27);
 
-    doc.setFontSize(10);
-    doc.text("Name: "+name, 14, 38);
-    doc.text("Geburtsdatum: "+geb, 14, 44);
-    doc.text("Zeitraum: "+fmtD(cycle.start_date)+" - "+fmtD(cycle.end_date), 14, 50);
-    doc.text("Erstellt am: "+fmtD(new Date().toISOString()), 14, 56);
+    // ===== Strukturierte Spieler-Info-Box (2x2 Grid, klar getrennt) =====
+    var boxY = 33, boxH = 26;
+    doc.setFillColor(248,248,246);
+    doc.rect(MARGIN, boxY, PAGE_W-2*MARGIN, boxH, "F");
+    doc.setDrawColor(GOLD[0],GOLD[1],GOLD[2]);
+    doc.setLineWidth(0.35);
+    doc.rect(MARGIN, boxY, PAGE_W-2*MARGIN, boxH, "S");
+    doc.setLineWidth(0.2);
+    doc.line(PAGE_W/2, boxY, PAGE_W/2, boxY+boxH); // vertikale Trennlinie
 
-    doc.setFont("helvetica","bold"); doc.setFontSize(10);
-    doc.text("Besondere Faehigkeiten (Staerken):", 14, 65);
-    doc.setFont("helvetica","normal");
-    var staerkeSplit = doc.splitTextToSize(cycle.staerke_text || "-", 180);
-    doc.text(staerkeSplit, 14, 71);
+    function infoField(label, value, x, y){
+      doc.setFont("helvetica","bold"); doc.setFontSize(8);
+      doc.setTextColor(120,120,120);
+      doc.text(label, x, y);
+      doc.setFont("helvetica","normal"); doc.setFontSize(11);
+      doc.setTextColor(15,15,15);
+      doc.text(nfc(value||"\u2013"), x, y+6);
+    }
+    infoField("NAME", name, MARGIN+5, boxY+9);
+    infoField("GEBURTSDATUM", geb, PAGE_W/2+5, boxY+9);
+    infoField("ZEITRAUM", fmtD(cycle.start_date)+" \u2013 "+fmtD(cycle.end_date), MARGIN+5, boxY+21);
+    infoField("ERSTELLT AM", fmtD(new Date().toISOString()), PAGE_W/2+5, boxY+21);
+    doc.setTextColor(0,0,0);
 
+    var y = boxY + boxH + 10;
+
+    // ===== Besondere Faehigkeiten (Staerken) =====
+    y = sectionHeader("Besondere F\u00e4higkeiten (St\u00e4rken)", y);
+    doc.setFont("helvetica","normal"); doc.setFontSize(9.5);
+    doc.setTextColor(30,30,30);
+    var staerkeSplit = doc.splitTextToSize(nfc(cycle.staerke_text) || "\u2013", 180);
+    y = checkBreak(y, staerkeSplit.length*5 + 4);
+    doc.text(staerkeSplit, MARGIN, y);
+    y += staerkeSplit.length*5 + 10;
+
+    // ===== Eigene Einschaetzung des Spielers =====
+    y = sectionHeader("Eigene Einsch\u00e4tzung des Spielers", y);
     var goalsPlayerByBereich = {};
     (goalsPlayer||[]).forEach(function(g){ goalsPlayerByBereich[g.bereich] = g; });
     var playerRows = BEREICH_ORDER.map(function(bereich){
       var g = goalsPlayerByBereich[bereich] || {};
-      return [BEREICH_KUERZEL[bereich], g.thema||"-", g.massnahmen||"-"];
+      return [BEREICH_KUERZEL[bereich], nfc(g.thema)||"\u2013", nfc(g.massnahmen)||"\u2013"];
     });
-    doc.setFont("helvetica","bold"); doc.setFontSize(10);
-    doc.text("Eigene Einschaetzung des Spielers:", 14, 71 + staerkeSplit.length*5 + 7);
     doc.autoTable({
-      startY: 71 + staerkeSplit.length*5 + 11,
-      head: [["","Eigenes Entwicklungsziel","Eigene Massnahmen"]],
+      startY: y,
+      margin: { left: MARGIN, right: MARGIN },
+      head: [["","Eigenes Entwicklungsziel","Eigene Ma\u00dfnahmen"]],
       body: playerRows,
-      styles: { fontSize: 8, cellPadding: 3 },
-      headStyles: { fillColor: [60,55,30] }
+      styles: { fontSize: 8, cellPadding: 3, textColor: [25,25,25], lineColor: [225,225,225], lineWidth: 0.2 },
+      headStyles: { fillColor: HEAD_FILL, textColor: HEAD_TEXT, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [250,250,248] }
     });
+    y = doc.lastAutoTable.finalY + 10;
 
+    // ===== Offizielle Zielvereinbarung (Trainer) =====
+    y = sectionHeader("Offizielle Zielvereinbarung (Trainer)", y);
     var goalsByBereich = {};
     goals.forEach(function(g){ goalsByBereich[g.bereich] = g; });
     var rows = BEREICH_ORDER.map(function(bereich){
       var g = goalsByBereich[bereich] || {};
       var statusTxt = g.fortschritt_status ? (g.fortschritt_status==='erreicht'?'Erreicht':(g.fortschritt_status==='in_arbeit'?'In Arbeit':'Offen')) : 'Offen';
-      var datesTxt = (g.erfasst_am ? ('Erfasst: '+fmtD(g.erfasst_am)) : 'Noch nicht erfasst') + (g.ziel_bis ? (' · Ziel bis: '+fmtD(g.ziel_bis)) : '');
+      var datesTxt = (g.erfasst_am ? ('Erfasst: '+fmtD(g.erfasst_am)) : 'Noch nicht erfasst') + (g.ziel_bis ? (' \u00b7 Ziel bis: '+fmtD(g.ziel_bis)) : '');
       return [
         BEREICH_KUERZEL[bereich],
-        g.thema||"",
-        g.massnahmen||"",
-        datesTxt + "\n" + statusTxt + (g.fortschritt?("\n"+g.fortschritt):"")
+        nfc(g.thema)||"",
+        nfc(g.massnahmen)||"",
+        nfc(datesTxt) + "\n" + statusTxt + (g.fortschritt?("\n"+nfc(g.fortschritt)):"")
       ];
     });
-    doc.setFont("helvetica","bold"); doc.setFontSize(10);
-    var officialY = doc.lastAutoTable.finalY + 10;
-    doc.text("Offizielle Zielvereinbarung (Trainer):", 14, officialY);
     doc.autoTable({
-      startY: officialY + 4,
-      head: [["","Entwicklungsziele (Themen)","Massnahme / Prozessziele","Fortschritt"]],
+      startY: y,
+      margin: { left: MARGIN, right: MARGIN },
+      head: [["","Entwicklungsziele (Themen)","Ma\u00dfnahme / Prozessziele","Fortschritt"]],
       body: rows,
-      styles: { fontSize: 8, cellPadding: 3 },
-      headStyles: { fillColor: [30,32,40] }
+      styles: { fontSize: 8, cellPadding: 3, textColor: [25,25,25], lineColor: [225,225,225], lineWidth: 0.2 },
+      headStyles: { fillColor: HEAD_FILL, textColor: HEAD_TEXT, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [250,250,248] }
     });
+    y = doc.lastAutoTable.finalY + 10;
 
-    var y = doc.lastAutoTable.finalY + 10;
-    doc.setFont("helvetica","bold"); doc.setFontSize(12);
-    doc.text("Gespraechs-Fahrplan", 14, y); y += 6;
+    // ===== Gespraechs-Fahrplan =====
+    y = sectionHeader("Gespr\u00e4chs-Fahrplan", y);
     doc.setFont("helvetica","normal"); doc.setFontSize(9);
+    doc.setTextColor(30,30,30);
     meetings.forEach(function(m){
-      var label = MILESTONE_LABEL[m.milestone_type]||m.milestone_type;
-      var line = "- "+label+": "+(m.status==='erledigt'?'erledigt':'offen')+(m.geplant_datum?(" (Termin: "+fmtD(m.geplant_datum)+")"):"");
-      doc.text(line, 14, y); y += 5;
+      var label = nfc(MILESTONE_LABEL[m.milestone_type]||m.milestone_type);
+      var erledigt = m.status==='erledigt';
+      y = checkBreak(y, 6);
+      doc.setFont("helvetica","bold");
+      doc.text((erledigt?"\u2713 ":"\u2022 "), MARGIN, y);
+      doc.setFont("helvetica","normal");
+      var line = label+": "+(erledigt?'erledigt':'offen')+(m.geplant_datum?(" (Termin: "+fmtD(m.geplant_datum)+")"):"");
+      doc.text(line, MARGIN+5, y); y += 5;
       if(m.protokoll){
-        var split = doc.splitTextToSize("  Protokoll: "+m.protokoll, 180);
-        doc.text(split, 14, y); y += split.length*5;
+        var split = doc.splitTextToSize("Protokoll: "+nfc(m.protokoll), 176);
+        y = checkBreak(y, split.length*5);
+        doc.text(split, MARGIN+5, y); y += split.length*5;
       }
       if(m.milestone_type==='finale' && m.stufenergebnis){
+        y = checkBreak(y, 6);
         doc.setFont("helvetica","bold");
-        doc.text("  Stufenergebnis: "+(STUFEN_LABEL[m.stufenergebnis]||m.stufenergebnis), 14, y); y += 6;
+        doc.setTextColor(GOLD[0]*0.6, GOLD[1]*0.55, GOLD[2]*0.35);
+        doc.text("Stufenergebnis: "+nfc(STUFEN_LABEL[m.stufenergebnis]||m.stufenergebnis), MARGIN+5, y); y += 6;
         doc.setFont("helvetica","normal");
+        doc.setTextColor(30,30,30);
       }
+      y += 2;
     });
+    y += 4;
 
+    // ===== Kommentare =====
     if(comments.length>0){
-      y += 4;
-      if(y>265){ doc.addPage(); y=20; }
-      doc.setFont("helvetica","bold"); doc.setFontSize(12);
-      doc.text("Kommentare", 14, y); y += 6;
+      y = sectionHeader("Kommentare", y);
       doc.setFont("helvetica","normal"); doc.setFontSize(9);
       comments.forEach(function(cm){
-        if(y>270){ doc.addPage(); y=20; }
         var who = cm.author_role==='spieler'?'Spieler':(cm.author_role==='leiter'?'Leiter':'Trainer');
         var internTag = cm.is_internal ? " (INTERN)" : "";
-        var split = doc.splitTextToSize("["+fmtD(cm.created_at)+" - "+who+internTag+"] "+cm.kommentar, 180);
-        doc.text(split, 14, y); y += split.length*5 + 2;
+        var split = doc.splitTextToSize("["+fmtD(cm.created_at)+" \u2013 "+who+internTag+"] "+nfc(cm.kommentar), 180);
+        y = checkBreak(y, split.length*5 + 2);
+        doc.setTextColor(30,30,30);
+        doc.text(split, MARGIN, y); y += split.length*5 + 3;
       });
+      y += 3;
     }
 
+    // ===== Gelbe Karte =====
     if(warnings && warnings.length>0){
-      y += 6;
-      if(y>250){ doc.addPage(); y=20; }
-      doc.setFont("helvetica","bold"); doc.setFontSize(12);
-      doc.text("Gelbe Karte", 14, y); y += 7;
+      y = sectionHeader("Gelbe Karte", y);
       warnings.forEach(function(w){
-        if(y>250){ doc.addPage(); y=20; }
+        y = checkBreak(y, 12);
         doc.setFont("helvetica","bold"); doc.setFontSize(9);
-        doc.text("Ausgestellt: "+fmtD(w.issued_at)+"   Frist bis: "+fmtD(w.frist_bis)+"   Status: "+(w.status==='aktiv'?'Aktiv':(w.status==='aufgehoben'?'Aufgehoben':'Abgelaufen')), 14, y);
+        doc.setTextColor(150,30,20);
+        doc.text("Ausgestellt: "+fmtD(w.issued_at)+"   Frist bis: "+fmtD(w.frist_bis)+"   Status: "+(w.status==='aktiv'?'Aktiv':(w.status==='aufgehoben'?'Aufgehoben':'Abgelaufen')), MARGIN, y);
         y += 5;
-        doc.text("Bestaetigt: "+(w.confirmed_at?fmtD(w.confirmed_at):"noch nicht bestaetigt"), 14, y);
+        doc.setTextColor(30,30,30);
+        doc.text("Best\u00e4tigt: "+(w.confirmed_at?fmtD(w.confirmed_at):"noch nicht best\u00e4tigt"), MARGIN, y);
         y += 6;
         doc.setFont("helvetica","normal"); doc.setFontSize(9);
-        var wsplit = doc.splitTextToSize(w.brief_text||"", 180);
-        if(y + wsplit.length*5 > 285){ doc.addPage(); y=20; }
-        doc.text(wsplit, 14, y); y += wsplit.length*5 + 8;
+        var wsplit = doc.splitTextToSize(nfc(w.brief_text)||"", 180);
+        y = checkBreak(y, wsplit.length*5);
+        doc.text(wsplit, MARGIN, y); y += wsplit.length*5 + 8;
       });
     }
 
-    // Fusszeile mit Entwickler-Credit auf jeder Seite
+    // ===== Fusszeile mit Entwickler-Credit auf jeder Seite =====
     var pageCountZiel = doc.internal.getNumberOfPages();
     for(var pz=1; pz<=pageCountZiel; pz++){
       doc.setPage(pz);
+      doc.setDrawColor(230,230,230);
+      doc.setLineWidth(0.2);
+      doc.line(MARGIN, PAGE_H-16, PAGE_W-MARGIN, PAGE_H-16);
       doc.setFont("helvetica","normal"); doc.setFontSize(8);
       doc.setTextColor(150,150,150);
-      doc.text("System development by D.K.", 14, 290);
-      doc.text("Seite "+pz+" / "+pageCountZiel, 182, 290);
+      doc.text("System development by D.K.", MARGIN, PAGE_H-10);
+      doc.text("Seite "+pz+" / "+pageCountZiel, PAGE_W-MARGIN, PAGE_H-10, {align:"right"});
     }
 
-    doc.save("Zielvereinbarung_"+(name||"Spieler").replace(/\s+/g,"_")+"_"+cycle.cycle_type+"_"+cycle.season_label.replace("/","-")+".pdf");
+    var fileSeason = seasonLabel.replace("/","-");
+    doc.save("Zielvereinbarung_"+(name||"Spieler").replace(/\s+/g,"_")+"_"+cycle.cycle_type+"_"+fileSeason+".pdf");
   }
 
   return {
