@@ -6484,11 +6484,19 @@ var Ziel = (function(){
       sb.from("dev_meetings").select("*").eq("cycle_id", c.id),
       sb.from("dev_comments").select("*").eq("cycle_id", c.id).order("created_at")
     ]).then(function(results){
-      var goals = results[0].data || [];
-      var goalsPlayer = results[1].data || [];
-      var meetings = results[2].data || [];
-      var comments = results[3].data || [];
-      body.innerHTML = renderCycleHtml(c, goals, goalsPlayer, meetings, comments, false);
+      try{
+        var goals = results[0].data || [];
+        var goalsPlayer = results[1].data || [];
+        var meetings = results[2].data || [];
+        var comments = results[3].data || [];
+        body.innerHTML = renderCycleHtml(c, goals, goalsPlayer, meetings, comments, false);
+      }catch(e){
+        console.error("Zielvereinbarung-Fehler:", e);
+        body.innerHTML = '<div class="card" style="background:rgba(230,90,60,0.1); border:1px solid rgba(230,90,60,0.35); padding:16px; text-align:center;"><p style="color:#ff9080; font-weight:700; margin-bottom:8px;">⚠️ Konnte nicht geladen werden.</p><button class="btn-ghost" onclick="Ziel.loadPlayerCycles()">Erneut versuchen</button></div>';
+      }
+    }).catch(function(err){
+      console.error("Zielvereinbarung-Fehler:", err);
+      body.innerHTML = '<div class="card" style="background:rgba(230,90,60,0.1); border:1px solid rgba(230,90,60,0.35); padding:16px; text-align:center;"><p style="color:#ff9080; font-weight:700; margin-bottom:8px;">⚠️ Konnte nicht geladen werden.</p><button class="btn-ghost" onclick="Ziel.loadPlayerCycles()">Erneut versuchen</button></div>';
     });
   }
 
@@ -6689,22 +6697,38 @@ var Ziel = (function(){
     var zielBisEl = el("gt-zielbis-"+uid);
     var erfasstAm = erfasstEl ? (erfasstEl.value || null) : null;
     var zielBis = zielBisEl ? (zielBisEl.value || null) : null;
+    if(!thema){
+      if(!confirm("Das Feld \"Entwicklungsziel\" ist leer. Trotzdem speichern (überschreibt ein evtl. vorhandenes Ziel mit leer)?")) return;
+    }
     sb.rpc("upsert_dev_goal", {p_cycle_id: cycleId, p_bereich: bereich, p_thema: thema, p_massnahmen: massnahmen, p_erfasst_am: erfasstAm, p_ziel_bis: zielBis}).then(function(r){
-      if(r.error){ alert("Fehler: "+r.error.message); return; }
+      if(r.error){ alert("Fehler beim Speichern: "+r.error.message); return; }
       sb.rpc("update_dev_goal_progress", {p_goal_id: r.data, p_fortschritt: fortschritt, p_fortschritt_status: status}).then(function(r2){
-        if(r2.error){ alert("Fehler: "+r2.error.message); return; }
+        if(r2.error){ alert("Fehler beim Speichern: "+r2.error.message); return; }
         if(state.isStaff) staffRenderCycle(); else renderActiveCycle();
-      });
-    });
+        showZielSavedToast();
+      }).catch(function(err){ console.error(err); alert("Fehler beim Speichern (Fortschritt): "+err.message); });
+    }).catch(function(err){ console.error(err); alert("Fehler beim Speichern: "+err.message); });
+  }
+
+  function showZielSavedToast(){
+    var t = document.createElement("div");
+    t.textContent = "✅ Gespeichert";
+    t.style.cssText = "position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#1fae5e; color:#fff; font-weight:700; padding:10px 20px; border-radius:99px; z-index:9999; box-shadow:0 4px 14px rgba(0,0,0,0.3);";
+    document.body.appendChild(t);
+    setTimeout(function(){ t.remove(); }, 1800);
   }
 
   function savePlayerGoalRow(cycleId, bereich, uid){
     var thema = el("gtp-thema-"+uid).value.trim();
     var massnahmen = el("gtp-massnahmen-"+uid).value.trim();
+    if(!thema){
+      if(!confirm("Das Feld \"Eigenes Entwicklungsziel\" ist leer. Trotzdem speichern (überschreibt ein evtl. vorhandenes Ziel mit leer)?")) return;
+    }
     sb.rpc("upsert_dev_goal_player", {p_cycle_id: cycleId, p_bereich: bereich, p_thema: thema, p_massnahmen: massnahmen}).then(function(r){
-      if(r.error){ alert("Fehler: "+r.error.message); return; }
+      if(r.error){ alert("Fehler beim Speichern: "+r.error.message); return; }
       if(state.isStaff) staffRenderCycle(); else renderActiveCycle();
-    });
+      showZielSavedToast();
+    }).catch(function(err){ console.error(err); alert("Fehler beim Speichern: "+err.message); });
   }
 
   function saveStaerke(cycleId){
@@ -6814,29 +6838,37 @@ var Ziel = (function(){
       sb.from("dev_comments").select("*").eq("cycle_id", c.id).order("created_at"),
       sb.from("dev_warnings").select("*").eq("cycle_id", c.id).order("issued_at",{ascending:false})
     ]).then(function(results){
-      var goals = results[0].data||[], goalsPlayer = results[1].data||[], meetings = results[2].data||[], comments = results[3].data||[], warnings = results[4].data||[];
-      var html = renderCycleHtml(c, goals, goalsPlayer, meetings, comments, true);
-      html += '<h4 style="color:#fff; font-size:14px; margin:26px 0 10px;">🟨 Gelbe Karte</h4>';
-      warnings.forEach(function(w){
-        html += '<div class="card" style="background:rgba(230,180,40,0.06); border:1px solid rgba(230,180,40,0.3); margin-bottom:8px; padding:12px;">'+
-          '<p style="font-size:12px; color:var(--text-3);">Ausgestellt '+fmtD(w.issued_at)+' · Frist bis '+fmtD(w.frist_bis)+' · Status: '+w.status+
-          (w.confirmed_at? ' · Bestätigt am '+fmtD(w.confirmed_at) : ' · Noch nicht bestätigt')+'</p>'+
-          (w.status==='aktiv' ? '<button class="btn-ghost" style="font-size:11.5px; padding:5px 10px; margin-top:6px;" onclick="Ziel.staffRevokeWarning(\''+w.id+'\')">Aufheben</button>' : '')+
+      try{
+        var goals = results[0].data||[], goalsPlayer = results[1].data||[], meetings = results[2].data||[], comments = results[3].data||[], warnings = results[4].data||[];
+        var html = renderCycleHtml(c, goals, goalsPlayer, meetings, comments, true);
+        html += '<h4 style="color:#fff; font-size:14px; margin:26px 0 10px;">🟨 Gelbe Karte</h4>';
+        warnings.forEach(function(w){
+          html += '<div class="card" style="background:rgba(230,180,40,0.06); border:1px solid rgba(230,180,40,0.3); margin-bottom:8px; padding:12px;">'+
+            '<p style="font-size:12px; color:var(--text-3);">Ausgestellt '+fmtD(w.issued_at)+' · Frist bis '+fmtD(w.frist_bis)+' · Status: '+w.status+
+            (w.confirmed_at? ' · Bestätigt am '+fmtD(w.confirmed_at) : ' · Noch nicht bestätigt')+'</p>'+
+            (w.status==='aktiv' ? '<button class="btn-ghost" style="font-size:11.5px; padding:5px 10px; margin-top:6px;" onclick="Ziel.staffRevokeWarning(\''+w.id+'\')">Aufheben</button>' : '')+
+            '</div>';
+        });
+        var tpl = "Liebe Eltern, lieber Spieler\n\nWir möchten euch hiermit kurz informieren, dass die aktuelle Entwicklung im Leistungs- und Ausbildungsbereich im Moment nicht ausreichend stabil ist und der Schritt in den Spitzenfussball möglicherweise noch zu früh kommt.\n\nAus diesem Grund erhält der Spieler eine Gelbe Karte bis zum unten stehenden Datum.\n\nSollte sich die Entwicklung in dieser Zeit nicht klar verbessern, wird eine Weiterführung auf diesem Niveau schwierig.\n\nBitte bestätigt, dass ihr diese Information erhalten habt. Ihr erhaltet zusätzlich ein schriftliches Schreiben.\n\nSportliche Grüsse\nTrainerteam";
+        html += '<div class="card" style="background:rgba(255,255,255,0.02); margin-top:8px; padding:14px 16px;">'+
+          '<label>Frist bis</label><input type="date" id="yc-frist" style="max-width:180px; margin-bottom:8px;"/>'+
+          '<label>Grund (optional, intern)</label><input id="yc-grund" style="width:100%; margin-bottom:8px;"/>'+
+          '<label>Brieftext (editierbar)</label><textarea id="yc-text" style="width:100%; min-height:140px;">'+esc(tpl)+'</textarea>'+
+          '<button class="btn" style="margin-top:10px;" onclick="Ziel.staffIssueWarning(\''+pid+'\',\''+c.id+'\')">🟨 Gelbe Karte ausstellen</button>'+
           '</div>';
-      });
-      var tpl = "Liebe Eltern, lieber Spieler\n\nWir möchten euch hiermit kurz informieren, dass die aktuelle Entwicklung im Leistungs- und Ausbildungsbereich im Moment nicht ausreichend stabil ist und der Schritt in den Spitzenfussball möglicherweise noch zu früh kommt.\n\nAus diesem Grund erhält der Spieler eine Gelbe Karte bis zum unten stehenden Datum.\n\nSollte sich die Entwicklung in dieser Zeit nicht klar verbessern, wird eine Weiterführung auf diesem Niveau schwierig.\n\nBitte bestätigt, dass ihr diese Information erhalten habt. Ihr erhaltet zusätzlich ein schriftliches Schreiben.\n\nSportliche Grüsse\nTrainerteam";
-      html += '<div class="card" style="background:rgba(255,255,255,0.02); margin-top:8px; padding:14px 16px;">'+
-        '<label>Frist bis</label><input type="date" id="yc-frist" style="max-width:180px; margin-bottom:8px;"/>'+
-        '<label>Grund (optional, intern)</label><input id="yc-grund" style="width:100%; margin-bottom:8px;"/>'+
-        '<label>Brieftext (editierbar)</label><textarea id="yc-text" style="width:100%; min-height:140px;">'+esc(tpl)+'</textarea>'+
-        '<button class="btn" style="margin-top:10px;" onclick="Ziel.staffIssueWarning(\''+pid+'\',\''+c.id+'\')">🟨 Gelbe Karte ausstellen</button>'+
-        '</div>';
-      html += '<div style="margin-top:20px;">';
-      html += '<label id="ziel-pdf-internal-label-'+c.id+'" class="checkbox-label" style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-3); text-transform:none; letter-spacing:0; margin-bottom:10px; cursor:pointer; padding:8px 10px; border-radius:8px; border:1px solid var(--line);">';
-      html += '<input type="checkbox" id="ziel-pdf-internal-'+c.id+'" checked style="width:18px; height:18px; accent-color:#f0c419; cursor:pointer;" onchange="toggleInternalCheckbox(this)"/> 🔒 Interne Kommentare im PDF einschliessen';
-      html += '</label>';
-      html += '<button class="btn-ghost" onclick="Ziel.exportPdf(\''+c.id+'\')">📄 Entwicklungsplan als PDF</button></div>';
-      area.innerHTML = html;
+        html += '<div style="margin-top:20px;">';
+        html += '<label id="ziel-pdf-internal-label-'+c.id+'" class="checkbox-label" style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-3); text-transform:none; letter-spacing:0; margin-bottom:10px; cursor:pointer; padding:8px 10px; border-radius:8px; border:1px solid var(--line);">';
+        html += '<input type="checkbox" id="ziel-pdf-internal-'+c.id+'" checked style="width:18px; height:18px; accent-color:#f0c419; cursor:pointer;" onchange="toggleInternalCheckbox(this)"/> 🔒 Interne Kommentare im PDF einschliessen';
+        html += '</label>';
+        html += '<button class="btn-ghost" onclick="Ziel.exportPdf(\''+c.id+'\')">📄 Entwicklungsplan als PDF</button></div>';
+        area.innerHTML = html;
+      }catch(e){
+        console.error("Zielvereinbarung (Trainer)-Fehler:", e);
+        area.innerHTML = '<div class="card" style="background:rgba(230,90,60,0.1); border:1px solid rgba(230,90,60,0.35); padding:16px; text-align:center;"><p style="color:#ff9080; font-weight:700; margin-bottom:8px;">⚠️ Konnte nicht geladen werden. Deine Eingabe wurde gespeichert, aber die Anzeige ist fehlgeschlagen.</p><button class="btn-ghost" onclick="Ziel.staffRenderCycle()">Erneut versuchen</button></div>';
+      }
+    }).catch(function(err){
+      console.error("Zielvereinbarung (Trainer)-Fehler:", err);
+      area.innerHTML = '<div class="card" style="background:rgba(230,90,60,0.1); border:1px solid rgba(230,90,60,0.35); padding:16px; text-align:center;"><p style="color:#ff9080; font-weight:700; margin-bottom:8px;">⚠️ Konnte nicht geladen werden.</p><button class="btn-ghost" onclick="Ziel.staffRenderCycle()">Erneut versuchen</button></div>';
     });
   }
 
@@ -7118,6 +7150,7 @@ var Ziel = (function(){
   return {
     state: state,
     playerInit: playerInit,
+    loadPlayerCycles: loadPlayerCycles,
     switchCycle: switchCycle,
     confirmWarning: confirmWarning,
     saveGoalRow: saveGoalRow,
@@ -7126,6 +7159,7 @@ var Ziel = (function(){
     addComment: addComment,
     staffInit: staffInit,
     staffLoadPlayer: staffLoadPlayer,
+    staffRenderCycle: staffRenderCycle,
     staffSwitchType: staffSwitchType,
     staffCreateCycle: staffCreateCycle,
     saveMeeting: saveMeeting,
