@@ -922,75 +922,6 @@ footer {
         <button class="btn" style="padding:11px 28px;" onclick="scrollToLogin()">↑ Jetzt einloggen</button>
       </div>
 
-      <!-- RECHTLICHES / FUSSZEILE -->
-      <div style="margin-top:36px; border-top:1px solid var(--line); padding-top:24px;">
-        <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:16px;">
-          <button class="btn-ghost" style="font-size:11.5px; padding:6px 12px;" onclick="toggleLegal('impressum')">Impressum</button>
-          <button class="btn-ghost" style="font-size:11.5px; padding:6px 12px;" onclick="toggleLegal('nutzung')">Nutzungsbedingungen</button>
-          <button class="btn-ghost" style="font-size:11.5px; padding:6px 12px;" onclick="toggleLegal('datenschutz')">Datenschutz</button>
-          <button class="btn-ghost" style="font-size:11.5px; padding:6px 12px;" onclick="toggleLegal('ki')">Hinweis zu Software & KI</button>
-          <button class="btn-ghost" style="font-size:11.5px; padding:6px 12px;" onclick="toggleLegal('kontakt')">✉️ Kontakt / Hilfe</button>
-        </div>
-
-        <div id="legal-impressum" class="hidden card" style="background:rgba(255,255,255,0.02); margin-bottom:12px; padding:16px;">
-          <p class="eyebrow">Impressum</p>
-          <p style="font-size:12.5px; color:var(--text-2); line-height:1.7; margin:6px 0 0;">
-            Verantwortlich für diese Online-Lernplattform: <b style="color:#fff;">BSC Old Boys Basel, Team FE12</b>, vertreten durch Dogus Kaplan (Leiter/Trainer FE12).<br/>
-            Diese Plattform ist kein öffentliches Angebot, sondern ein internes Trainingswerkzeug ausschliesslich für Spieler/innen und Trainer/innen des Teams FE12.
-            Kontaktaufnahme über das Kontaktformular unten.
-          </p>
-        </div>
-
-        <div id="legal-nutzung" class="hidden card" style="background:rgba(255,255,255,0.02); margin-bottom:12px; padding:16px;">
-          <p class="eyebrow">Nutzungsbedingungen (kurz)</p>
-          <p style="font-size:12.5px; color:var(--text-2); line-height:1.7; margin:6px 0 0;">
-            Die Nutzung ist ausschliesslich Mitgliedern des Teams FE12 vorbehalten und erfolgt über vom Trainerteam persönlich vergebene Zugänge. Zugangsdaten dürfen nicht an Dritte
-            weitergegeben werden. Inhalte (Trainingsmethoden, Texte, Übungen) dürfen nicht kopiert, veröffentlicht oder anderweitig ausserhalb des Teams verwendet werden. Bei
-            missbräuchlicher Nutzung kann der Zugang jederzeit durch das Trainerteam gesperrt werden. Bei Fragen zur Nutzung wende dich über das Kontaktformular an das Trainerteam.
-          </p>
-        </div>
-
-        <div id="legal-datenschutz" class="hidden card" style="background:rgba(255,255,255,0.02); margin-bottom:12px; padding:16px;">
-          <p class="eyebrow">Datenschutzerklärung (kurz, nDSG)</p>
-          <p style="font-size:12.5px; color:var(--text-2); line-height:1.7; margin:6px 0 0;">
-            Wir verarbeiten ausschliesslich trainingsbezogene Personendaten (Name, Fortschritt, Ziele, Punktzahlen, Anwesenheit), gehostet in der Schweiz (Zürich), gemäss dem
-            Schweizer Bundesgesetz über den Datenschutz (nDSG). Eine Weitergabe an Dritte erfolgt nicht. Da die Nutzer/innen grösstenteils minderjährig sind, erfolgt die Nutzung
-            in Absprache mit den Erziehungsberechtigten; die entsprechende Einwilligung wird durch das Trainerteam persönlich eingeholt und dokumentiert. Erziehungsberechtigte
-            können jederzeit Auskunft über die gespeicherten Daten ihres Kindes verlangen oder die Löschung des Zugangs beantragen — über das Kontaktformular unten.
-          </p>
-        </div>
-
-        <div id="legal-ki" class="hidden card" style="background:rgba(255,255,255,0.02); margin-bottom:12px; padding:16px;">
-          <p class="eyebrow">Hinweis zu Software & technischen Hilfsmitteln</p>
-          <p style="font-size:12.5px; color:var(--text-2); line-height:1.7; margin:6px 0 0;">
-            Bei der Entwicklung und Pflege dieser Plattform kommen teilweise moderne Software-Werkzeuge zur Unterstützung zum Einsatz. Es findet dabei keine automatisierte
-            Entscheidungsfindung über einzelne Spieler/innen statt, und es werden keine sensiblen Personendaten an aussenstehende Dienste zu diesem Zweck übermittelt. Details zu
-            eingesetzten Technologien werden aus Sicherheitsgründen nicht veröffentlicht.
-          </p>
-        </div>
-
-        <div id="legal-kontakt" class="hidden card" style="background:rgba(255,255,255,0.02); margin-bottom:12px; padding:18px;">
-          <p class="eyebrow">✉️ Kontakt / Hilfe</p>
-          <p style="font-size:12.5px; color:var(--text-2); line-height:1.6; margin:6px 0 14px;">
-            Frage, Anliegen oder Problem beim Anmelden? Schreib uns kurz — das Trainerteam meldet sich per E-Mail oder Telefon zurück.
-          </p>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
-            <div><label style="font-size:11px;">Vorname*</label><input id="cf-vorname" placeholder="Vorname"/></div>
-            <div><label style="font-size:11px;">Nachname*</label><input id="cf-nachname" placeholder="Nachname"/></div>
-          </div>
-          <div style="margin-bottom:10px;"><label style="font-size:11px;">Betreff*</label><input id="cf-betreff" placeholder="z.B. Problem beim Login"/></div>
-          <div style="margin-bottom:10px;"><label style="font-size:11px;">Nachricht*</label><textarea id="cf-nachricht" style="min-height:80px;" placeholder="Was möchtest du uns mitteilen?"></textarea></div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
-            <div><label style="font-size:11px;">E-Mail* (für Rückmeldung)</label><input id="cf-email" type="email" placeholder="deine@email.ch"/></div>
-            <div><label style="font-size:11px;">Telefon (optional)</label><input id="cf-telefon" placeholder="optional"/></div>
-          </div>
-          <button class="btn" onclick="submitContactForm()">Anfrage senden</button>
-          <p id="cf-msg" class="muted" style="font-size:12px; margin-top:10px;"></p>
-        </div>
-
-        <p class="muted" style="text-align:center; font-size:10.5px; margin-top:8px;">© Team Basel-Old Boys FE12 · Online-Lernplattform · Schweiz (Zürich)</p>
-      </div>
-
     </div>
   </div>
 
@@ -1872,6 +1803,75 @@ footer {
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- RECHTLICHES / FUSSZEILE — immer sichtbar, auch eingeloggt -->
+  <div style="max-width:820px; margin:36px auto 0; padding:24px 16px 4px; border-top:1px solid var(--line);">
+    <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:16px;">
+      <button class="btn-ghost" style="font-size:11.5px; padding:6px 12px;" onclick="toggleLegal('impressum')">Impressum</button>
+      <button class="btn-ghost" style="font-size:11.5px; padding:6px 12px;" onclick="toggleLegal('nutzung')">Nutzungsbedingungen</button>
+      <button class="btn-ghost" style="font-size:11.5px; padding:6px 12px;" onclick="toggleLegal('datenschutz')">Datenschutz</button>
+      <button class="btn-ghost" style="font-size:11.5px; padding:6px 12px;" onclick="toggleLegal('ki')">Hinweis zu Software & KI</button>
+      <button class="btn-ghost" style="font-size:11.5px; padding:6px 12px;" onclick="toggleLegal('kontakt')">✉️ Kontakt / Hilfe</button>
+    </div>
+
+    <div id="legal-impressum" class="hidden card" style="background:rgba(255,255,255,0.02); margin-bottom:12px; padding:16px;">
+      <p class="eyebrow">Impressum</p>
+      <p style="font-size:12.5px; color:var(--text-2); line-height:1.7; margin:6px 0 0;">
+        Verantwortlich für diese Online-Lernplattform: <b style="color:#fff;">BSC Old Boys Basel, Team FE12</b>, vertreten durch Dogus Kaplan (Leiter/Trainer FE12).<br/>
+        Diese Plattform ist kein öffentliches Angebot, sondern ein internes Trainingswerkzeug ausschliesslich für Spieler/innen und Trainer/innen des Teams FE12.
+        Kontaktaufnahme über das Kontaktformular unten.
+      </p>
+    </div>
+
+    <div id="legal-nutzung" class="hidden card" style="background:rgba(255,255,255,0.02); margin-bottom:12px; padding:16px;">
+      <p class="eyebrow">Nutzungsbedingungen (kurz)</p>
+      <p style="font-size:12.5px; color:var(--text-2); line-height:1.7; margin:6px 0 0;">
+        Die Nutzung ist ausschliesslich Mitgliedern des Teams FE12 vorbehalten und erfolgt über vom Trainerteam persönlich vergebene Zugänge. Zugangsdaten dürfen nicht an Dritte
+        weitergegeben werden. Inhalte (Trainingsmethoden, Texte, Übungen) dürfen nicht kopiert, veröffentlicht oder anderweitig ausserhalb des Teams verwendet werden. Bei
+        missbräuchlicher Nutzung kann der Zugang jederzeit durch das Trainerteam gesperrt werden. Bei Fragen zur Nutzung wende dich über das Kontaktformular an das Trainerteam.
+      </p>
+    </div>
+
+    <div id="legal-datenschutz" class="hidden card" style="background:rgba(255,255,255,0.02); margin-bottom:12px; padding:16px;">
+      <p class="eyebrow">Datenschutzerklärung (kurz, nDSG)</p>
+      <p style="font-size:12.5px; color:var(--text-2); line-height:1.7; margin:6px 0 0;">
+        Wir verarbeiten ausschliesslich trainingsbezogene Personendaten (Name, Fortschritt, Ziele, Punktzahlen, Anwesenheit), gehostet in der Schweiz (Zürich), gemäss dem
+        Schweizer Bundesgesetz über den Datenschutz (nDSG). Eine Weitergabe an Dritte erfolgt nicht. Da die Nutzer/innen grösstenteils minderjährig sind, erfolgt die Nutzung
+        in Absprache mit den Erziehungsberechtigten; die entsprechende Einwilligung wird durch das Trainerteam persönlich eingeholt und dokumentiert. Erziehungsberechtigte
+        können jederzeit Auskunft über die gespeicherten Daten ihres Kindes verlangen oder die Löschung des Zugangs beantragen — über das Kontaktformular unten.
+      </p>
+    </div>
+
+    <div id="legal-ki" class="hidden card" style="background:rgba(255,255,255,0.02); margin-bottom:12px; padding:16px;">
+      <p class="eyebrow">Hinweis zu Software & technischen Hilfsmitteln</p>
+      <p style="font-size:12.5px; color:var(--text-2); line-height:1.7; margin:6px 0 0;">
+        Bei der Entwicklung und Pflege dieser Plattform kommen teilweise moderne Software-Werkzeuge zur Unterstützung zum Einsatz. Es findet dabei keine automatisierte
+        Entscheidungsfindung über einzelne Spieler/innen statt, und es werden keine sensiblen Personendaten an aussenstehende Dienste zu diesem Zweck übermittelt. Details zu
+        eingesetzten Technologien werden aus Sicherheitsgründen nicht veröffentlicht.
+      </p>
+    </div>
+
+    <div id="legal-kontakt" class="hidden card" style="background:rgba(255,255,255,0.02); margin-bottom:12px; padding:18px;">
+      <p class="eyebrow">✉️ Kontakt / Hilfe</p>
+      <p style="font-size:12.5px; color:var(--text-2); line-height:1.6; margin:6px 0 14px;">
+        Frage, Anliegen oder Problem? Schreib uns kurz — das Trainerteam meldet sich per E-Mail oder Telefon zurück.
+      </p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+        <div><label style="font-size:11px;">Vorname*</label><input id="cf-vorname" placeholder="Vorname"/></div>
+        <div><label style="font-size:11px;">Nachname*</label><input id="cf-nachname" placeholder="Nachname"/></div>
+      </div>
+      <div style="margin-bottom:10px;"><label style="font-size:11px;">Betreff*</label><input id="cf-betreff" placeholder="z.B. Problem beim Login"/></div>
+      <div style="margin-bottom:10px;"><label style="font-size:11px;">Nachricht*</label><textarea id="cf-nachricht" style="min-height:80px;" placeholder="Was möchtest du uns mitteilen?"></textarea></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+        <div><label style="font-size:11px;">E-Mail* (für Rückmeldung)</label><input id="cf-email" type="email" placeholder="deine@email.ch"/></div>
+        <div><label style="font-size:11px;">Telefon (optional)</label><input id="cf-telefon" placeholder="optional"/></div>
+      </div>
+      <button class="btn" onclick="submitContactForm()">Anfrage senden</button>
+      <p id="cf-msg" class="muted" style="font-size:12px; margin-top:10px;"></p>
+    </div>
+
+    <p class="muted" style="text-align:center; font-size:10.5px; margin-top:8px;">© Team Basel-Old Boys FE12 · Online-Lernplattform · Schweiz (Zürich)</p>
   </div>
 
   <footer>System development by D.K.</footer>
