@@ -888,7 +888,7 @@ footer {
       <div class="card" style="margin-bottom:24px;">
         <p class="eyebrow">Bereiche der Lernplattform</p>
         <h2 style="margin:6px 0 16px; color:#fff;">⚽ Womit trainierst du hier?</h2>
-        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:12px;">
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:12px;">
           <div class="dash-tile" style="border:1px solid var(--line); border-radius:12px; text-align:center; padding:18px 10px;">
             <div style="font-size:24px; margin-bottom:6px;">📖</div><div style="font-size:12.5px; color:#fff; font-weight:600;">Lernen</div>
             <div class="muted" style="font-size:11px; margin-top:4px;">Fussballwissen & Quiz</div>
@@ -1815,13 +1815,23 @@ footer {
       <button class="btn-ghost" style="font-size:11.5px; padding:6px 12px;" onclick="toggleLegal('kontakt')">✉️ Kontakt / Hilfe</button>
     </div>
 
-    <div id="legal-impressum" class="hidden card" style="background:rgba(255,255,255,0.02); margin-bottom:12px; padding:16px;">
-      <p class="eyebrow">Impressum</p>
-      <p style="font-size:12.5px; color:var(--text-2); line-height:1.7; margin:6px 0 0;">
-        Verantwortlich für diese Online-Lernplattform: <b style="color:#fff;">BSC Old Boys Basel, Team FE12</b>, vertreten durch Dogus Kaplan (Leiter/Trainer FE12).<br/>
-        Diese Plattform ist kein öffentliches Angebot, sondern ein internes Trainingswerkzeug ausschliesslich für Spieler/innen und Trainer/innen des Teams FE12.
-        Kontaktaufnahme über das Kontaktformular unten.
-      </p>
+    <div id="legal-impressum" class="hidden card" style="background:rgba(255,255,255,0.02); margin-bottom:12px; padding:18px 16px;">
+      <p class="eyebrow" style="margin-bottom:12px;">Impressum</p>
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        <div>
+          <p style="font-size:10.5px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.4px; margin-bottom:4px;">Verantwortlich für diese Plattform</p>
+          <p style="font-size:13.5px; color:#fff; font-weight:700; line-height:1.5; margin:0;">BSC Old Boys Basel · Team FE12</p>
+          <p style="font-size:13px; color:var(--text-2); line-height:1.5; margin:2px 0 0;">Dogus Kaplan (Leiter/Trainer FE12)</p>
+        </div>
+        <div>
+          <p style="font-size:10.5px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.4px; margin-bottom:4px;">Art der Plattform</p>
+          <p style="font-size:13px; color:var(--text-2); line-height:1.6; margin:0;">Kein öffentliches Angebot — ein internes Trainingswerkzeug ausschliesslich für Spieler/innen und Trainer/innen des Teams FE12.</p>
+        </div>
+        <div>
+          <p style="font-size:10.5px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.4px; margin-bottom:4px;">Kontakt</p>
+          <p style="font-size:13px; color:var(--text-2); line-height:1.6; margin:0;">Über das Kontaktformular unten.</p>
+        </div>
+      </div>
     </div>
 
     <div id="legal-nutzung" class="hidden card" style="background:rgba(255,255,255,0.02); margin-bottom:12px; padding:16px;">
@@ -2693,43 +2703,60 @@ function toggleStaffLeaderboardFilter() {
 function exportLeaderboardPDF() {
   var { jsPDF } = window.jspdf;
   var doc = new jsPDF();
-  
-  // Titel
-  doc.setFont("Helvetica", "bold");
-  doc.setFontSize(18);
-  doc.text("FOOTECO Online-Lernplattform · FE12", 14, 20);
-  
+  var GOLD = [212,175,55];
+  var MARGIN = 14, PAGE_W = 210, PAGE_H = 297;
+
+  // Kopf im einheitlichen Stil (analog Zielvereinbarung / Selbstreflexion)
+  doc.setFont("helvetica","bold"); doc.setFontSize(16);
+  doc.setTextColor(20,20,20);
+  doc.text("Meisterschaft \u2014 Wer lernt am st\u00e4rksten?", MARGIN, 16);
+  doc.setTextColor(110,110,110);
+  doc.setFont("helvetica","normal"); doc.setFontSize(9);
+  doc.text("Team Basel-Old Boys FE12", MARGIN, 22.5);
+  doc.setTextColor(0,0,0);
+  doc.setDrawColor(GOLD[0],GOLD[1],GOLD[2]);
+  doc.setLineWidth(0.8);
+  doc.line(MARGIN, 27, PAGE_W-MARGIN, 27);
+
   var isRound = (playerTab === "rang" ? currentLefilter : el("staff-leaderboard-filter").value) === "round";
   var roundName = isRound ? (ROUND_NAMES[ACCESS.current_round] || "Quartal " + ACCESS.current_round) : "Gesamte Meisterschaft (Gesamt-Ranking)";
-  
-  doc.setFont("Helvetica", "normal");
-  doc.setFontSize(12);
-  doc.text("Auswertung: " + roundName, 14, 28);
-  doc.text("Exportiert am: " + new Date().toLocaleString("de-CH"), 14, 34);
-  
+
+  doc.setFont("helvetica","normal"); doc.setFontSize(10);
+  doc.setTextColor(30,30,30);
+  doc.text("Auswertung: " + nfc(roundName), MARGIN, 36);
+  doc.text("Exportiert am: " + new Date().toLocaleString("de-CH"), MARGIN, 42);
+
   var roundParam = isRound ? ACCESS.current_round : null;
-  
+
   sb.rpc("get_leaderboard", {p_round_nr: roundParam}).then(function(r) {
     var rows = r.data || [];
     var body = rows.map(function(x) {
-      return [x.rang, x.display_name, x.gesamt, x.module_bestanden + " / 4", x.meister > 0 ? x.meister : "–"];
+      return [x.rang, nfc(x.display_name), x.gesamt, x.module_bestanden + " / 4", x.meister > 0 ? x.meister : "\u2013"];
     });
-    
+
     doc.autoTable({
-      startY: 40,
-      head: [['#', 'Spieler / Spielerinnen', 'Punkte', 'Module bestanden', 'Meister-Sterne (⭐)']],
+      startY: 48,
+      margin: { left: MARGIN, right: MARGIN },
+      head: [['#', 'Spieler / Spielerinnen', 'Punkte', 'Module bestanden', 'Meister-Sterne (\u2b50)']],
       body: body,
       theme: 'striped',
-      headStyles: { fillColor: [212, 175, 55], textColor: [12, 13, 16], fontStyle: 'bold' },
-      styles: { font: "Helvetica", fontSize: 10 }
+      headStyles: { fillColor: [24,24,24], textColor: GOLD, fontStyle: 'bold' },
+      styles: { font: "helvetica", fontSize: 10, textColor: [25,25,25] },
+      alternateRowStyles: { fillColor: [250,250,248] }
     });
-    
-    // Add developer credit in footer
-    doc.setFont("Helvetica", "normal");
-    doc.setFontSize(8);
-    doc.setTextColor(150, 150, 150);
-    doc.text("System development by D.K.", 14, 285);
-    
+
+    var pageCountLb = doc.internal.getNumberOfPages();
+    for(var pl=1; pl<=pageCountLb; pl++){
+      doc.setPage(pl);
+      doc.setDrawColor(230,230,230);
+      doc.setLineWidth(0.2);
+      doc.line(MARGIN, PAGE_H-16, PAGE_W-MARGIN, PAGE_H-16);
+      doc.setFont("helvetica","normal"); doc.setFontSize(8);
+      doc.setTextColor(150,150,150);
+      doc.text("System development by D.K.", MARGIN, PAGE_H-10);
+      doc.text("Seite "+pl+" / "+pageCountLb, PAGE_W-MARGIN, PAGE_H-10, {align:"right"});
+    }
+
     doc.save("FE12_Lernplattform_Rangliste_" + (isRound ? "Runde_" + ACCESS.current_round : "Gesamt") + ".pdf");
   });
 }
@@ -2972,7 +2999,7 @@ function loadPlayerDashboard(){
 
           html += dashboardLeaderboardHtml(lbRows);
 
-          html += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:12px; margin-top:20px;">';
+          html += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:12px; margin-top:20px;">';
           [
             {icon:'📖', label:'Lernen', tab:'lernen'},
             {icon:'🎯', label:'Skill-Challenges', tab:'skills'},
@@ -3665,10 +3692,12 @@ function exportSkillsMasterPDF() {
   });
   
   // Add developer credit in footer Page 1
-  doc.setFont("Helvetica", "normal");
+  doc.setDrawColor(230,230,230); doc.setLineWidth(0.2); doc.line(14, 281, 196, 281);
+  doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(150, 150, 150);
-  doc.text("System development by D.K.", 14, 285);
+  doc.text("System development by D.K.", 14, 287);
+  doc.text("Seite 1 / 2", 196, 287, {align:"right"});
   
   // Add a new page for Tricks list
   doc.addPage();
@@ -3736,10 +3765,12 @@ function exportSkillsMasterPDF() {
   });
   
   // Add developer credit in footer Page 2
-  doc.setFont("Helvetica", "normal");
+  doc.setDrawColor(230,230,230); doc.setLineWidth(0.2); doc.line(14, 281, 196, 281);
+  doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(150, 150, 150);
-  doc.text("System development by D.K.", 14, 285);
+  doc.text("System development by D.K.", 14, 287);
+  doc.text("Seite 2 / 2", 196, 287, {align:"right"});
   
   doc.save("Team_Basel_OB_FE12_Skills_Master.pdf");
 }
@@ -4033,42 +4064,43 @@ function exportSkillsComparisonPDF(){
   if (typeof LOGO_BASE64 === "string" && LOGO_BASE64.indexOf("data:") === 0) {
     try{ doc.addImage(LOGO_BASE64, "PNG", 178, 8, 18, 15.6); }catch(e){}
   }
-  doc.setFont("helvetica","bold"); doc.setFontSize(15); doc.setTextColor(150, 115, 20);
-  doc.text("Skill-Challenge Bestenliste", 14, 15);
-  doc.setTextColor(90,90,90); doc.setFont("helvetica","normal"); doc.setFontSize(9);
-  doc.text("Team Basel-Old Boys FE12", 14, 22);
+  doc.setFont("helvetica","bold"); doc.setFontSize(16); doc.setTextColor(20,20,20);
+  doc.text("Skill-Challenge Bestenliste", 14, 16);
+  doc.setTextColor(110,110,110); doc.setFont("helvetica","normal"); doc.setFontSize(9);
+  doc.text("Team Basel-Old Boys FE12", 14, 22.5);
   doc.setTextColor(0,0,0);
-  doc.setDrawColor(212, 175, 55); doc.setLineWidth(0.8); doc.line(14, 29, 196, 29);
+  doc.setDrawColor(212, 175, 55); doc.setLineWidth(0.8); doc.line(14, 27, 196, 27);
   doc.setFontSize(10);
-  doc.text("Exportiert am: " + new Date().toLocaleString("de-CH"), 14, 38);
+  doc.text("Exportiert am: " + new Date().toLocaleString("de-CH"), 14, 36);
 
   var body = list.map(function(p, idx){
-    return [idx+1, p.name, p.total, p.jrpDone+' / '+p.jrpCount, p.trickDone+' / '+p.trickCount];
+    return [idx+1, nfc(p.name), p.total, p.jrpDone+' / '+p.jrpCount, p.trickDone+' / '+p.trickCount];
   });
   doc.autoTable({
     startY: 46,
     head: [["#","Spieler/in","Punkte","Jonglierreihe","Tricks Meister"]],
     body: body,
     theme: "striped",
-    headStyles: { fillColor: [212,175,55], textColor: [12,13,16], fontStyle: "bold" },
-    styles: { font: "Helvetica", fontSize: 10 }
+    headStyles: { fillColor: [24,24,24], textColor: [212,175,55], fontStyle: "bold" },
+    styles: { font: "helvetica", fontSize: 10, textColor: [25,25,25] },
+    alternateRowStyles: { fillColor: [250,250,248] }
   });
 
   // Detaillierte Aufschluesselung pro Spieler, je auf eigener Seite
   list.forEach(function(p){
     doc.addPage();
-    doc.setFont("helvetica","bold"); doc.setFontSize(14); doc.setTextColor(150,115,20);
-    doc.text(p.name + " - Detailansicht", 14, 20);
+    doc.setFont("helvetica","bold"); doc.setFontSize(14); doc.setTextColor(20,20,20);
+    doc.text(nfc(p.name) + " - Detailansicht", 14, 20);
     doc.setTextColor(0,0,0);
-    var jrpRows = p.breakdown.filter(function(b){return b.category==='jrpractice';}).map(function(b){return [b.title, JRP_STATUS_LABEL[b.score]||'-'];});
-    var trickRows = p.breakdown.filter(function(b){return b.category!=='jrpractice';}).map(function(b){return [b.title, TRICK_STATUS_LABEL[b.score]||'-'];});
+    var jrpRows = p.breakdown.filter(function(b){return b.category==='jrpractice';}).map(function(b){return [nfc(b.title), JRP_STATUS_LABEL[b.score]||'-'];});
+    var trickRows = p.breakdown.filter(function(b){return b.category!=='jrpractice';}).map(function(b){return [nfc(b.title), TRICK_STATUS_LABEL[b.score]||'-'];});
     doc.setFont("helvetica","bold"); doc.setFontSize(11);
     doc.text("Jonglierreihe", 14, 30);
-    doc.autoTable({ startY: 34, head: [["Übung","Status"]], body: jrpRows, styles:{fontSize:8,cellPadding:2}, headStyles:{fillColor:[30,32,40]} });
+    doc.autoTable({ startY: 34, head: [["Übung","Status"]], body: jrpRows, styles:{fontSize:8,cellPadding:2,textColor:[25,25,25]}, headStyles:{fillColor:[24,24,24],textColor:[212,175,55]} });
     var y2 = doc.lastAutoTable.finalY + 10;
     doc.setFont("helvetica","bold"); doc.setFontSize(11);
     doc.text("Trick-Challenges", 14, y2);
-    doc.autoTable({ startY: y2+4, head: [["Trick","Status"]], body: trickRows, styles:{fontSize:8,cellPadding:2}, headStyles:{fillColor:[30,32,40]} });
+    doc.autoTable({ startY: y2+4, head: [["Trick","Status"]], body: trickRows, styles:{fontSize:8,cellPadding:2,textColor:[25,25,25]}, headStyles:{fillColor:[24,24,24],textColor:[212,175,55]} });
   });
 
   var pageCount = doc.internal.getNumberOfPages();
@@ -6996,7 +7028,7 @@ var Ziel = (function(){
     doc.line(MARGIN, 27, PAGE_W-MARGIN, 27);
 
     // ===== Strukturierte Spieler-Info-Box (2x2 Grid, klar getrennt) =====
-    var boxY = 33, boxH = 26;
+    var boxY = 33, boxH = 34;
     doc.setFillColor(248,248,246);
     doc.rect(MARGIN, boxY, PAGE_W-2*MARGIN, boxH, "F");
     doc.setDrawColor(GOLD[0],GOLD[1],GOLD[2]);
@@ -7662,46 +7694,85 @@ var Reflex = (function(){
   function buildReflexPdf(match, entries){
     var jsPDFctor = window.jspdf.jsPDF;
     var doc = new jsPDFctor();
+    var GOLD = [212,175,55];
+    var MARGIN = 14, PAGE_W = 210, PAGE_H = 297;
     var first = true;
+
+    function checkBreak(y, needed){
+      if(y + needed > PAGE_H - 22){ doc.addPage(); return 20; }
+      return y;
+    }
+    function sectionHeader(title, y){
+      y = checkBreak(y, 12);
+      doc.setFont("helvetica","bold"); doc.setFontSize(11);
+      doc.setTextColor(20,20,20);
+      doc.text(nfc(title), MARGIN, y);
+      doc.setDrawColor(GOLD[0],GOLD[1],GOLD[2]);
+      doc.setLineWidth(0.4);
+      doc.line(MARGIN, y+2, PAGE_W-MARGIN, y+2);
+      return y + 8;
+    }
+
     entries.forEach(function(e){
       if(!first) doc.addPage();
       first = false;
-      var y = 18;
+      var y = 16;
+
       if (typeof LOGO_BASE64 === "string" && LOGO_BASE64.indexOf("data:") === 0) {
-        try{ doc.addImage(LOGO_BASE64, "PNG", 182, 8, 14, 14); }catch(e){}
+        try{ doc.addImage(LOGO_BASE64, "PNG", 178, 8, 18, 15.6); }catch(e2){}
       }
-      doc.setFont("helvetica","bold"); doc.setFontSize(15);
-      doc.setTextColor(150, 115, 20);
-      doc.text("Selbstreflexion", 14, y); y += 6;
+      doc.setFont("helvetica","bold"); doc.setFontSize(16);
+      doc.setTextColor(20,20,20);
+      doc.text("Selbstreflexion", MARGIN, y); y += 6.5;
+      doc.setTextColor(110,110,110);
+      doc.setFont("helvetica","normal"); doc.setFontSize(9);
+      doc.text("Team Basel-Old Boys FE12", MARGIN, y); y += 4.5;
       doc.setTextColor(0,0,0);
-      doc.setDrawColor(212, 175, 55);
+      doc.setDrawColor(GOLD[0],GOLD[1],GOLD[2]);
       doc.setLineWidth(0.8);
-      doc.line(14, y, 196, y); y += 6;
-      doc.setFont("helvetica","normal"); doc.setFontSize(10);
-      doc.text("Spieler: "+e.name, 14, y); y += 6;
-      doc.text("Spiel: vs. "+(match.opponent||"")+" ("+(match.home_away==='heim'?'Heim':'Auswaerts')+")", 14, y); y += 6;
-      doc.text("Datum: "+fmtD(match.match_date)+(match.kickoff_time?(" "+match.kickoff_time+" Uhr"):""), 14, y); y += 6;
-      doc.text("Ausgefuellt am: "+fmtDT(e.refl.updated_at), 14, y); y += 10;
+      doc.line(MARGIN, y, PAGE_W-MARGIN, y); y += 6;
+
+      // ---- Strukturierte Info-Box (2x2), analog Zielvereinbarung ----
+      var boxY = y, boxH = 34;
+      doc.setFillColor(248,248,246);
+      doc.rect(MARGIN, boxY, PAGE_W-2*MARGIN, boxH, "F");
+      doc.setDrawColor(GOLD[0],GOLD[1],GOLD[2]);
+      doc.setLineWidth(0.35);
+      doc.rect(MARGIN, boxY, PAGE_W-2*MARGIN, boxH, "S");
+      doc.setLineWidth(0.2);
+      doc.line(PAGE_W/2, boxY, PAGE_W/2, boxY+boxH);
+      function infoField(label, value, x, fy){
+        doc.setFont("helvetica","bold"); doc.setFontSize(8); doc.setTextColor(120,120,120);
+        doc.text(label, x, fy);
+        doc.setFont("helvetica","normal"); doc.setFontSize(10.5); doc.setTextColor(15,15,15);
+        doc.text(nfc(value)||"\u2013", x, fy+6);
+      }
+      var auswertsText = match.home_away==='heim' ? 'Heim' : 'Ausw\u00e4rts';
+      infoField("SPIELER", e.name, MARGIN+5, boxY+9);
+      infoField("SPIEL", "vs. "+(match.opponent||"")+" ("+auswertsText+")", PAGE_W/2+5, boxY+9);
+      infoField("DATUM", fmtD(match.match_date)+(match.kickoff_time?(" "+match.kickoff_time+" Uhr"):""), MARGIN+5, boxY+21);
+      infoField("AUSGEF\u00dcLLT AM", fmtDT(e.refl.updated_at), PAGE_W/2+5, boxY+21);
+      doc.setTextColor(0,0,0);
+      y = boxY + boxH + 10;
 
       SECTIONS.forEach(function(section){
-        if(y>265){ doc.addPage(); y=20; }
-        doc.setFont("helvetica","bold"); doc.setFontSize(11);
-        doc.text(section.title.replace(/[^\x00-\x7F]/g,"").trim() || section.title, 14, y); y += 6;
+        y = sectionHeader(section.title, y);
         doc.setFont("helvetica","normal"); doc.setFontSize(9);
+        doc.setTextColor(30,30,30);
         section.questions.forEach(function(q){
-          if(y>275){ doc.addPage(); y=20; }
+          y = checkBreak(y, 6);
           var v = (e.refl.answers||{})[q.key];
           var lbl = v ? (SCALE.find(function(s){return s.v===v;})||{}).label : "-";
-          doc.text("- "+q.label+": "+(v?(v+"/3 ("+lbl+")"):"-"), 14, y); y+=6;
+          doc.text("\u2022 "+nfc(q.label)+": "+(v?(v+"/3 ("+nfc(lbl)+")"):"-"), MARGIN, y); y+=6;
         });
         section.texts.forEach(function(t){
-          if(y>270){ doc.addPage(); y=20; }
-          var v = (e.refl.texts||{})[t.key];
-          doc.setFont("helvetica","bold"); doc.text(t.label+":", 14, y); y+=5;
+          y = checkBreak(y, 8);
+          var vText = (e.refl.texts||{})[t.key];
+          doc.setFont("helvetica","bold"); doc.text(nfc(t.label)+":", MARGIN, y); y+=5;
           doc.setFont("helvetica","normal");
-          var split = doc.splitTextToSize(v||"-", 180);
-          if(y + split.length*5 > 285){ doc.addPage(); y=20; }
-          doc.text(split, 14, y); y += split.length*5 + 3;
+          var split = doc.splitTextToSize(nfc(vText)||"-", 180);
+          y = checkBreak(y, split.length*5);
+          doc.text(split, MARGIN, y); y += split.length*5 + 3;
         });
         y += 3;
       });
@@ -7710,10 +7781,13 @@ var Reflex = (function(){
     var pageCountRefl = doc.internal.getNumberOfPages();
     for(var pr=1; pr<=pageCountRefl; pr++){
       doc.setPage(pr);
+      doc.setDrawColor(230,230,230);
+      doc.setLineWidth(0.2);
+      doc.line(MARGIN, PAGE_H-16, PAGE_W-MARGIN, PAGE_H-16);
       doc.setFont("helvetica","normal"); doc.setFontSize(8);
       doc.setTextColor(150,150,150);
-      doc.text("System development by D.K.", 14, 290);
-      doc.text("Seite "+pr+" / "+pageCountRefl, 182, 290);
+      doc.text("System development by D.K.", MARGIN, PAGE_H-10);
+      doc.text("Seite "+pr+" / "+pageCountRefl, PAGE_W-MARGIN, PAGE_H-10, {align:"right"});
     }
 
     doc.save("Selbstreflexion_"+(match.opponent||"Spiel").replace(/\s+/g,"_")+"_"+match.match_date+".pdf");
