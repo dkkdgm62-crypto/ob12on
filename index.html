@@ -245,7 +245,11 @@ body {
   margin-top: 4px;
 }
 .sidebar-group-label:first-child { padding-top: 4px; }
-.sidebar-btn {
+/* Gilt fuer .sidebar-btn UND jeden direkten Button in einer Sidebar —
+   dadurch bleibt die Optik stabil, selbst wenn JS die Klasse ueberschreibt. */
+.sidebar-btn,
+#staff-sidebar > button:not(.sidebar-toggle-btn),
+#player-nav > button:not(.sidebar-toggle-btn) {
   display: flex;
   align-items: center;
   gap: 9px;
@@ -263,15 +267,21 @@ body {
   transition: background 0.15s, color 0.15s;
   position: relative;
 }
-.sidebar-btn:hover {
+.sidebar-btn:hover,
+#staff-sidebar > button:not(.sidebar-toggle-btn):hover,
+#player-nav > button:not(.sidebar-toggle-btn):hover {
   background: rgba(255,255,255,0.06);
   color: #fff;
 }
-.sidebar-btn.active {
+.sidebar-btn.active,
+#staff-sidebar > button.active,
+#player-nav > button.active {
   background: rgba(var(--accent-rgb),0.15);
   color: var(--accent);
 }
-.sidebar-btn .sb-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+.sidebar-btn .sb-icon,
+#staff-sidebar > button > .sb-icon,
+#player-nav > button > .sb-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
 .sidebar-badge {
   margin-left: auto;
   background: #e53e3e;
@@ -302,7 +312,9 @@ body {
     gap: 4px;
   }
   .sidebar-group-label { display: none; }
-  .sidebar-btn { width: auto; padding: 7px 10px; font-size: 11.5px; }
+  .sidebar-btn,
+  #staff-sidebar > button:not(.sidebar-toggle-btn),
+  #player-nav > button:not(.sidebar-toggle-btn) { width: auto; padding: 7px 10px; font-size: 11.5px; }
   .sidebar-toggle-btn { display: none; }
   #staff-content, .sidebar-main { padding: var(--sp-3); }
 }
@@ -2520,14 +2532,10 @@ function openSkillsOnly(){
 function showPlayerTab(t){
   scrollToTop();
   playerTab=t;
-  var tabDash = el("tab-dashboard"); if(tabDash) tabDash.className = t==="dashboard"?"active":"btn-ghost";
-  el("tab-lernen").className = t==="lernen"?"active":"btn-ghost";
-  var tabS = el("tab-skills"); if(tabS) tabS.className = t==="skills"?"active":"btn-ghost";
-  el("tab-rang").className   = t==="rang"?"active":"btn-ghost";
-  var tabSchach = el("tab-schach"); if(tabSchach) tabSchach.className = t==="schach"?"active":"btn-ghost";
-  var tabZiel = el("tab-ziel"); if(tabZiel) tabZiel.className = t==="ziel"?"active":"btn-ghost";
-  var tabSpiele = el("tab-spiele"); if(tabSpiele) tabSpiele.className = t==="spiele"?"active":"btn-ghost";
-  var tabHilfe = el("tab-hilfe"); if(tabHilfe) tabHilfe.className = t==="hilfe"?"active":"btn-ghost";
+  ["dashboard","lernen","skills","schach","rang","ziel","spiele","hilfe"].forEach(function(k){
+    var btn = el("tab-"+k);
+    if(btn){ btn.classList.toggle("active", k===t); }
+  });
   if(t==="dashboard"){
     only("view-dashboard-player"); show("app-head"); show("player-nav");
     loadPlayerStats();
