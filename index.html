@@ -176,8 +176,11 @@ body {
   position: relative; z-index: 1;
   min-height: 100vh;
 }
-/* Top-Level-Views (nicht in Sidebar-Shell verschachtelt) bekommen einheitliches Padding */
-#view-learn, #view-quiz, #view-result, #view-register,
+/* Top-Level-Views (nicht in Sidebar-Shell verschachtelt) bekommen einheitliches Padding.
+   Hinweis: #view-learn/#view-quiz/#view-result sind NICHT mehr hier drin — sie werden per JS
+   (placeLearnViewsInto) immer in #player-sidebar-main bzw. #staff-content gehaengt und erben
+   deren Padding, damit sie neben der Sidebar erscheinen statt als leerer Block darunter. */
+#view-register,
 #view-closed, #view-setup {
   padding-left: var(--sp-5);
   padding-right: var(--sp-5);
@@ -319,7 +322,7 @@ body {
   #staff-content, .sidebar-main { padding: var(--sp-3); }
 }
 @media(max-width:640px){
-  #view-learn, #view-quiz, #view-result, #view-register,
+  #view-register,
   #view-closed, #view-setup {
     padding-left: var(--sp-3);
     padding-right: var(--sp-3);
@@ -327,7 +330,7 @@ body {
 }
 /* Grosse Bildschirme (Desktop/TV): Inhalt zentriert begrenzen statt ueber die ganze Breite zu ziehen */
 @media(min-width:1600px){
-  #view-learn, #view-quiz, #view-result, #view-register,
+  #view-register,
   #view-closed, #view-setup,
   #staff-content, .sidebar-main, .nav {
     max-width: 1400px;
@@ -1606,7 +1609,7 @@ footer {
       <div class="sidebar-group-label">Hilfe</div>
       <button id="tab-hilfe" class="sidebar-btn" onclick="showPlayerTab('hilfe')"><span class="sb-icon">❓</span>Hilfe</button>
     </div>
-    <div class="sidebar-main">
+    <div class="sidebar-main" id="player-sidebar-main">
 
   <!-- SPIELER: PERSONAL HEADER CARD -->
   <div id="player-stats-card" class="card hidden" style="margin-bottom:24px; background: linear-gradient(to right, rgba(20, 22, 28, 0.96), rgba(20, 22, 28, 0.85)), url('Fussball SpielZ.jpeg'); background-size: cover; background-position: center; border-color: rgba(212,175,55,0.25); box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
@@ -2261,6 +2264,21 @@ function only(id){
   show(id);
 }
 
+/* ---------------------- Lernblock/Quiz/Result: ins richtige Layout haengen ---------------------- */
+/* Diese drei Views werden sowohl von Spielern (im Sidebar-Layout von #player-shell) als auch
+   von Trainern (Modul-Vorschau im Sidebar-Layout von #view-staff) genutzt. Damit sie IMMER
+   neben der jeweils sichtbaren Sidebar erscheinen (statt als leerer Block darunter — das war
+   der Bug mit dem grossen Leerraum beim Lernen), werden sie per JS in den passenden
+   Content-Container verschoben, bevor sie angezeigt werden. */
+function placeLearnViewsInto(containerId){
+  var target = el(containerId);
+  if(!target) return;
+  ["view-learn","view-quiz","view-result"].forEach(function(id){
+    var node = el(id);
+    if(node && node.parentElement !== target) target.appendChild(node);
+  });
+}
+
 /* ---------------------- Start ---------------------- */
 window.addEventListener("load", function(){
   // Logo zuweisen
@@ -2846,6 +2864,7 @@ function startModule(moduleId){
   /* Zugangs-Schutz: Nur freigeschaltete Module (mod.offen aus DB) */
   if(!mod.offen && !isStaff()) return;
   scrollToTop();
+  placeLearnViewsInto(isStaff() ? "staff-content" : "player-sidebar-main");
   only("view-learn"); show("app-head"); if(!isStaff()) { show("player-nav"); hide("player-stats-card"); }
   el("learn-title").textContent = "Lernblock · Modul " + mod.modul_nr;
   el("learn-module-titel").textContent = mod.titel;
@@ -2875,6 +2894,7 @@ function launchQuiz(moduleId){
   var mod=null; for(var i=0;i<MODULES.length;i++) if(MODULES[i].module_id===moduleId)mod=MODULES[i];
   if(!mod || (!mod.offen && !isStaff())) return;
   scrollToTop();
+  placeLearnViewsInto(isStaff() ? "staff-content" : "player-sidebar-main");
   only("view-quiz"); show("app-head"); if(!isStaff()) { show("player-nav"); hide("player-stats-card"); }
   el("quiz-q").innerHTML='<div class="spinner"></div>'; el("quiz-opts").innerHTML=""; el("quiz-fb").innerHTML=""; hide("quiz-next");
   el("quiz-title").textContent = mod? ("Modul "+mod.modul_nr) : "Modul";
@@ -2955,6 +2975,7 @@ function nextQuestion(){
 }
 function finishModule(){
   scrollToTop();
+  placeLearnViewsInto(isStaff() ? "staff-content" : "player-sidebar-main");
   only("view-result"); show("app-head"); if(!isStaff()) show("player-nav");
   var passed = (QZ.correctCount / QZ.questions.length) >= 0.80;
   if(passed){
@@ -3347,12 +3368,9 @@ function loadPlayerDashboard(){
           html += '<p class="muted" style="font-size:12.5px; line-height:1.55; margin:3px 0 0;">Training macht dich stärker, Essen gibt die Energie, Schlaf macht dich wirklich besser. Schau rein — als Tipp, nicht als Muss. →</p>';
           html += '</div></div></div>';
 
-          /* 2-Spalten-Layout: Leaderboard links, Schnellzugriff rechts */
-          html += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:20px; align-items:start;">';
-          html += '<div>'+dashboardLeaderboardHtml(lbRows)+'</div>';
-          html += '<div>';
-          html += '<h3 style="color:#fff; font-size:13px; margin-bottom:10px; font-weight:700;">Schnellzugriff</h3>';
-          html += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">';
+          /* Schnellzugriff-Kacheln als HTML-String bauen (unabhängig vom Layout) */
+          var quickAccessHtml = '<h3 style="color:#fff; font-size:13px; margin-bottom:10px; font-weight:700;">Schnellzugriff</h3>';
+          quickAccessHtml += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(140px,1fr)); gap:10px;">';
           [
             {icon:'📖', label:'Lernen', tab:'lernen'},
             {icon:'🎯', label:'Skill-Challenges', tab:'skills'},
@@ -3362,12 +3380,24 @@ function loadPlayerDashboard(){
             {icon:'📅', label:'Spielplan', tab:'spiele'},
             {icon:'🍎', label:'Ernährung & Erholung', tab:'ernaehrung'}
           ].forEach(function(t){
-            html += '<div class="card" style="background:rgba(255,255,255,0.03); text-align:center; padding:14px 8px; cursor:pointer;" onclick="showPlayerTab(\''+t.tab+'\')">';
-            html += '<div style="font-size:22px; margin-bottom:6px;">'+t.icon+'</div>';
-            html += '<div style="font-size:11px; color:#fff; font-weight:600; line-height:1.3;">'+t.label+'</div>';
-            html += '</div>';
+            quickAccessHtml += '<div class="card" style="background:rgba(255,255,255,0.03); text-align:center; padding:14px 8px; cursor:pointer;" onclick="showPlayerTab(\''+t.tab+'\')">';
+            quickAccessHtml += '<div style="font-size:22px; margin-bottom:6px;">'+t.icon+'</div>';
+            quickAccessHtml += '<div style="font-size:11px; color:#fff; font-weight:600; line-height:1.3;">'+t.label+'</div>';
+            quickAccessHtml += '</div>';
           });
-          html += '</div></div></div>';
+          quickAccessHtml += '</div>';
+
+          var leaderboardHtml = dashboardLeaderboardHtml(lbRows);
+          if(leaderboardHtml){
+            /* Rangliste vorhanden: 2-Spalten-Layout, Leaderboard links, Schnellzugriff rechts */
+            html += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:20px; align-items:start;">';
+            html += '<div>'+leaderboardHtml+'</div>';
+            html += '<div>'+quickAccessHtml+'</div>';
+            html += '</div>';
+          } else {
+            /* Keine Rangliste: Schnellzugriff normal über volle Breite */
+            html += '<div style="margin-top:20px;">'+quickAccessHtml+'</div>';
+          }
 
           box.innerHTML = html;
         }catch(e){ showDashboardError(e); }
