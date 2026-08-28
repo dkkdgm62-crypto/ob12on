@@ -2464,19 +2464,23 @@ function renderModules(){
   var byQ={};
   for(var j=0; j<MODULES.length; j++){
     var m=MODULES[j];
-    /* Alte Module 1-12 (inkl. Bonus 1v1 M7-M12) ausblenden — nur neue Module 101+ anzeigen */
-    if(m.modul_nr < 100) continue;
+    /* Alte Module 1-6 ausblenden. Bonus 1v1 (M7-M12, quartal=5) und neue Module 101+ anzeigen */
+    if(m.modul_nr >= 1 && m.modul_nr <= 6) continue;
     (byQ[m.quartal]=byQ[m.quartal]||[]).push(m);
   }
   
   /* ALLE Quartale anzeigen — gesperrte Module als Geheime Mission */
-  [1,2,3,4].forEach(function(q){
+  [1,2,3,4,5].forEach(function(q){
     if(!byQ[q]) return;
-    html+='<div class="quartal"><div class="qhead"><span class="qnum">Q'+q+'</span><h3>'+esc(CATEGORY_NAMES[q])+'</h3></div><div class="grid">';
+    var qLabel = (q === 5) ? '<span class="qnum" style="background:linear-gradient(135deg,var(--gold),#b8860b);color:#000;">🎁</span>' : '<span class="qnum">Q'+q+'</span>';
+    var qTitle = (q === 5) ? 'Bonus · 1v1 Masterclass' : esc(CATEGORY_NAMES[q]);
+    html+='<div class="quartal"><div class="qhead">'+qLabel+'<h3>'+qTitle+'</h3></div><div class="grid">';
     
     byQ[q].forEach(function(m){
-      /* Effektiver Zugang: NUR Q1-Module in der erlaubten Liste */
-      var effectivelyOpen = !!m.offen;
+      /* Bonus 1v1 (quartal=5): immer als Geheime Mission, nur Trainer kann freischalten */
+      var isBonus = (q === 5);
+      /* Effektiver Zugang: offen aus DB, aber Bonus immer gesperrt für Spieler */
+      var effectivelyOpen = isBonus ? false : !!m.offen;
       
       var state = m.passed ? "passed" : (effectivelyOpen ? "open" : "locked");
       
@@ -2507,9 +2511,11 @@ function renderModules(){
       }
       
       var titleText = effectivelyOpen ? esc(m.titel.replace(/^.*?- /,"")) : "🔒 Geheime Mission...";
-      var teaserMsg = (m.quartal === 1)
-        ? "Dieses Modul wird bald freigeschaltet! Schliesse zuerst die offenen Module ab. 🔥"
-        : "Diese Mission gehört zu Quartal " + m.quartal + " und wird später freigeschaltet. Bleib dran! 🚀";
+      var teaserMsg = isBonus
+        ? "Diese geheime Bonus-Mission schaltet dein Trainer nur für dich frei — wenn du bereit bist! 🏆"
+        : (m.quartal === 1)
+          ? "Dieses Modul wird bald freigeschaltet! Schliesse zuerst die offenen Module ab. 🔥"
+          : "Diese Mission gehört zu Quartal " + m.quartal + " und wird später freigeschaltet. Bleib dran! 🚀";
       var descText = effectivelyOpen
         ? '<div style="height:4px; border-radius:99px; background:rgba(255,255,255,0.08); overflow:hidden; margin:10px 0;"><div style="height:100%; width:'+prog+'%; background:linear-gradient(90deg,var(--accent2),var(--accent)); border-radius:99px; transition:width 0.6s;"></div></div><div class="mfoot"><small class="muted">'+m.mastered+'/'+m.total_q+' Fragen richtig</small>'+btn+'</div>'
         : '<div style="height:4px; border-radius:99px; background:rgba(255,255,255,0.04); margin:10px 0;"></div><div class="mfoot" style="margin-top:auto;"><small style="font-size:11px; line-height:1.4; display:block; color:var(--text-dim);">'+teaserMsg+'</small></div>';
