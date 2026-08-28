@@ -7340,7 +7340,7 @@ var Ziel = (function(){
     var internalCb = el("ziel-pdf-internal-"+cycleId);
     var includeInternal = internalCb ? internalCb.checked : true;
     Promise.all([
-      sb.from("dev_cycles").select("*, profiles!dev_cycles_player_id_fkey(vorname,nachname,display_name,geburtsdatum)").eq("id",cycleId).single(),
+      sb.from("dev_cycles").select("*").eq("id",cycleId).single(),
       sb.from("dev_goals").select("*").eq("cycle_id",cycleId),
       sb.from("dev_goals_player").select("*").eq("cycle_id",cycleId),
       sb.from("dev_meetings").select("*").eq("cycle_id",cycleId),
@@ -7350,14 +7350,18 @@ var Ziel = (function(){
       var cycle = results[0].data, goals = results[1].data||[], goalsPlayer = results[2].data||[], meetings = results[3].data||[], warnings = results[5].data||[];
       var comments = (results[4].data||[]).filter(function(cm){ return includeInternal || !cm.is_internal; });
       if(!cycle){ alert("Zyklus nicht gefunden."); return; }
-      buildDevPdf(cycle, goals, goalsPlayer, meetings, comments, warnings);
+      // Spielerprofil separat laden (FK geht zu auth.users, nicht direkt zu profiles)
+      sb.from("profiles").select("display_name,vorname,nachname,geburtsdatum").eq("id", cycle.player_id).single().then(function(pr){
+        cycle._profile = pr.data || {};
+        buildDevPdf(cycle, goals, goalsPlayer, meetings, comments, warnings);
+      }).catch(function(){ buildDevPdf(cycle, goals, goalsPlayer, meetings, comments, warnings); });
     });
   }
 
   function buildDevPdf(cycle, goals, goalsPlayer, meetings, comments, warnings){
     var jsPDFctor = window.jspdf.jsPDF;
     var doc = new jsPDFctor();
-    var p = cycle.profiles || {};
+    var p = cycle._profile || cycle.profiles || {};
     var name = nfc((p.vorname||p.nachname) ? ((p.vorname||"")+" "+(p.nachname||"")).trim() : (p.display_name||""));
     var geb = p.geburtsdatum ? fmtD(p.geburtsdatum) : "\u2013";
     var seasonLabel = nfc(cycle.season_label || "");
