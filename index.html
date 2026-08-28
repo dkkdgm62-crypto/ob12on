@@ -2450,11 +2450,11 @@ function formatExpiry(isoStr) {
 }
 
 function renderModules(){
-  /* Nur Q1-offene Module für den Fortschritt zählen */
-  var openCount = MODULES.filter(function(m){ return m.offen; }).length || 1;
+  /* Nur neue Module 101+ für den Fortschritt zählen (alte 1-12 ausgeblendet) */
+  var openCount = MODULES.filter(function(m){ return m.offen && m.modul_nr >= 100; }).length || 1;
   var passedOpen = 0;
   for(var i=0;i<MODULES.length;i++){
-    if(MODULES[i].offen && MODULES[i].passed) passedOpen++;
+    if(MODULES[i].modul_nr >= 100 && MODULES[i].offen && MODULES[i].passed) passedOpen++;
   }
   
   var html='<div class="card g-card-sm" style="margin-bottom:24px; display:flex; align-items:center; justify-content:space-between; gap:16px;">'+
@@ -2464,6 +2464,8 @@ function renderModules(){
   var byQ={};
   for(var j=0; j<MODULES.length; j++){
     var m=MODULES[j];
+    /* Alte Module 1-12 (inkl. Bonus 1v1 M7-M12) ausblenden — nur neue Module 101+ anzeigen */
+    if(m.modul_nr < 100) continue;
     (byQ[m.quartal]=byQ[m.quartal]||[]).push(m);
   }
   
