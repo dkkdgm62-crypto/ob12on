@@ -1577,13 +1577,20 @@ footer {
   <div id="player-shell" class="sidebar-shell hidden">
     <div id="player-nav" class="sidebar-panel">
       <button class="sidebar-toggle-btn" onclick="toggleSidebarPosition()" title="Seite wechseln">⇄ Seite wechseln</button>
+      <div class="sidebar-group-label">Übersicht</div>
       <button id="tab-dashboard" class="sidebar-btn active" onclick="showPlayerTab('dashboard')"><span class="sb-icon">🏠</span>Dashboard</button>
+      <button id="tab-rang" class="sidebar-btn" onclick="showPlayerTab('rang')"><span class="sb-icon">🏆</span>Rangliste</button>
+
+      <div class="sidebar-group-label">Training</div>
       <button id="tab-lernen" class="sidebar-btn" onclick="showPlayerTab('lernen')"><span class="sb-icon">📖</span>Lernen</button>
       <button id="tab-skills" class="sidebar-btn" onclick="showPlayerTab('skills')"><span class="sb-icon">🎯</span>Skill-Challenges</button>
       <button id="tab-schach" class="sidebar-btn" onclick="showPlayerTab('schach')"><span class="sb-icon">♟</span>Schach</button>
-      <button id="tab-rang" class="sidebar-btn" onclick="showPlayerTab('rang')"><span class="sb-icon">🏆</span>Rangliste</button>
+
+      <div class="sidebar-group-label">Meine Entwicklung</div>
       <button id="tab-ziel" class="sidebar-btn" onclick="showPlayerTab('ziel')"><span class="sb-icon">🎯</span>Zielvereinbarung</button>
       <button id="tab-spiele" class="sidebar-btn" onclick="showPlayerTab('spiele')"><span class="sb-icon">📅</span>Spielplan / Selbstreflexion</button>
+
+      <div class="sidebar-group-label">Hilfe</div>
       <button id="tab-hilfe" class="sidebar-btn" onclick="showPlayerTab('hilfe')"><span class="sb-icon">❓</span>Hilfe</button>
     </div>
     <div class="sidebar-main">
