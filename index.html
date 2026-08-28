@@ -1601,6 +1601,7 @@ footer {
       <div class="sidebar-group-label">Meine Entwicklung</div>
       <button id="tab-ziel" class="sidebar-btn" onclick="showPlayerTab('ziel')"><span class="sb-icon">🎯</span>Zielvereinbarung</button>
       <button id="tab-spiele" class="sidebar-btn" onclick="showPlayerTab('spiele')"><span class="sb-icon">📅</span>Spielplan / Selbstreflexion</button>
+      <button id="tab-ernaehrung" class="sidebar-btn" onclick="showPlayerTab('ernaehrung')"><span class="sb-icon">🍎</span>Ernährung &amp; Erholung</button>
 
       <div class="sidebar-group-label">Hilfe</div>
       <button id="tab-hilfe" class="sidebar-btn" onclick="showPlayerTab('hilfe')"><span class="sb-icon">❓</span>Hilfe</button>
@@ -1798,7 +1799,136 @@ footer {
     </div>
   </div>
 
-  <!-- ============ HILFE / LEXIKON (SPIELER) ============ -->
+  <!-- ============ ERNAEHRUNG & ERHOLUNG (SPIELER) ============ -->
+  <div id="view-ernaehrung" class="hidden" style="padding-top:20px; padding-bottom:40px;">
+    <div style="max-width:820px; margin:0 auto;">
+
+      <div class="card" style="margin-bottom:16px; border-color:rgba(212,175,55,0.3);">
+        <p class="eyebrow" style="color:var(--gold);">Performance neben dem Platz</p>
+        <h2 style="margin:6px 0 10px; color:#fff;">🍎 Ernährung, Wasser &amp; Schlaf</h2>
+        <p class="muted" style="font-size:14px; line-height:1.7;">
+          Stell dir vor, dein Körper ist ein Rennauto. Du kannst der beste Fahrer der Welt sein — ohne den richtigen Treibstoff kommst du nicht weit. Genau so ist es im Fussball: <b style="color:#fff;">Training, Essen und Schlaf</b> gehören zusammen. Training macht dich stärker, Essen gibt dir die Energie dafür, und im Schlaf wird dein Körper dann wirklich besser.
+        </p>
+        <div style="background:rgba(122,90,248,0.1); border:1px solid rgba(122,90,248,0.28); border-radius:12px; padding:12px 14px; margin-top:14px;">
+          <p style="font-size:13px; color:var(--text-1); line-height:1.6; margin:0;">
+            💛 <b>Wichtig:</b> Das hier sind <b>Tipps und Empfehlungen</b> — kein Muss und keine Regel. Du musst nichts abwiegen und nichts ausrechnen. Lies es dir in Ruhe durch und nimm mit, was dir hilft.
+          </p>
+        </div>
+      </div>
+
+      <div class="card g-card-sm" style="margin-bottom:14px;">
+        <p style="font-weight:700; color:#fff; margin-bottom:8px;">⛽ Die drei Treibstoffe</p>
+        <p class="muted" style="font-size:13px; line-height:1.7; margin-bottom:12px;">Dein Essen besteht aus drei grossen Bausteinen. Jeder hat eine eigene Aufgabe:</p>
+
+        <div style="border-left:3px solid var(--accent); padding-left:12px; margin-bottom:12px;">
+          <p style="font-size:13.5px; color:#fff; font-weight:700; margin:0 0 4px;">🍝 Kohlenhydrate — dein Benzin</p>
+          <p class="muted" style="font-size:13px; line-height:1.65; margin:0;">Sie geben dir die Energie für Schule, Training und Spiel. Ohne sie gehen dir in der zweiten Halbzeit die Beine aus. <b style="color:var(--text-1);">Wo drin:</b> Brot, Reis, Nudeln, Kartoffeln, Früchte.</p>
+        </div>
+
+        <div style="border-left:3px solid var(--good); padding-left:12px; margin-bottom:12px;">
+          <p style="font-size:13.5px; color:#fff; font-weight:700; margin:0 0 4px;">🥛 Eiweiss (Protein) — dein Baumaterial</p>
+          <p class="muted" style="font-size:13px; line-height:1.65; margin:0;">Damit baut dein Körper Muskeln und Knochen auf und wird stärker. Auch dein Immunsystem braucht es. <b style="color:var(--text-1);">Wo drin:</b> Milch, Joghurt, Fleisch, Fisch, Eier, Linsen und Bohnen.</p>
+        </div>
+
+        <div style="border-left:3px solid var(--gold); padding-left:12px;">
+          <p style="font-size:13.5px; color:#fff; font-weight:700; margin:0 0 4px;">🥑 Gesunde Fette — für Wachstum und Kopf</p>
+          <p class="muted" style="font-size:13px; line-height:1.65; margin:0;">Wichtig fürs Wachsen und für dein Gehirn — also auch für die Konzentration auf dem Platz. <b style="color:var(--text-1);">Wo drin:</b> Nüsse, Samen, Avocado, Olivenöl, Fisch.</p>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-top:14px;">
+          <p style="font-size:11.5px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.4px; font-weight:700; margin:0 0 8px;">Zur Orientierung — nur wenn es dich interessiert</p>
+          <p class="muted" style="font-size:12.5px; line-height:1.7; margin:0 0 8px;">Sportärzte rechnen pro Kilogramm Körpergewicht. Bei einem Spieler mit <b style="color:var(--text-1);">40 kg</b> sieht ein Tag ungefähr so aus:</p>
+          <p class="muted" style="font-size:12.5px; line-height:1.8; margin:0;">
+            🍝 Kohlenhydrate: <b style="color:#fff;">200–280 g</b> (5–7 g pro kg)<br/>
+            🥛 Eiweiss: <b style="color:#fff;">48–60 g</b> (1,2–1,5 g pro kg)<br/>
+            🥑 Fett: <b style="color:#fff;">ca. 40 g</b> (ca. 1 g pro kg)
+          </p>
+          <p style="font-size:12px; color:var(--gold); line-height:1.6; margin:10px 0 0;">👉 Das sind keine Vorgaben zum Nachzählen. Es zeigt nur: dein Körper braucht im Wachstum <b>viel</b> Energie. Iss dich satt und abwechslungsreich — das reicht völlig.</p>
+        </div>
+      </div>
+
+      <div class="card g-card-sm" style="margin-bottom:14px;">
+        <p style="font-weight:700; color:#fff; margin-bottom:8px;">💧 Wasser — unterschätzt und mega wichtig</p>
+        <p class="muted" style="font-size:13px; line-height:1.7; margin-bottom:12px;">
+          Wenn dir nur <b style="color:var(--text-1);">2 % Flüssigkeit</b> fehlen, sinkt deine Leistung schon um <b style="color:var(--text-1);">10–20 %</b>. Bei 40 kg sind das nur 0,8 Liter! Du wirst langsamer, machst mehr Fehlpässe und kannst dich schlechter konzentrieren — und merkst es oft gar nicht.
+        </p>
+        <p class="muted" style="font-size:13px; line-height:1.8; margin:0;">
+          <b style="color:#fff;">Vor dem Training/Spiel:</b> 300–500 ml in den zwei Stunden davor<br/>
+          <b style="color:#fff;">Währenddessen:</b> alle 15–20 Minuten ein paar Schlucke<br/>
+          <b style="color:#fff;">Über den Tag:</b> immer wieder etwas trinken, nicht erst wenn du Durst hast
+        </p>
+        <p style="font-size:12.5px; color:var(--gold); line-height:1.6; margin:12px 0 0;">👉 Am besten stilles Wasser. Softdrinks und Energydrinks bringen dir nichts — Sprudel kann im Bauch stören.</p>
+      </div>
+
+      <div class="card g-card-sm" style="margin-bottom:14px;">
+        <p style="font-weight:700; color:#fff; margin-bottom:8px;">⏰ Rund ums Training</p>
+        <p class="muted" style="font-size:13px; line-height:1.8; margin:0;">
+          <b style="color:#fff;">2–3 Std. vorher:</b> leicht und kohlenhydratreich — Pasta, Reis, Brot mit Käse, Banane<br/>
+          <b style="color:#fff;">Kurz vorher:</b> kleiner Snack — Banane oder Müsliriegel<br/>
+          <b style="color:#fff;">30–60 Min. danach:</b> Kohlenhydrate + Eiweiss — Milchshake, Joghurt mit Früchten, Sandwich<br/>
+          <b style="color:#fff;">Abendessen:</b> leicht und ausgewogen — Suppe, Omelett, Salat mit Brot
+        </p>
+      </div>
+
+      <div class="card g-card-sm" style="margin-bottom:14px;">
+        <p style="font-weight:700; color:#fff; margin-bottom:8px;">⚽ Rund ums Match</p>
+        <p class="muted" style="font-size:13px; line-height:1.7; margin-bottom:10px;">Am Spieltag macht das Essen oft den Unterschied, wie viel Energie und Konzentration du hast.</p>
+        <p class="muted" style="font-size:13px; line-height:1.8; margin:0;">
+          <b style="color:#fff;">Am Vorabend:</b> kohlenhydratreich und leicht — Pasta, Reis mit Gemüse und Poulet<br/>
+          <b style="color:#fff;">Frühstück (3–4 Std. vorher):</b> Müsli mit Milch, Vollkornbrot mit Honig, Banane<br/>
+          <b style="color:#fff;">Snack (1–2 Std. vorher):</b> Banane, Riegel, kleines Brot<br/>
+          <b style="color:#fff;">Direkt nach dem Spiel:</b> Milchshake, Joghurt mit Früchten, Sandwich<br/>
+          <b style="color:#fff;">Abendessen:</b> Gemüse, Salat, Reis, Omelett oder Suppe
+        </p>
+        <p style="font-size:12.5px; color:var(--bad); line-height:1.6; margin:12px 0 0;">⚠️ Kurz vor dem Spiel nichts Fettiges oder Schweres — also keine Pommes oder Fast Food. Das liegt im Magen und macht dich träge.</p>
+      </div>
+
+      <div class="card g-card-sm" style="margin-bottom:14px;">
+        <p style="font-weight:700; color:#fff; margin-bottom:8px;">😴 Schlaf — die stille Superkraft</p>
+        <p class="muted" style="font-size:13px; line-height:1.7; margin-bottom:12px;">
+          Beim Training wirst du nicht besser — du wirst im <b style="color:var(--text-1);">Schlaf</b> besser. Da repariert dein Körper die Muskeln, speichert alles Gelernte ab und wächst. Wer zu wenig schläft, verletzt sich schneller und wird öfter krank.
+        </p>
+        <div style="background:rgba(122,90,248,0.1); border:1px solid rgba(122,90,248,0.28); border-radius:10px; padding:12px 14px; margin-bottom:12px;">
+          <p style="font-size:13.5px; color:#fff; font-weight:700; margin:0;">🎯 Für dich ideal: <span style="color:var(--accent);">10–11 Stunden</span> pro Nacht</p>
+        </div>
+        <p style="font-size:12.5px; color:var(--text-1); font-weight:700; margin:0 0 6px;">So schläfst du besser:</p>
+        <p class="muted" style="font-size:13px; line-height:1.8; margin:0;">
+          🌑 Dunkel beim Einschlafen, hell beim Aufwachen<br/>
+          🌡️ Frisch und kühl im Zimmer (16–18 °C)<br/>
+          📵 Keine Bildschirme in der letzten Stunde vor dem Schlafen<br/>
+          🕐 Fester Rhythmus — auch am Wochenende<br/>
+          📖 Ruhiges Abendritual: lesen oder Musik hören<br/>
+          ☀️ Morgens Tageslicht und Bewegung
+        </p>
+        <p style="font-size:12.5px; color:var(--gold); line-height:1.6; margin:12px 0 0;">💡 Mittagsschlaf: 20–30 Minuten können in intensiven Wochen richtig helfen. Nicht länger — sonst wirst du danach erst recht müde.</p>
+      </div>
+
+      <div class="card g-card-sm" style="margin-bottom:14px;">
+        <p style="font-weight:700; color:#fff; margin-bottom:10px;">⭐ Die 8 goldenen Regeln</p>
+        <p class="muted" style="font-size:13px; line-height:1.9; margin:0;">
+          <b style="color:var(--gold);">1.</b> Trink über den ganzen Tag verteilt regelmässig.<br/>
+          <b style="color:var(--gold);">2.</b> Iss mindestens fünf faustgrosse Portionen Gemüse oder Obst am Tag.<br/>
+          <b style="color:var(--gold);">3.</b> Nimm frische Sachen, wenn möglich saisonal.<br/>
+          <b style="color:var(--gold);">4.</b> Bei jeder Hauptmahlzeit: Kohlenhydrate <i>und</i> etwas Eiweiss.<br/>
+          <b style="color:var(--gold);">5.</b> Lieber Vollkorn, Kartoffeln, Reis oder Haferflocken.<br/>
+          <b style="color:var(--gold);">6.</b> Fertigprodukte, Softdrinks und Fast Food möglichst selten.<br/>
+          <b style="color:var(--gold);">7.</b> Iss abwechslungsreich — nicht jeden Tag dasselbe.<br/>
+          <b style="color:var(--gold);">8.</b> Achte auf deinen Energiekompass: Sind Energie, Konzentration und Stimmung im Gleichgewicht?
+        </p>
+      </div>
+
+      <div class="card g-card-sm" style="background:rgba(255,255,255,0.02);">
+        <p style="font-weight:700; color:#fff; margin-bottom:6px;">🧠 Und das Wichtigste zum Schluss</p>
+        <p class="muted" style="font-size:13px; line-height:1.7; margin:0 0 10px;">
+          Essen, Trinken und Schlafen decken den <b style="color:var(--text-1);">körperlichen</b> Teil ab. Fussball ist aber mehr: <b style="color:var(--text-1);">mentale Stärke, Spielfreude und Teamgeist</b> gehören genauso dazu. Sei nicht zu streng mit dir — ein Stück Kuchen am Geburtstag macht keinen schlechteren Fussballer aus dir. Es geht um das, was du <i>meistens</i> machst, nicht um das, was du <i>nie</i> machst.
+        </p>
+        <p class="muted" style="font-size:11.5px; line-height:1.6; margin:0; color:var(--text-3);">
+          Quellen: IOC Consensus Statement on Sports Nutrition (2018) · American Academy of Sleep Medicine (2016) · Schweizerischer Fussballverband (SFV) — Richtlinien Kinder- &amp; Jugendsport · Sporthochschule Köln &amp; Lausanne
+        </p>
+      </div>
+
+    </div>
+  </div>
 
   <!-- ============ HILFE / LEXIKON (SPIELER) ============ -->
   <div id="view-hilfe" class="hidden" style="padding-top:20px; padding-bottom:40px;">
@@ -2126,7 +2256,7 @@ function fmtDT(ts){
 }
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
 function only(id){
-  var v=["view-setup","view-login","view-closed","view-modules","view-learn","view-quiz","view-result","view-rang","view-skills","view-staff","view-register","view-schach","view-ziel","view-spiele","view-dashboard-player","view-hilfe"];
+  var v=["view-setup","view-login","view-closed","view-modules","view-learn","view-quiz","view-result","view-rang","view-skills","view-staff","view-register","view-schach","view-ziel","view-spiele","view-dashboard-player","view-hilfe","view-ernaehrung"];
   for(var i=0;i<v.length;i++) hide(v[i]);
   show(id);
 }
@@ -2532,7 +2662,7 @@ function openSkillsOnly(){
 function showPlayerTab(t){
   scrollToTop();
   playerTab=t;
-  ["dashboard","lernen","skills","schach","rang","ziel","spiele","hilfe"].forEach(function(k){
+  ["dashboard","lernen","skills","schach","rang","ziel","spiele","ernaehrung","hilfe"].forEach(function(k){
     var btn = el("tab-"+k);
     if(btn){ btn.classList.toggle("active", k===t); }
   });
@@ -2562,6 +2692,9 @@ function showPlayerTab(t){
     only("view-spiele"); show("app-head"); show("player-nav");
     loadPlayerStats();
     Spielplan.loadPlayerView();
+  } else if(t==="ernaehrung") {
+    only("view-ernaehrung"); show("app-head"); show("player-nav");
+    loadPlayerStats();
   } else if(t==="hilfe") {
     only("view-hilfe"); show("app-head"); show("player-nav");
     loadPlayerStats();
@@ -3205,6 +3338,15 @@ function loadPlayerDashboard(){
             html += '</div>';
           }
 
+          /* Ernaehrung & Erholung — dauerhafter Hinweis, reine Empfehlung */
+          html += '<div class="card" style="margin-bottom:14px; padding:14px 16px; cursor:pointer; border-color:rgba(212,175,55,0.3); background:rgba(212,175,55,0.05);" onclick="showPlayerTab(\'ernaehrung\')">';
+          html += '<div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">';
+          html += '<span style="font-size:24px;">🍎</span>';
+          html += '<div style="flex:1; min-width:180px;">';
+          html += '<b style="color:#fff; font-size:13.5px;">Ernährung, Wasser &amp; Schlaf</b>';
+          html += '<p class="muted" style="font-size:12.5px; line-height:1.55; margin:3px 0 0;">Training macht dich stärker, Essen gibt die Energie, Schlaf macht dich wirklich besser. Schau rein — als Tipp, nicht als Muss. →</p>';
+          html += '</div></div></div>';
+
           /* 2-Spalten-Layout: Leaderboard links, Schnellzugriff rechts */
           html += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:20px; align-items:start;">';
           html += '<div>'+dashboardLeaderboardHtml(lbRows)+'</div>';
@@ -3217,7 +3359,8 @@ function loadPlayerDashboard(){
             {icon:'♟', label:'Schach', tab:'schach'},
             {icon:'🏆', label:'Rangliste', tab:'rang'},
             {icon:'🎯', label:'Zielvereinbarung', tab:'ziel'},
-            {icon:'📅', label:'Spielplan', tab:'spiele'}
+            {icon:'📅', label:'Spielplan', tab:'spiele'},
+            {icon:'🍎', label:'Ernährung & Erholung', tab:'ernaehrung'}
           ].forEach(function(t){
             html += '<div class="card" style="background:rgba(255,255,255,0.03); text-align:center; padding:14px 8px; cursor:pointer;" onclick="showPlayerTab(\''+t.tab+'\')">';
             html += '<div style="font-size:22px; margin-bottom:6px;">'+t.icon+'</div>';
