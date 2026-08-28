@@ -176,21 +176,19 @@ body {
   position: relative; z-index: 1;
   min-height: 100vh;
 }
-/* Alle Player-Views bekommen einheitliches Padding */
-#view-modules, #view-learn, #view-quiz, #view-result,
-#view-rang, #view-skills, #view-schach, #view-register,
-#view-closed, #view-setup, #player-stats-card,
-#view-ziel, #view-spiele, #view-dashboard-player {
+/* Top-Level-Views (nicht in Sidebar-Shell verschachtelt) bekommen einheitliches Padding */
+#view-learn, #view-quiz, #view-result, #view-register,
+#view-closed, #view-setup {
   padding-left: var(--sp-5);
   padding-right: var(--sp-5);
 }
-/* Staff Sidebar Layout */
-#view-staff {
+/* Sidebar-Layout (Staff + Spieler) — Position links/rechts umschaltbar per .sidebar-right */
+#view-staff, #player-shell.sidebar-shell {
   padding: 0;
   display: flex;
   align-items: flex-start;
 }
-#staff-sidebar {
+#staff-sidebar, .sidebar-panel {
   width: 220px;
   min-width: 200px;
   flex-shrink: 0;
@@ -206,13 +204,37 @@ body {
   gap: 4px;
   overflow-y: auto;
 }
-#staff-content {
+#staff-content, .sidebar-main {
   flex: 1;
   padding: var(--sp-5);
   padding-top: 20px;
   overflow-x: hidden;
   min-width: 0;
 }
+/* Rechts-Position: Sidebar hinter den Content stellen (flex order) */
+#view-staff.sidebar-right, #player-shell.sidebar-shell.sidebar-right { flex-direction: row-reverse; }
+.sidebar-right .sidebar-panel, .sidebar-right #staff-sidebar {
+  border-right: none;
+  border-left: 1px solid rgba(255,255,255,0.07);
+}
+.sidebar-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 7px 10px;
+  margin-bottom: 10px;
+  border-radius: var(--r-md);
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.55);
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.sidebar-toggle-btn:hover { background: rgba(255,255,255,0.08); color:#fff; }
 .sidebar-group-label {
   font-size: 9.5px;
   font-weight: 800;
@@ -265,8 +287,8 @@ body {
   display: none;
 }
 @media(max-width:640px){
-  #view-staff { flex-direction: column; }
-  #staff-sidebar {
+  #view-staff, #player-shell.sidebar-shell { flex-direction: column !important; }
+  #staff-sidebar, .sidebar-panel {
     position: static;
     max-height: none;
     width: 100%;
@@ -275,29 +297,27 @@ body {
     flex-wrap: wrap;
     padding: 10px 8px;
     border-right: none;
+    border-left: none;
     border-bottom: 1px solid rgba(255,255,255,0.07);
     gap: 4px;
   }
   .sidebar-group-label { display: none; }
   .sidebar-btn { width: auto; padding: 7px 10px; font-size: 11.5px; }
-  #staff-content { padding: var(--sp-3); }
+  .sidebar-toggle-btn { display: none; }
+  #staff-content, .sidebar-main { padding: var(--sp-3); }
 }
 @media(max-width:640px){
-  #view-modules, #view-learn, #view-quiz, #view-result,
-  #view-rang, #view-skills, #view-schach, #view-register,
-  #view-closed, #view-setup, #player-stats-card,
-  #view-ziel, #view-spiele, #view-dashboard-player {
+  #view-learn, #view-quiz, #view-result, #view-register,
+  #view-closed, #view-setup {
     padding-left: var(--sp-3);
     padding-right: var(--sp-3);
   }
 }
 /* Grosse Bildschirme (Desktop/TV): Inhalt zentriert begrenzen statt ueber die ganze Breite zu ziehen */
 @media(min-width:1600px){
-  #view-modules, #view-learn, #view-quiz, #view-result,
-  #view-rang, #view-skills, #view-schach, #view-register,
+  #view-learn, #view-quiz, #view-result, #view-register,
   #view-closed, #view-setup,
-  #view-ziel, #view-spiele, #view-dashboard-player,
-  #staff-content, .nav {
+  #staff-content, .sidebar-main, .nav {
     max-width: 1400px;
     margin-left: auto;
     margin-right: auto;
@@ -1077,54 +1097,11 @@ footer {
     <div id="warn-banner" class="banner hidden"></div>
   </div>
 
-  <!-- SPIELER: NAVIGATION -->
-  <div id="player-nav" class="nav hidden">
-    <button id="tab-dashboard" class="active" onclick="showPlayerTab('dashboard')">🏠 Dashboard</button>
-    <button id="tab-lernen" class="btn-ghost" onclick="showPlayerTab('lernen')">📖 Lernen</button>
-    <button id="tab-skills" class="btn-ghost" onclick="showPlayerTab('skills')">🎯 Skill-Challenges</button>
-    <button id="tab-schach" class="btn-ghost" onclick="showPlayerTab('schach')">♟ Schach</button>
-    <button id="tab-rang" class="btn-ghost" onclick="showPlayerTab('rang')">🏆 Rangliste</button>
-    <div class="nav-gap" aria-hidden="true"></div>
-    <button id="tab-ziel" class="btn-ghost" onclick="showPlayerTab('ziel')">🎯 Zielvereinbarung</button>
-    <button id="tab-spiele" class="btn-ghost" onclick="showPlayerTab('spiele')">📅 Spielplan / Selbstreflexion</button>
-    <button id="tab-hilfe" class="btn-ghost" onclick="showPlayerTab('hilfe')">❓ Hilfe</button>
-  </div>
-
-  <!-- SPIELER: PERSONAL HEADER CARD -->
-  <div id="player-stats-card" class="card hidden" style="margin-bottom:24px; background: linear-gradient(to right, rgba(20, 22, 28, 0.96), rgba(20, 22, 28, 0.85)), url('Fussball SpielZ.jpeg'); background-size: cover; background-position: center; border-color: rgba(212,175,55,0.25); box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
-      <div>
-        <p class="eyebrow" style="color:var(--gold);">Dein Trainingsstand</p>
-        <h2 id="player-stats-rank" style="margin-top:4px; font-size:22px; color:#fff;">Lade Rangposition...</h2>
-        <p id="player-stats-details" class="muted" style="font-size:13px; margin-top:2px;">...</p>
-      </div>
-      <div style="text-align:right;">
-        <span id="player-stats-points" class="pts" style="font-size:26px; color:var(--gold); font-weight:800; font-family:'Sora';">...</span>
-        <p class="muted" style="font-size:12px; margin-top:4px;">Aktuelles Quartal: <b id="round-name-indicator" style="color:var(--text-1); font-weight:700;">...</b></p>
-      </div>
-    </div>
-    <div id="consent-status-row" class="hidden" style="width:100%; border-top:1px solid rgba(255,255,255,0.06); margin-top:12px; padding-top:10px;">
-      <span id="consent-status-line" style="font-size:12px; font-weight:600;"></span>
-    </div>
-    <div style="width:100%; border-top:1px solid rgba(255,255,255,0.06); margin-top:12px; padding-top:10px; display:flex; align-items:center; gap:12px; justify-content:space-between; flex-wrap:wrap;">
-      <div style="display:flex; align-items:center; gap:8px;">
-        <span style="font-size:12px; color:var(--text-3); font-weight:600;">Mein Nickname / Lieblingsspieler:</span>
-        <span id="nickname-display" style="font-size:13px; color:var(--gold); font-weight:700; cursor:pointer;" onclick="editNickname()">Klicken zum Festlegen...</span>
-        <input id="nickname-input" class="hidden" style="background:#1a1c23; border:1px solid var(--gold); color:#fff; font-size:12px; padding:3px 8px; border-radius:4px; width:120px;" onblur="saveNickname()" onkeydown="if(event.key==='Enter') saveNickname()" />
-      </div>
-      <div style="font-size:11.5px; color:var(--text-3);">
-        Rückennummer: <span id="player-card-nr" style="color:#fff; font-weight:700;">–</span> | 
-        Starker Fuss: <span id="player-card-fuss" style="color:#fff; font-weight:700;">–</span>
-      </div>
-    </div>
-  </div>
-
-
-
   <!-- TRAINER-DASHBOARD -->
   <div id="view-staff" class="hidden">
     <!-- SIDEBAR -->
     <div id="staff-sidebar">
+      <button class="sidebar-toggle-btn" onclick="toggleSidebarPosition()" title="Seite wechseln">⇄ Seite wechseln</button>
       <div class="sidebar-group-label">Übersicht</div>
       <button id="stab-dashboard" class="sidebar-btn active" onclick="showStaffTab('dashboard')"><span class="sb-icon">🏠</span>Dashboard</button>
       <button id="stab-kader" class="sidebar-btn" onclick="showStaffTab('kader')"><span class="sb-icon">📋</span>Kader & Fortschritt</button>
@@ -1596,6 +1573,50 @@ footer {
     </div><!-- /staff-content -->
   </div><!-- /view-staff -->
 
+  <!-- SPIELER: SIDEBAR-SHELL (Nav + Inhalt) -->
+  <div id="player-shell" class="sidebar-shell hidden">
+    <div id="player-nav" class="sidebar-panel">
+      <button class="sidebar-toggle-btn" onclick="toggleSidebarPosition()" title="Seite wechseln">⇄ Seite wechseln</button>
+      <button id="tab-dashboard" class="sidebar-btn active" onclick="showPlayerTab('dashboard')"><span class="sb-icon">🏠</span>Dashboard</button>
+      <button id="tab-lernen" class="sidebar-btn" onclick="showPlayerTab('lernen')"><span class="sb-icon">📖</span>Lernen</button>
+      <button id="tab-skills" class="sidebar-btn" onclick="showPlayerTab('skills')"><span class="sb-icon">🎯</span>Skill-Challenges</button>
+      <button id="tab-schach" class="sidebar-btn" onclick="showPlayerTab('schach')"><span class="sb-icon">♟</span>Schach</button>
+      <button id="tab-rang" class="sidebar-btn" onclick="showPlayerTab('rang')"><span class="sb-icon">🏆</span>Rangliste</button>
+      <button id="tab-ziel" class="sidebar-btn" onclick="showPlayerTab('ziel')"><span class="sb-icon">🎯</span>Zielvereinbarung</button>
+      <button id="tab-spiele" class="sidebar-btn" onclick="showPlayerTab('spiele')"><span class="sb-icon">📅</span>Spielplan / Selbstreflexion</button>
+      <button id="tab-hilfe" class="sidebar-btn" onclick="showPlayerTab('hilfe')"><span class="sb-icon">❓</span>Hilfe</button>
+    </div>
+    <div class="sidebar-main">
+
+  <!-- SPIELER: PERSONAL HEADER CARD -->
+  <div id="player-stats-card" class="card hidden" style="margin-bottom:24px; background: linear-gradient(to right, rgba(20, 22, 28, 0.96), rgba(20, 22, 28, 0.85)), url('Fussball SpielZ.jpeg'); background-size: cover; background-position: center; border-color: rgba(212,175,55,0.25); box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+      <div>
+        <p class="eyebrow" style="color:var(--gold);">Dein Trainingsstand</p>
+        <h2 id="player-stats-rank" style="margin-top:4px; font-size:22px; color:#fff;">Lade Rangposition...</h2>
+        <p id="player-stats-details" class="muted" style="font-size:13px; margin-top:2px;">...</p>
+      </div>
+      <div style="text-align:right;">
+        <span id="player-stats-points" class="pts" style="font-size:26px; color:var(--gold); font-weight:800; font-family:'Sora';">...</span>
+        <p class="muted" style="font-size:12px; margin-top:4px;">Aktuelles Quartal: <b id="round-name-indicator" style="color:var(--text-1); font-weight:700;">...</b></p>
+      </div>
+    </div>
+    <div id="consent-status-row" class="hidden" style="width:100%; border-top:1px solid rgba(255,255,255,0.06); margin-top:12px; padding-top:10px;">
+      <span id="consent-status-line" style="font-size:12px; font-weight:600;"></span>
+    </div>
+    <div style="width:100%; border-top:1px solid rgba(255,255,255,0.06); margin-top:12px; padding-top:10px; display:flex; align-items:center; gap:12px; justify-content:space-between; flex-wrap:wrap;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:12px; color:var(--text-3); font-weight:600;">Mein Nickname / Lieblingsspieler:</span>
+        <span id="nickname-display" style="font-size:13px; color:var(--gold); font-weight:700; cursor:pointer;" onclick="editNickname()">Klicken zum Festlegen...</span>
+        <input id="nickname-input" class="hidden" style="background:#1a1c23; border:1px solid var(--gold); color:#fff; font-size:12px; padding:3px 8px; border-radius:4px; width:120px;" onblur="saveNickname()" onkeydown="if(event.key==='Enter') saveNickname()" />
+      </div>
+      <div style="font-size:11.5px; color:var(--text-3);">
+        Rückennummer: <span id="player-card-nr" style="color:#fff; font-weight:700;">–</span> | 
+        Starker Fuss: <span id="player-card-fuss" style="color:#fff; font-weight:700;">–</span>
+      </div>
+    </div>
+  </div>
+
       <!-- ============ DASHBOARD (SPIELER) ============ -->
   <div id="view-dashboard-player" class="hidden" style="padding-top:12px; padding-bottom:40px;">
     <div id="dashboard-player-body"><div class="spinner"></div></div>
@@ -1604,57 +1625,6 @@ footer {
   <!-- SPIELER: MODULKARTE -->
   <div id="view-modules" class="hidden"></div>
 
-  <!-- LERNBLOCK (LEHRSTOFF) -->
-  <div id="view-learn" class="hidden">
-    <button class="btn-ghost" style="padding:8px 14px; font-size:13px; margin-bottom:16px" onclick="exitQuiz()">‹ Zurück zur Übersicht</button>
-    <div class="card" style="border-color: rgba(212,175,55,0.25); background: linear-gradient(135deg, #1b1d25 0%, #0f1115 100%);">
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
-        <span class="eyebrow" id="learn-title">Modul Vorbereitung</span>
-        <span style="font-size: 24px;">📖</span>
-      </div>
-      <h2 id="learn-module-titel" style="margin-bottom:16px; color:#fff;"></h2>
-      
-      <!-- Lehrstoff Text -->
-      <div id="learn-text" style="font-size:15px; line-height:1.6; color:var(--text-1); margin-bottom:24px; background: rgba(255,255,255,0.02); border: 1px solid var(--line); padding:16px; border-radius:12px;"></div>
-      
-      <div class="card" style="background: rgba(212, 175, 55, 0.05); border: 1px solid rgba(212, 175, 55, 0.15); margin-bottom: 24px; padding: 14px 16px;">
-        <p style="font-size:13px; color:var(--gold); font-weight:700; display:flex; align-items:center; gap:8px; margin:0;">
-          💡 <span>Lies dir diesen Lehrstoff gut durch. Alle Antworten für das Quiz findest du genau hier! Wenn du bereit bist, starte die Wissensprüfung. Du schaffst das! ⚽</span>
-        </p>
-      </div>
-      
-      <button class="btn" style="width:100%" id="btn-start-quiz-now">Wissensprüfung starten ⚽</button>
-    </div>
-  </div>
-
-  <!-- QUIZ -->
-  <div id="view-quiz" class="hidden">
-    <button class="btn-ghost" style="padding:8px 14px; font-size:13px; margin-bottom:16px" onclick="exitQuiz()">‹ Zurück zur Übersicht</button>
-    <div class="card">
-      <div class="qmeta">
-        <span class="eyebrow" id="quiz-title">Modul</span>
-        <span class="muted" id="quiz-count" style="font-size:13px; font-weight:600;"></span>
-      </div>
-      <div class="qprog"><i id="quiz-prog"></i></div>
-      <div class="qtext" id="quiz-q"></div>
-      <div id="quiz-opts"></div>
-      <div id="quiz-fb"></div>
-      <button id="quiz-next" class="btn hidden" style="width:100%" onclick="nextQuestion()">Weiter</button>
-    </div>
-  </div>
-
-  <!-- RESULT -->
-  <div id="view-result" class="hidden">
-    <div class="card center" style="max-width:500px; margin:0 auto">
-      <div class="trophy" id="res-emoji">🎉</div>
-      <h2 id="res-title" style="margin-bottom:10px; color:#fff;"></h2>
-      <p class="muted" id="res-msg" style="margin-bottom:24px; font-size:15px;"></p>
-      <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
-        <button id="res-retry" class="btn-blue hidden" onclick="retryModule()">Nochmal versuchen</button>
-        <button class="btn" onclick="exitQuiz()">Zur Übersicht</button>
-      </div>
-    </div>
-  </div>
 
   <!-- SPIELER: SKILL CHALLENGES -->
   <div id="view-skills" class="hidden">
@@ -1810,70 +1780,6 @@ footer {
   </div>
 
   <!-- ============ HILFE / LEXIKON (SPIELER) ============ -->
-  <div id="view-hilfe" class="hidden" style="padding-top:20px; padding-bottom:40px;">
-    <div class="card" style="max-width:820px; margin:0 auto;">
-      <p class="eyebrow">Nachschlagewerk</p>
-      <h2 style="margin:4px 0 6px; color:#fff;">❓ Hilfe – Wie funktioniert die Lernplattform?</h2>
-      <p class="muted" style="font-size:13.5px; line-height:1.6; margin-bottom:20px;">Hier erklären wir dir in Ruhe, was du auf dieser Plattform alles machen kannst. Du musst nicht alles auf einmal lesen — schau einfach immer wieder rein, wenn du zu einem Bereich Fragen hast. Es gibt keine dummen Fragen — frag im Zweifel einfach deinen Trainer/deine Trainerin! 😊</p>
-
-      <div class="card g-card-sm" style="margin-bottom:14px;">
-        <p style="font-weight:700; color:#fff; margin-bottom:6px;">🏆 Punktesystem</p>
-        <p class="muted" style="font-size:13px; line-height:1.7;">Für jede richtig gelöste Frage im Lernbereich bekommst du 10 Punkte. Wichtig: Nur dein <b>erster Versuch</b> pro Frage zählt für die Rangliste — danach darfst du so oft üben, wie du willst, ohne dass sich etwas an deinen Punkten ändert. So kannst du ohne Druck lernen! Die Rangliste zeigt dir, wo du gerade im aktuellen Quartal stehst.</p>
-      </div>
-
-      <div class="card g-card-sm" style="margin-bottom:14px;">
-        <p style="font-weight:700; color:#fff; margin-bottom:6px;">📖 Lernen</p>
-        <p class="muted" style="font-size:13px; line-height:1.7;">Jedes Modul beginnt mit einem kurzen, verständlichen Lehrtext — lies ihn in Ruhe durch. Danach kommt eine kleine Wissensprüfung dazu, bei der du zeigen kannst, was du behalten hast. Die Module schalten sich Schritt für Schritt frei, passend zum aktuellen Quartal. Manche besonderen Zusatz-Module ("Bonus-Module") schaltet dein Trainer/deine Trainerin ganz gezielt nur für dich frei, wenn er/sie findet, dass du bereit dafür bist.</p>
-      </div>
-
-      <div class="card g-card-sm" style="margin-bottom:14px;">
-        <p style="font-weight:700; color:#fff; margin-bottom:6px;">🎯 Skill-Challenges</p>
-        <p class="muted" style="font-size:13px; line-height:1.7;">Bei der <b>Jonglierreihe (Eigenes Training)</b> trägst du deinen Fortschritt ganz selbst ein, wann immer du zu Hause oder auf dem Platz übst — niemand muss das kontrollieren, es ist für dich zur Motivation. Bei den <b>Trick-Challenges</b> ist es anders: Dort bestätigt dein Trainer/deine Trainerin offiziell, wenn du eine Stufe wirklich gemeistert hast (z.B. „L/R Meister 🏆"), weil er/sie es live gesehen haben muss.</p>
-      </div>
-
-      <div class="card g-card-sm" style="margin-bottom:14px;">
-        <p style="font-weight:700; color:#fff; margin-bottom:6px;">♟ Schach-Arena</p>
-        <p class="muted" style="font-size:13px; line-height:1.7;">Hier spielst du Schach gegen echte Teamkolleg:innen — nie gegen einen Computer. Du siehst, wer gerade online ist, und kannst sie direkt herausfordern, oder du nutzt einen Raum-Code für eine private Partie mit jemandem Bestimmtem. Während des Spiels kannst du im Chat schreiben. Deine letzten Partien werden gespeichert, damit du sie dir später nochmal anschauen kannst.</p>
-      </div>
-
-      <div class="card g-card-sm" style="margin-bottom:14px;">
-        <p style="font-weight:700; color:#fff; margin-bottom:10px;">🎯 Zielvereinbarung — ausführlich erklärt</p>
-        <p class="muted" style="font-size:13px; line-height:1.7; margin-bottom:12px;">Die Zielvereinbarung hilft dir, bewusst über deine eigene Entwicklung nachzudenken — nicht nur im Fussball, sondern auch als Person. Sie hat zwei Teile:</p>
-
-        <p style="font-size:12.5px; color:var(--gold); font-weight:700; margin-bottom:4px;">1️⃣ Deine eigene Einschätzung ("Was denke ich über mich selbst?")</p>
-        <p class="muted" style="font-size:13px; line-height:1.7; margin-bottom:10px;">Hier trägst du ganz für dich selbst ein, was du in den vier Bereichen <b>Technik</b> (z.B. Ballkontrolle, Passspiel), <b>Taktik</b> (z.B. Stellungsspiel, Entscheidungen), <b>Athletik</b> (z.B. Schnelligkeit, Kraft) und <b>Mental</b> (z.B. Selbstvertrauen, Konzentration) als deine eigenen Stärken siehst — und was du dir konkret vornimmst, um besser zu werden ("Massnahmen"). Das ist nur deine eigene, ehrliche Sicht — es gibt hier kein richtig oder falsch.</p>
-
-        <p style="font-size:12.5px; color:var(--gold); font-weight:700; margin-bottom:4px;">2️⃣ Die offizielle Zielvereinbarung mit deinem Trainer</p>
-        <p class="muted" style="font-size:13px; line-height:1.7; margin-bottom:10px;">Zusätzlich legt dein Trainer/deine Trainerin gemeinsam mit dir echte Entwicklungsziele fest — z.B. woran du bis zu einem bestimmten Datum arbeiten sollst. Diesen Teil trägt der Trainer/die Trainerin ein, damit es für alle verbindlich und vergleichbar bleibt. Du siehst diese Ziele jederzeit und kannst nachlesen, woran ihr gemeinsam arbeitet.</p>
-
-        <p style="font-size:12.5px; color:var(--gold); font-weight:700; margin-bottom:4px;">📅 Gesprächs-Fahrplan</p>
-        <p class="muted" style="font-size:13px; line-height:1.7; margin-bottom:10px;">Über die Saison hinweg finden feste Gespräche zwischen dir und deinem Trainer/deiner Trainerin statt, bei denen ihr gemeinsam schaut, wie es läuft und ob die Ziele noch passen oder angepasst werden müssen. Diese Termine und Notizen werden ebenfalls hier festgehalten.</p>
-
-        <p style="font-size:12.5px; color:var(--gold); font-weight:700; margin-bottom:4px;">🟨 Was bedeutet die Gelbe Karte?</p>
-        <p class="muted" style="font-size:13px; line-height:1.7; margin-bottom:10px;">Das hat nichts mit einem Spiel zu tun! Es ist ein interner Hinweis vom Trainerteam, wenn die Entwicklung gerade nicht wie gewünscht läuft, und ein Zeichen: "Wir müssen gemeinsam wieder etwas mehr Gas geben." Sie ist nicht als Strafe gedacht, sondern als ehrlicher, direkter Hinweis, damit du weisst, woran du dranbleiben solltest. Deine Eltern werden darüber ebenfalls transparent informiert.</p>
-
-        <p style="font-size:12.5px; color:var(--gold); font-weight:700; margin-bottom:4px;">💬 Kommentare</p>
-        <p class="muted" style="font-size:13px; line-height:1.7; margin-bottom:10px;">Ganz am Ende der Zielvereinbarung könnt du bzw. dein Trainer/deine Trainerin zusätzliche Kommentare hinterlassen — z.B. eine kurze Beobachtung oder Ermutigung. Jeder Kommentar wird automatisch mit Datum und Uhrzeit gespeichert, sodass ein kleines Archiv über die Zeit entsteht.</p>
-
-        <p class="muted" style="font-size:13px; line-height:1.7;">Das Ganze kannst du (und dein Trainer/deine Trainerin) jederzeit als übersichtliches <b>PDF exportieren</b> — praktisch, um es z.B. deinen Eltern zu zeigen. So bleibt alles transparent und nachvollziehbar für alle Beteiligten.</p>
-      </div>
-
-      <div class="card g-card-sm" style="margin-bottom:14px;">
-        <p style="font-weight:700; color:#fff; margin-bottom:6px;">📅 Spielplan / Selbstreflexion</p>
-        <p class="muted" style="font-size:13px; line-height:1.7;">Hier siehst du alle Spiele deines Teams. Nach einem Spiel kannst du eine kurze Selbstreflexion ausfüllen — ehrlich mit dir selbst, es geht nicht ums Resultat. Du kannst sie so oft überarbeiten, wie du willst, solange du sie als <b>Entwurf</b> gespeichert hast. Erst wenn du bewusst auf „Ausfüllen abschliessen" klickst, wird sie fest mit Datum und Uhrzeit gespeichert und kann danach nicht mehr geändert werden — genau wie ein unterschriebenes Formular. Dein Trainer/deine Trainerin sieht dann, dass du sie abgeschlossen hast.</p>
-      </div>
-
-      <div class="card g-card-sm" style="margin-bottom:14px;">
-        <p style="font-weight:700; color:#fff; margin-bottom:6px;">👪 Einverständnis deiner Eltern</p>
-        <p class="muted" style="font-size:13px; line-height:1.7;">Weil die meisten von euch noch nicht volljährig sind, braucht es die Zustimmung eurer Eltern, damit ihr diese Plattform nutzen dürft. Diese Zustimmung holt euer Trainer/eure Trainerin persönlich bei euren Eltern ein — du musst dich darum nicht selbst kümmern. Auf deinem Dashboard siehst du, sobald das erledigt ist.</p>
-      </div>
-
-      <div class="card g-card-sm">
-        <p style="font-weight:700; color:#fff; margin-bottom:6px;">🔒 Sicherheit & Daten</p>
-        <p class="muted" style="font-size:13px; line-height:1.7;">Die Lernplattform wird sicher in der Schweiz gehostet und ist ausschliesslich für unser Team bestimmt. Deine Daten dienen nur deiner individuellen Entwicklung und werden nicht an Dritte weitergegeben. Zugang gibt es nur an den vom Trainer festgelegten Trainingstagen. Gib dein Passwort niemals an andere weiter — auch nicht an Teamkolleg:innen. Bei Problemen beim Anmelden wende dich an deinen Trainer/deine Trainerin oder nutze das Kontaktformular auf der Startseite.</p>
-      </div>
-    </div>
-  </div>
 
   <!-- ============ HILFE / LEXIKON (SPIELER) ============ -->
   <div id="view-hilfe" class="hidden" style="padding-top:20px; padding-bottom:40px;">
@@ -1940,6 +1846,63 @@ footer {
       </div>
     </div>
   </div>
+
+    </div><!-- /sidebar-main -->
+  </div><!-- /player-shell -->
+
+  <!-- LERNBLOCK (LEHRSTOFF) -->
+  <div id="view-learn" class="hidden">
+    <button class="btn-ghost" style="padding:8px 14px; font-size:13px; margin-bottom:16px" onclick="exitQuiz()">‹ Zurück zur Übersicht</button>
+    <div class="card" style="border-color: rgba(212,175,55,0.25); background: linear-gradient(135deg, #1b1d25 0%, #0f1115 100%);">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+        <span class="eyebrow" id="learn-title">Modul Vorbereitung</span>
+        <span style="font-size: 24px;">📖</span>
+      </div>
+      <h2 id="learn-module-titel" style="margin-bottom:16px; color:#fff;"></h2>
+      
+      <!-- Lehrstoff Text -->
+      <div id="learn-text" style="font-size:15px; line-height:1.6; color:var(--text-1); margin-bottom:24px; background: rgba(255,255,255,0.02); border: 1px solid var(--line); padding:16px; border-radius:12px;"></div>
+      
+      <div class="card" style="background: rgba(212, 175, 55, 0.05); border: 1px solid rgba(212, 175, 55, 0.15); margin-bottom: 24px; padding: 14px 16px;">
+        <p style="font-size:13px; color:var(--gold); font-weight:700; display:flex; align-items:center; gap:8px; margin:0;">
+          💡 <span>Lies dir diesen Lehrstoff gut durch. Alle Antworten für das Quiz findest du genau hier! Wenn du bereit bist, starte die Wissensprüfung. Du schaffst das! ⚽</span>
+        </p>
+      </div>
+      
+      <button class="btn" style="width:100%" id="btn-start-quiz-now">Wissensprüfung starten ⚽</button>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="view-quiz" class="hidden">
+    <button class="btn-ghost" style="padding:8px 14px; font-size:13px; margin-bottom:16px" onclick="exitQuiz()">‹ Zurück zur Übersicht</button>
+    <div class="card">
+      <div class="qmeta">
+        <span class="eyebrow" id="quiz-title">Modul</span>
+        <span class="muted" id="quiz-count" style="font-size:13px; font-weight:600;"></span>
+      </div>
+      <div class="qprog"><i id="quiz-prog"></i></div>
+      <div class="qtext" id="quiz-q"></div>
+      <div id="quiz-opts"></div>
+      <div id="quiz-fb"></div>
+      <button id="quiz-next" class="btn hidden" style="width:100%" onclick="nextQuestion()">Weiter</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="view-result" class="hidden">
+    <div class="card center" style="max-width:500px; margin:0 auto">
+      <div class="trophy" id="res-emoji">🎉</div>
+      <h2 id="res-title" style="margin-bottom:10px; color:#fff;"></h2>
+      <p class="muted" id="res-msg" style="margin-bottom:24px; font-size:15px;"></p>
+      <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <button id="res-retry" class="btn-blue hidden" onclick="retryModule()">Nochmal versuchen</button>
+        <button class="btn" onclick="exitQuiz()">Zur Übersicht</button>
+      </div>
+    </div>
+  </div>
+
+
   <!-- ============ REGISTRATION VIEW (für Einladungs-Links) ============ -->
   <div id="view-register" class="hidden">
     <div class="card" style="max-width:440px; margin:8vh auto 0; padding:0; overflow:hidden;">
@@ -2105,8 +2068,24 @@ var ROUND_NAMES = {
 
 /* ---------------------- Helper ---------------------- */
 function el(id){return document.getElementById(id);}
-function show(id){el(id).classList.remove("hidden");}
-function hide(id){el(id).classList.add("hidden");}
+function show(id){el(id).classList.remove("hidden"); if(id==="player-nav"){var ps=el("player-shell"); if(ps) ps.classList.remove("hidden");}}
+function hide(id){el(id).classList.add("hidden"); if(id==="player-nav"){var ps=el("player-shell"); if(ps) ps.classList.add("hidden");}}
+
+/* ---------------------- Sidebar Position (links/rechts) ---------------------- */
+function applySidebarPosition(pos){
+  var right = (pos === "right");
+  ["view-staff","player-shell"].forEach(function(id){
+    var e = el(id);
+    if(e) e.classList.toggle("sidebar-right", right);
+  });
+}
+function toggleSidebarPosition(){
+  var current = (PROFILE && PROFILE.sidebar_position) || "left";
+  var next = current === "right" ? "left" : "right";
+  applySidebarPosition(next);
+  if(PROFILE) PROFILE.sidebar_position = next;
+  sb.rpc("set_sidebar_position", {p_position: next}).catch(function(){});
+}
 function esc(s){var d=document.createElement("div");d.textContent=(s==null?"":s);return d.innerHTML;}
 /* Normalisiert Text auf NFC, bevor er in ein PDF geschrieben wird.
    Grund: manche Geraete/Tastaturen liefern Umlaute in zerlegter Form
@@ -2331,9 +2310,10 @@ function updatePlayerHeaderName() {
 
 /* ---------------------- Routing nach Login ---------------------- */
 function afterLogin(){
-  sb.from("profiles").select("display_name,role,team_id,geb,fuss,player_nr,skills,is_active").eq("id",ME.id).single().then(function(r){
+  sb.from("profiles").select("display_name,role,team_id,geb,fuss,player_nr,skills,is_active,sidebar_position").eq("id",ME.id).single().then(function(r){
     PROFILE = r.data || {display_name:ME.email, role:"spieler", skills:{}, is_active:true};
     PROFILE.skills = PROFILE.skills || {};
+    applySidebarPosition(PROFILE.sidebar_position || "left");
 
     // Deaktivierte Spieler sofort rauswerfen
     if (PROFILE.is_active === false && PROFILE.role === "spieler") {
