@@ -205,6 +205,7 @@ body {
 #staff-content {
   flex: 1;
   padding: var(--sp-5);
+  padding-top: 20px;
   overflow-x: hidden;
   min-width: 0;
 }
@@ -3113,22 +3114,26 @@ function loadPlayerDashboard(){
             html += '</div>';
           }
 
-          html += dashboardLeaderboardHtml(lbRows);
-
-          html += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:12px; margin-top:20px;">';
+          /* 2-Spalten-Layout: Leaderboard links, Schnellzugriff rechts */
+          html += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:20px; align-items:start;">';
+          html += '<div>'+dashboardLeaderboardHtml(lbRows)+'</div>';
+          html += '<div>';
+          html += '<h3 style="color:#fff; font-size:13px; margin-bottom:10px; font-weight:700;">Schnellzugriff</h3>';
+          html += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">';
           [
             {icon:'📖', label:'Lernen', tab:'lernen'},
             {icon:'🎯', label:'Skill-Challenges', tab:'skills'},
             {icon:'♟', label:'Schach', tab:'schach'},
             {icon:'🏆', label:'Rangliste', tab:'rang'},
             {icon:'🎯', label:'Zielvereinbarung', tab:'ziel'},
-            {icon:'📅', label:'Spielplan / Selbstreflexion', tab:'spiele'}
+            {icon:'📅', label:'Spielplan', tab:'spiele'}
           ].forEach(function(t){
-            html += '<div class="card dash-tile" style="text-align:center; padding:20px 10px; cursor:pointer;" onclick="showPlayerTab(\''+t.tab+'\')">';
-            html += '<div style="font-size:26px; margin-bottom:8px;">'+t.icon+'</div><div style="font-size:12.5px; color:#fff; font-weight:600;">'+t.label+'</div>';
+            html += '<div class="card" style="background:rgba(255,255,255,0.03); text-align:center; padding:14px 8px; cursor:pointer;" onclick="showPlayerTab(\''+t.tab+'\')">';
+            html += '<div style="font-size:22px; margin-bottom:6px;">'+t.icon+'</div>';
+            html += '<div style="font-size:11px; color:#fff; font-weight:600; line-height:1.3;">'+t.label+'</div>';
             html += '</div>';
           });
-          html += '</div>';
+          html += '</div></div></div>';
 
           box.innerHTML = html;
         }catch(e){ showDashboardError(e); }
@@ -3200,6 +3205,15 @@ function loadStaffDashboard(){
       html += '</div>';
     });
     html += '</div>';
+    /* Impressum / Legal links im Staff-Dashboard */
+    html += '<div style="margin-top:32px; padding-top:16px; border-top:1px solid var(--line); display:flex; flex-wrap:wrap; gap:6px; justify-content:center;">';
+    html += '<button class="btn-ghost" style="font-size:11px; padding:5px 10px;" onclick="toggleLegal(\'impressum\')">Impressum</button>';
+    html += '<button class="btn-ghost" style="font-size:11px; padding:5px 10px;" onclick="toggleLegal(\'nutzung\')">Nutzungsbedingungen</button>';
+    html += '<button class="btn-ghost" style="font-size:11px; padding:5px 10px;" onclick="toggleLegal(\'datenschutz\')">Datenschutz</button>';
+    html += '<button class="btn-ghost" style="font-size:11px; padding:5px 10px;" onclick="toggleLegal(\'ki\')">Software & KI</button>';
+    html += '<button class="btn-ghost" style="font-size:11px; padding:5px 10px;" onclick="toggleLegal(\'kontakt\')">✉️ Kontakt / Hilfe</button>';
+    html += '</div>';
+    html += '<p class="muted" style="text-align:center; font-size:10px; margin-top:8px;">© Team Basel-Old Boys FE12 · Online-Lernplattform · Schweiz</p>';
     box.innerHTML = html;
   });
 }
