@@ -1757,14 +1757,6 @@ footer {
           <div id="sc-mp-box" style="display:none;" class="card g-card-sm">
             <p class="eyebrow" style="margin-bottom:6px;">⚡ Online</p>
             <div id="sc-mp-info" style="font-size:13px; color:var(--text-2); margin-bottom:10px;"></div>
-            <div style="border-top:1px solid var(--glass-border); padding-top:8px;">
-              <p class="eyebrow" style="margin-bottom:6px;">💬 Chat</p>
-              <div id="sc-chat-log" style="max-height:140px; overflow-y:auto; display:flex; flex-direction:column; gap:5px; margin-bottom:8px; font-size:12px;"></div>
-              <div style="display:flex; gap:6px;">
-                <input id="sc-chat-input" type="text" maxlength="300" placeholder="Nachricht..." style="flex:1; font-size:12px; padding:6px 8px;" onkeypress="if(event.key==='Enter'){SC.sendChatFromInput();}" />
-                <button class="btn-ghost" style="font-size:12px; padding:6px 10px;" onclick="SC.sendChatFromInput()">➤</button>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -1965,7 +1957,7 @@ footer {
 
       <div class="card g-card-sm" style="margin-bottom:14px;">
         <p style="font-weight:700; color:#fff; margin-bottom:6px;">♟ Schach-Arena</p>
-        <p class="muted" style="font-size:13px; line-height:1.7;">Hier spielst du Schach gegen echte Teamkolleg:innen — nie gegen einen Computer. Du siehst, wer gerade online ist, und kannst sie direkt herausfordern, oder du nutzt einen Raum-Code für eine private Partie mit jemandem Bestimmtem. Während des Spiels kannst du im Chat schreiben. Deine letzten Partien werden gespeichert, damit du sie dir später nochmal anschauen kannst.</p>
+        <p class="muted" style="font-size:13px; line-height:1.7;">Hier spielst du Schach gegen echte Teamkolleg:innen — nie gegen einen Computer. Du siehst, wer gerade online ist, und kannst sie direkt herausfordern, oder du nutzt einen Raum-Code für eine private Partie mit jemandem Bestimmtem. Deine letzten Partien werden gespeichert, damit du sie dir später nochmal anschauen kannst.</p>
       </div>
 
       <div class="card g-card-sm" style="margin-bottom:14px;">
@@ -2428,7 +2420,7 @@ function submitContactForm(){
 
 function doLogout(){
   if (window.loginLogInterval) { clearInterval(window.loginLogInterval); window.loginLogInterval = null; }
-  var done=function(){CHAL.teardown();if(typeof SC!=='undefined'&&SC.leaveRoom)SC.leaveRoom();ME=null;PROFILE=null;stopClock();hideAllChrome();if(el("in-pass"))el("in-pass").value="";only("view-login");initPrivacyBanner();};
+  var done=function(){CHAL.teardown();if(typeof CHATBOX!=='undefined')CHATBOX.teardown();if(typeof SC!=='undefined'&&SC.leaveRoom)SC.leaveRoom();ME=null;PROFILE=null;stopClock();hideAllChrome();if(el("in-pass"))el("in-pass").value="";only("view-login");initPrivacyBanner();};
   var _sid = window.OB12_SESSION_ID || null;
   window.OB12_SESSION_ID = null;
   sb.rpc("log_login_event",{p_event:"logout", p_session_id: _sid}).then(function(){sb.auth.signOut().then(done);}, function(){sb.auth.signOut().then(done);});
@@ -2521,6 +2513,7 @@ function afterLogin(){
     }
     
     CHAL.init(); // Presence für alle Rollen starten (Online-Tracking)
+    if(typeof CHATBOX!=='undefined') CHATBOX.init(); // Team-Chat starten
     var archivBtn = el("stab-archiv");
     if(archivBtn){ if(PROFILE.role==="leiter") archivBtn.classList.remove("hidden"); else archivBtn.classList.add("hidden"); }
 
@@ -6336,10 +6329,6 @@ return {
       for(var i=0;i<lms.length;i++) if(lms[i].to===d.t&&(lms[i].promo||0)===(d.p||0)){mv=lms[i];break;}
       if(!mv&&lms.length>0) for(var j=0;j<lms.length;j++) if(lms[j].to===d.t){mv=lms[j];break;}
       if(mv){executeMove(mv);}
-    }).on('broadcast',{event:'chat'},function(pl){
-      chatLog.push({name: pl.payload.name, text: pl.payload.text, mine:false});
-      if(chatLog.length>200) chatLog.shift();
-      renderChat();
     }).on('broadcast',{event:'join'},function(pl){
       if(pl.payload.id) oppId = pl.payload.id;
       if(mpRole==='white'){
@@ -6368,18 +6357,6 @@ return {
         mpChannel.send({type:'broadcast',event:'join',payload:{name:name, id: ME?ME.id:null}});
       }
     });
-  },
-  sendChatFromInput: function(){
-    var inp=document.getElementById('sc-chat-input');
-    if(!inp) return;
-    var text=inp.value.trim();
-    if(!text || mode!=='multiplayer' || !mpChannel) return;
-    var myNm=PROFILE?(PROFILE.display_name||'Spieler'):'Spieler';
-    chatLog.push({name: myNm, text: text, mine:true});
-    if(chatLog.length>200) chatLog.shift();
-    renderChat();
-    mpChannel.send({type:'broadcast', event:'chat', payload:{name:myNm, text:text}});
-    inp.value='';
   },
   leaveRoom: function(){
     if(mpChannel){ sb.removeChannel(mpChannel); mpChannel=null; }
@@ -6535,6 +6512,7 @@ var CHAL = (function(){
           if(state[id] && state[id][0]) online[id] = {name: state[id][0].name, role: state[id][0].role};
         });
         renderPill(); renderDropdown(); renderOnlineList();
+        if(typeof CHATBOX!=='undefined'&&CHATBOX.refreshOnline) CHATBOX.refreshOnline();
         refreshPointsCache(function(){ renderDropdown(); renderOnlineList(); });
       }).subscribe(function(status){
         if(status==='SUBSCRIBED'){ presenceCh.track({name: myName(), role: PROFILE.role}); }
@@ -8482,5 +8460,195 @@ var SeasonArchiv = (function(){
   return { init: init, download: download, reset: reset };
 })();
 </script>
+<!-- ═══════════════ TEAM-CHAT (Live, ephemer – nächtlich geleert) ═══════════════ -->
+<style id="tc-style">
+#tc-fab{position:fixed;bottom:20px;right:20px;z-index:10040;width:56px;height:56px;border-radius:50%;
+  border:1px solid var(--glass-border-2);background:var(--accent);color:#fff;font-size:24px;cursor:pointer;
+  box-shadow:0 8px 24px rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;transition:transform .15s;}
+#tc-fab:hover{transform:scale(1.06);}
+#tc-fab.closed{background:var(--bg-card);color:var(--text-3);}
+#tc-fab-badge{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;
+  background:var(--neon-rose);color:#fff;font-size:11px;font-weight:700;display:none;align-items:center;justify-content:center;}
+#tc-panel{position:fixed;top:70px;right:20px;bottom:20px;width:360px;max-width:calc(100vw - 32px);z-index:10041;
+  display:flex;flex-direction:column;background:var(--bg-card);border:1px solid var(--glass-border-2);
+  border-radius:var(--r-2xl);box-shadow:0 24px 64px rgba(0,0,0,.6);overflow:hidden;}
+#tc-panel.hidden{display:none;}
+#tc-head{padding:12px 14px;border-bottom:1px solid var(--glass-border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+#tc-body{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:8px;}
+#tc-foot{padding:10px 12px;border-top:1px solid var(--glass-border);}
+.tc-msg{background:var(--glass-bg-2);border:1px solid var(--glass-border);border-radius:var(--r-md);padding:7px 10px;font-size:13px;line-height:1.45;position:relative;}
+.tc-msg.mine{background:var(--accent-10);border-color:var(--accent-18);}
+.tc-msg .tc-name{font-weight:700;font-size:12px;}
+.tc-msg .tc-time{color:var(--text-3);font-size:10px;margin-left:6px;}
+.tc-msg .tc-del{position:absolute;top:5px;right:6px;cursor:pointer;color:var(--neon-rose);font-size:12px;opacity:.6;background:none;border:none;padding:0;}
+.tc-msg .tc-del:hover{opacity:1;}
+.tc-switch{display:flex;align-items:center;gap:6px;font-size:11px;}
+@media(max-width:640px){#tc-panel{top:0;right:0;left:0;bottom:0;width:100%;max-width:100%;border-radius:0;}}
+</style>
+<button id="tc-fab" title="Team-Chat" onclick="CHATBOX.toggle()">💬<span id="tc-fab-badge">0</span></button>
+<div id="tc-panel" class="hidden">
+  <div id="tc-head">
+    <span style="font-weight:700;color:#fff;">💬 Team-Chat</span>
+    <span id="tc-online" style="font-size:12px;color:var(--text-2);">🟢 0</span>
+    <span id="tc-admin-switch" style="display:none;margin-left:auto;" class="tc-switch"></span>
+    <button class="btn-ghost" style="padding:4px 10px;font-size:13px;margin-left:auto;" onclick="CHATBOX.toggle()">✕</button>
+  </div>
+  <div id="tc-note" style="display:none;font-size:11px;padding:6px 14px;border-bottom:1px solid var(--glass-border);color:var(--text-3);"></div>
+  <div id="tc-body"></div>
+  <div id="tc-foot"></div>
+</div>
+<script>
+/* ═══ TEAM-CHAT — Live über Supabase Realtime, Writes nur über RPCs, nächtlich geleert ═══ */
+var CHATBOX = (function(){
+  var dbCh=null, msgs=[], isOpen=false, panelOpen=false, unread=0, midnightT=null;
+  function role(){ return (PROFILE&&PROFILE.role)||'spieler'; }
+  function admin(){ return role()==='leiter'; }
+  function myId(){ return ME&&ME.id; }
+  function onlineN(){ try{ return Object.keys(CHAL._getOnlineState()).length; }catch(e){ return 0; } }
+  function E(id){ return document.getElementById(id); }
+  function roleColor(r){ return r==='leiter' ? 'var(--gold)' : (r==='trainer' ? 'var(--neon-cyan)' : 'var(--accent)'); }
+  function roleIcon(r){ return r==='leiter' ? '👑' : (r==='trainer' ? '📋' : '⚽'); }
+  function fmtTime(iso){ try{ var d=new Date(iso); return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }catch(e){ return ''; } }
+
+  function renderMessages(){
+    var box=E('tc-body'); if(!box) return;
+    if(msgs.length===0){ box.innerHTML='<p style="font-size:12px;text-align:center;margin-top:20px;color:var(--text-3);">Noch keine Nachrichten heute.</p>'; return; }
+    var html='';
+    msgs.forEach(function(m){
+      var mine = m.author_id===myId();
+      var delBtn = admin() ? '<button class="tc-del" title="Löschen" onclick="CHATBOX.del(\''+m.id+'\')">🗑</button>' : '';
+      html+='<div class="tc-msg'+(mine?' mine':'')+'">'+delBtn
+        + '<span class="tc-name" style="color:'+roleColor(m.author_role)+';">'+roleIcon(m.author_role)+' '+esc(m.author_name)+'</span>'
+        + '<span class="tc-time">'+fmtTime(m.created_at)+'</span>'
+        + '<div style="color:var(--text-1);margin-top:2px;white-space:pre-wrap;word-break:break-word;">'+esc(m.body)+'</div>'
+        + '</div>';
+    });
+    box.innerHTML=html; box.scrollTop=box.scrollHeight;
+  }
+
+  function renderFoot(){
+    var foot=E('tc-foot'); if(!foot) return;
+    if(!isOpen && !admin()){ foot.innerHTML='<p style="font-size:12px;text-align:center;color:var(--text-3);">🔒 Der Chat ist aktuell geschlossen.</p>'; return; }
+    foot.innerHTML='<div style="display:flex;gap:6px;">'
+      + '<input id="tc-input" type="text" maxlength="500" placeholder="Nachricht schreiben..." style="flex:1;font-size:13px;padding:8px 10px;" onkeypress="if(event.key===\'Enter\'){CHATBOX.send();}" />'
+      + '<button class="btn-ghost" style="padding:8px 12px;" onclick="CHATBOX.send()">➤</button></div>';
+  }
+
+  function renderHead(){
+    var on=E('tc-online'); if(on) on.textContent='🟢 '+onlineN();
+    var sw=E('tc-admin-switch');
+    if(admin()){
+      if(sw){ sw.style.display='flex';
+        sw.innerHTML='<span style="color:'+(isOpen?'var(--neon-green)':'var(--text-3)')+';font-weight:700;">'+(isOpen?'OFFEN':'ZU')+'</span>'
+          +'<button class="btn-ghost" style="padding:3px 9px;font-size:11px;" onclick="CHATBOX.setOpen('+(!isOpen)+')">'+(isOpen?'Schliessen':'Öffnen')+'</button>';
+      }
+    } else if(sw){ sw.style.display='none'; }
+    var note=E('tc-note');
+    if(note){ note.style.display='block'; note.textContent='ⓘ Nichts wird dauerhaft gespeichert – jede Nacht um 00:00 Uhr wird der Chat automatisch geleert.'; }
+  }
+
+  function updateFab(){
+    var fab=E('tc-fab'); if(!fab) return;
+    var visible = admin() || isOpen;
+    fab.style.display = visible ? 'inline-flex' : 'none';
+    fab.className = isOpen ? '' : 'closed';
+    if(!visible && panelOpen){ closePanel(); }
+    var badge=E('tc-fab-badge');
+    if(badge){ if(unread>0 && !panelOpen){ badge.style.display='flex'; badge.textContent=unread>9?'9+':unread; } else { badge.style.display='none'; } }
+  }
+
+  function openPanel(){ var p=E('tc-panel'); if(!p) return; p.classList.remove('hidden'); panelOpen=true; unread=0; renderHead(); renderFoot(); renderMessages(); updateFab(); }
+  function closePanel(){ var p=E('tc-panel'); if(p) p.classList.add('hidden'); panelOpen=false; updateFab(); }
+
+  function onInsert(row){
+    if(!row||!row.id) return;
+    if(msgs.some(function(m){return m.id===row.id;})) return;
+    msgs.push(row); if(msgs.length>400) msgs.shift();
+    if(panelOpen){ renderMessages(); } else if(row.author_id!==myId()){ unread++; }
+    updateFab();
+  }
+  function onDelete(row){
+    if(!row||!row.id) return;
+    msgs=msgs.filter(function(m){return m.id!==row.id;});
+    if(panelOpen) renderMessages();
+  }
+  function onSettings(row){
+    if(!row) return;
+    isOpen=(row.is_open===true);
+    renderHead(); renderFoot(); updateFab();
+  }
+
+  function loadInitial(){
+    sb.from('chat_settings').select('is_open').eq('id',true).single().then(function(r){
+      if(r&&r.data) isOpen=(r.data.is_open===true);
+      renderHead(); renderFoot(); updateFab();
+    });
+    sb.from('chat_messages').select('id,author_id,author_name,author_role,body,created_at')
+      .order('created_at',{ascending:true}).limit(300).then(function(r){
+        if(r&&r.data){ msgs=r.data; if(panelOpen) renderMessages(); }
+      });
+  }
+
+  function subscribe(){
+    if(dbCh){ sb.removeChannel(dbCh); dbCh=null; }
+    dbCh = sb.channel('team-chat-db')
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages'},function(p){ onInsert(p.new); })
+      .on('postgres_changes',{event:'DELETE',schema:'public',table:'chat_messages'},function(p){ onDelete(p.old); })
+      .on('postgres_changes',{event:'UPDATE',schema:'public',table:'chat_settings'},function(p){ onSettings(p.new); })
+      .subscribe();
+  }
+
+  function scheduleMidnight(){
+    if(midnightT) clearTimeout(midnightT);
+    var now=new Date(); var next=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,5,0);
+    var ms=next-now; if(ms<1000) ms=1000;
+    midnightT=setTimeout(function(){ msgs=[]; if(panelOpen) renderMessages(); updateFab(); scheduleMidnight(); }, ms);
+  }
+
+  return {
+    init: function(){
+      if(!ME||!PROFILE) return;
+      msgs=[]; unread=0; panelOpen=false; isOpen=false;
+      var p=E('tc-panel'); if(p) p.classList.add('hidden');
+      loadInitial(); subscribe(); scheduleMidnight(); renderHead();
+    },
+    teardown: function(){
+      if(dbCh){ sb.removeChannel(dbCh); dbCh=null; }
+      if(midnightT){ clearTimeout(midnightT); midnightT=null; }
+      msgs=[]; unread=0; panelOpen=false;
+      var p=E('tc-panel'); if(p) p.classList.add('hidden');
+      var fab=E('tc-fab'); if(fab) fab.style.display='none';
+    },
+    toggle: function(){ if(panelOpen) closePanel(); else openPanel(); },
+    refreshOnline: function(){ var on=E('tc-online'); if(on) on.textContent='🟢 '+onlineN(); },
+    send: function(){
+      var inp=E('tc-input'); if(!inp) return;
+      var t=(inp.value||'').trim(); if(!t) return;
+      if(!isOpen && !admin()) return;
+      inp.disabled=true;
+      sb.rpc('chat_send',{p_body:t}).then(function(r){
+        inp.disabled=false;
+        if(r&&r.error){
+          var m=(r.error.message||'');
+          if(m.indexOf('chat_closed')>=0){ alert('Der Chat ist geschlossen.'); }
+          else if(m.indexOf('account_inactive')>=0){ alert('Dein Account ist inaktiv.'); }
+          else { alert('Nachricht konnte nicht gesendet werden.'); }
+          return;
+        }
+        inp.value=''; inp.focus();
+      }, function(){ inp.disabled=false; });
+    },
+    del: function(id){
+      if(!admin()) return;
+      sb.rpc('chat_delete',{p_id:id}).then(function(r){ if(r&&r.error) alert('Löschen fehlgeschlagen.'); });
+    },
+    setOpen: function(v){
+      if(!admin()) return;
+      sb.rpc('chat_set_open',{p_open:!!v}).then(function(r){ if(r&&r.error) alert('Zustand konnte nicht geändert werden.'); });
+    }
+  };
+})();
+</script>
+
 </body>
 </html>
