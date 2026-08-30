@@ -2808,10 +2808,13 @@ function renderModules(){
     html+='<div class="quartal"><div class="qhead">'+qLabel+'<h3>'+qTitle+'</h3></div><div class="grid">';
     
     byQ[q].forEach(function(m){
-      /* Bonus 1v1 (quartal=5): immer als Geheime Mission, nur Trainer kann freischalten */
+      /* Bonus 1v1 (quartal=5): standardmaessig gesperrt (DB: active_in_rounds=[], always_open=false),
+         wird ausschliesslich per Spieler-Freischaltung (module_unlocks) geoeffnet. Der Zugang
+         richtet sich daher — wie bei allen Modulen — nach dem echten offen-Wert aus der DB.
+         (Frueher wurde Bonus hier faelschlich immer auf gesperrt gezwungen; dadurch hatten
+         Freischaltungen fuer Spieler keine Wirkung.) */
       var isBonus = (q === 5);
-      /* Effektiver Zugang: offen aus DB, aber Bonus immer gesperrt für Spieler */
-      var effectivelyOpen = isBonus ? false : !!m.offen;
+      var effectivelyOpen = !!m.offen;
       
       var state = m.passed ? "passed" : (effectivelyOpen ? "open" : "locked");
       
