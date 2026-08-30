@@ -2303,7 +2303,13 @@ window.addEventListener("load", function(){
   }
 
   sb.auth.getSession().then(function(r){
-    if(r.data.session){ ME=r.data.session.user; afterLogin(); }
+    if(r.data.session){
+      ME=r.data.session.user;
+      // Session-Restore: neue session_id erzeugen und Login loggen
+      window.OB12_SESSION_ID = 'sid_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+      sb.rpc("log_login_event",{p_event:"login", p_session_id: window.OB12_SESSION_ID});
+      afterLogin();
+    }
     else { hideAllChrome(); only("view-login"); initPrivacyBanner(); }
   });
 });
@@ -2365,7 +2371,8 @@ function doLogin(){
       }
       ME=r.data.user;
       sb.rpc("reset_login_attempts");
-      sb.rpc("log_login_event",{p_event:"login"});
+      window.OB12_SESSION_ID = 'sid_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+      sb.rpc("log_login_event",{p_event:"login", p_session_id: window.OB12_SESSION_ID});
       afterLogin();
     });
   });
@@ -2414,7 +2421,9 @@ function submitContactForm(){
 function doLogout(){
   if (window.loginLogInterval) { clearInterval(window.loginLogInterval); window.loginLogInterval = null; }
   var done=function(){CHAL.teardown();if(typeof SC!=='undefined'&&SC.leaveRoom)SC.leaveRoom();ME=null;PROFILE=null;stopClock();hideAllChrome();if(el("in-pass"))el("in-pass").value="";only("view-login");initPrivacyBanner();};
-  sb.rpc("log_login_event",{p_event:"logout"}).then(function(){sb.auth.signOut().then(done);}, function(){sb.auth.signOut().then(done);});
+  var _sid = window.OB12_SESSION_ID || null;
+  window.OB12_SESSION_ID = null;
+  sb.rpc("log_login_event",{p_event:"logout", p_session_id: _sid}).then(function(){sb.auth.signOut().then(done);}, function(){sb.auth.signOut().then(done);});
 }
 
 function scrollToTop() {
@@ -4822,22 +4831,66 @@ function changeRound(roundNr) {
 
 function loadLoginLog(quiet){
   if(!quiet) el("staff-log").innerHTML='<div class="spinner"></div>';
-  sb.from("login_log").select("event_type,occurred_at,user_id").order("occurred_at",{ascending:false}).limit(40).then(function(r){
-    sb.from("profiles").select("id,display_name").then(function(p){
-      var names={}; (p.data||[]).forEach(function(x){names[x.id]=x.display_name;});
-      var rows=r.data||[];
-      var h='<p class="eyebrow">Aktivität</p><h3 style="margin:8px 0 16px; color:#fff;">Letzte Logins / Logouts</h3>';
-      if(!rows.length){h+='<p class="muted">Noch keine Einträge.</p>';}
-      else{ h+='<table><thead><tr><th>Spieler/in</th><th>Ereignis</th><th>Zeit</th></tr></thead><tbody>';
-        rows.forEach(function(x){
-          var dt=new Date(x.occurred_at);
-          var typeLabel = x.event_type==="login" ? '<span class="tag" style="color:var(--good); border-color:var(--good);">Login</span>' : '<span class="tag" style="color:var(--text-3);">Logout</span>';
-          h+='<tr><td style="color:#fff; font-weight:600;">'+esc(names[x.user_id]||"?")+'</td><td>'+typeLabel+'</td>'+
-             '<td class="muted">'+dt.toLocaleString("de-CH")+'</td></tr>';
+
+  // Live-Online-Anzeige aus Presence (CHAL-Modul)
+  function renderOnlineSection(){
+    var h = '';
+    try {
+      var state = CHAL && CHAL._getOnlineState ? CHAL._getOnlineState() : null;
+      if(state && Object.keys(state).length > 0){
+        h += '<div style="margin-bottom:20px;padding:12px 16px;background:var(--glass-bg-2);border:1px solid var(--neon-green);border-radius:var(--r-md);">';
+        h += '<p class="eyebrow" style="color:var(--neon-green);margin-bottom:8px;">🟢 Gerade online (' + Object.keys(state).length + ')</p>';
+        h += '<div style="display:flex;flex-wrap:wrap;gap:8px;">';
+        Object.keys(state).forEach(function(id){
+          var u = state[id];
+          h += '<span style="background:rgba(0,255,0,0.08);border:1px solid var(--neon-green);border-radius:var(--r-sm);padding:4px 10px;font-size:12px;color:#fff;">🟢 '+esc(u.name)+'</span>';
         });
-        h+='</tbody></table>'; }
-      el("staff-log").innerHTML=h;
-    });
+        h += '</div></div>';
+      }
+    } catch(e) {}
+    return h;
+  }
+
+  function fmtDauer(sec){
+    if(!sec || sec < 0) return '-';
+    if(sec < 60) return sec + 's';
+    var m = Math.floor(sec/60); var s = sec%60;
+    if(m < 60) return m + 'min ' + (s>0?s+'s':'');
+    var h = Math.floor(m/60); var rm = m%60;
+    return h + 'h ' + (rm>0?rm+'min':'');
+  }
+
+  sb.rpc("get_login_log_staff", {p_limit: 80}).then(function(r){
+    var rows = r.data || [];
+    var h = '<p class="eyebrow">Aktivität</p><h3 style="margin:8px 0 16px; color:#fff;">Login-Protokoll</h3>';
+    h += renderOnlineSection();
+    if(!rows.length){
+      h += '<p class="muted">Noch keine Einträge.</p>';
+    } else {
+      h += '<table><thead><tr><th>Spieler/in</th><th>Rolle</th><th>Ereignis</th><th>Zeit (Lokalzeit)</th><th>Online-Dauer</th></tr></thead><tbody>';
+      rows.forEach(function(x){
+        var dt = new Date(x.occurred_at);
+        var isLogin = x.event_type === "login";
+        var typeLabel = isLogin
+          ? '<span class="tag" style="color:var(--neon-green);border-color:var(--neon-green);">🔑 Login</span>'
+          : '<span class="tag" style="color:var(--text-3);border-color:var(--glass-border);">🚪 Logout</span>';
+        var roleLabel = x.role === 'spieler' ? '⚽' : x.role === 'trainer' ? '📋' : x.role === 'leiter' ? '🔑' : (x.role||'');
+        var dauerCell = isLogin && x.duration_sec != null
+          ? '<span style="color:var(--gold);font-weight:600;">'+fmtDauer(x.duration_sec)+'</span>'
+          : (isLogin ? '<span class="muted" style="font-size:11px;">noch online / kein Logout</span>' : '-');
+        h += '<tr>'
+           + '<td style="color:#fff;font-weight:600;">'+esc(x.display_name||'?')+'</td>'
+           + '<td class="muted" style="font-size:12px;">'+roleLabel+'</td>'
+           + '<td>'+typeLabel+'</td>'
+           + '<td class="muted">'+dt.toLocaleString("de-CH")+'</td>'
+           + '<td>'+dauerCell+'</td>'
+           + '</tr>';
+      });
+      h += '</tbody></table>';
+    }
+    el("staff-log").innerHTML = h;
+  }).catch(function(){
+    el("staff-log").innerHTML = '<p class="muted">Fehler beim Laden des Login-Protokolls.</p>';
   });
 }
 
@@ -4931,7 +4984,8 @@ function doRegister() {
       sb.rpc("ensure_profile", {p_display_name: displayName}).then(function() {
         // URL säubern (?invite=... entfernen) damit Reload sauber ist
         try { history.replaceState(null, "", location.pathname); } catch(e) {}
-        sb.rpc("log_login_event", {p_event: "login"});
+        window.OB12_SESSION_ID = 'sid_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+        sb.rpc("log_login_event", {p_event: "login", p_session_id: window.OB12_SESSION_ID});
         hideAllChrome();
         afterLogin();
       });
@@ -6368,6 +6422,7 @@ var CHAL = (function(){
       var d = document.getElementById('presence-dropdown'); if(d) d.classList.add('hidden');
       closeIncomingModal();
     },
+    _getOnlineState: function(){ return online; },
     togglePresenceDropdown: function(){
       var box = document.getElementById('presence-dropdown');
       var pill = document.getElementById('presence-pill');
