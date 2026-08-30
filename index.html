@@ -2512,7 +2512,7 @@ function afterLogin(){
       }
     }
     
-    if(PROFILE.role==="spieler") CHAL.init();
+    CHAL.init(); // Presence für alle Rollen starten (Online-Tracking)
     var archivBtn = el("stab-archiv");
     if(archivBtn){ if(PROFILE.role==="leiter") archivBtn.classList.remove("hidden"); else archivBtn.classList.add("hidden"); }
 
@@ -3513,6 +3513,8 @@ function showStaffTab(t){
   if(t==="runden") highlightActiveRoundCard(ACCESS.current_round || 1);
   if(t==="log") {
     loadLoginLog(false);
+    // Nach 1.5s nochmal laden damit Presence-State sicher synchronisiert ist
+    setTimeout(function(){ loadLoginLog(true); }, 1500);
     window.loginLogInterval = setInterval(function(){ loadLoginLog(true); }, 5000);
   }
   if(t==="vor")  loadStaffModules();
