@@ -2574,7 +2574,11 @@ function showClosed(){
   hide("player-nav");
   var bn = el("warn-banner"); if(bn){ bn.classList.add("hidden"); bn.style.background=""; bn.style.borderColor=""; bn.style.color=""; }
 
-  var windows = (ACCESS && ACCESS.windows) ? ACCESS.windows.filter(function(w){return w.active;}) : [];
+  /* Der get_access_state-RPC liefert bereits nur AKTIVE Fenster (active=true wird
+     serverseitig gefiltert); die zurueckgegebenen Objekte haben KEIN eigenes active-Feld.
+     Darum hier NICHT nochmal auf w.active filtern (das leerte die Liste faelschlich und
+     liess die Anzeige auf "Dienstag" zurueckfallen). Nur echte false-Werte ausschliessen. */
+  var windows = (ACCESS && ACCESS.windows) ? ACCESS.windows.filter(function(w){return w.active !== false;}) : [];
   var next = nextWindowInfo(ACCESS);
   var dayName = next ? next.label : (windows[0] ? WEEKDAY_NAMES[windows[0].weekday] : "Dienstag");
 
@@ -2617,7 +2621,7 @@ function showClosed(){
 /* Findet quer über alle aktiven Zeitfenster den naechsten Oeffnungszeitpunkt (Wochentag + Startzeit) */
 function nextWindowInfo(a){
   try{
-    var windows = (a && a.windows) ? a.windows.filter(function(w){return w.active;}) : [];
+    var windows = (a && a.windows) ? a.windows.filter(function(w){return w.active !== false;}) : [];
     if(windows.length === 0 || !a.server_time) return null;
     var p=a.server_time.split(/[- :]/);
     var now=new Date(+p[0],+p[1]-1,+p[2],+p[3],+p[4],+p[5]||0);
