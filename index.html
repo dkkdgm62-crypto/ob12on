@@ -4832,68 +4832,148 @@ function changeRound(roundNr) {
 function loadLoginLog(quiet){
   if(!quiet) el("staff-log").innerHTML='<div class="spinner"></div>';
 
-  // Live-Online-Anzeige aus Presence (CHAL-Modul)
-  function renderOnlineSection(){
-    var h = '';
-    try {
-      var state = CHAL && CHAL._getOnlineState ? CHAL._getOnlineState() : null;
-      if(state && Object.keys(state).length > 0){
-        h += '<div style="margin-bottom:20px;padding:12px 16px;background:var(--glass-bg-2);border:1px solid var(--neon-green);border-radius:var(--r-md);">';
-        h += '<p class="eyebrow" style="color:var(--neon-green);margin-bottom:8px;">🟢 Gerade online (' + Object.keys(state).length + ')</p>';
-        h += '<div style="display:flex;flex-wrap:wrap;gap:8px;">';
-        Object.keys(state).forEach(function(id){
-          var u = state[id];
-          h += '<span style="background:rgba(0,255,0,0.08);border:1px solid var(--neon-green);border-radius:var(--r-sm);padding:4px 10px;font-size:12px;color:#fff;">🟢 '+esc(u.name)+'</span>';
-        });
-        h += '</div></div>';
-      }
-    } catch(e) {}
-    return h;
-  }
-
   function fmtDauer(sec){
-    if(!sec || sec < 0) return '-';
+    if(sec==null || sec < 0) return '-';
     if(sec < 60) return sec + 's';
     var m = Math.floor(sec/60); var s = sec%60;
-    if(m < 60) return m + 'min ' + (s>0?s+'s':'');
-    var h = Math.floor(m/60); var rm = m%60;
-    return h + 'h ' + (rm>0?rm+'min':'');
+    if(m < 60) return m + 'min' + (s>0?' '+s+'s':'');
+    var h2 = Math.floor(m/60); var rm = m%60;
+    return h2 + 'h' + (rm>0?' '+rm+'min':'');
   }
 
-  sb.rpc("get_login_log_staff", {p_limit: 80}).then(function(r){
+  function fmtTime(dt){
+    return dt.toLocaleString("de-CH",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"});
+  }
+
+  function toggleAccordion(uid){
+    var body = document.getElementById('llbody-'+uid);
+    var arrow = document.getElementById('llarrow-'+uid);
+    if(!body||!arrow) return;
+    var open = body.style.display !== 'none';
+    body.style.display = open ? 'none' : 'block';
+    arrow.textContent = open ? '▶' : '▼';
+  }
+  window._llToggle = toggleAccordion;
+
+  function doCleanup(period){
+    if(!confirm('Wirklich alle Login-Einträge löschen die älter als '+period+' sind?')) return;
+    sb.rpc("cleanup_login_log",{p_older_than: period}).then(function(r){
+      var n = r.data || 0;
+      alert('✅ '+n+' Einträge gelöscht.');
+      loadLoginLog(false);
+    }).catch(function(){ alert('Fehler beim Löschen.'); });
+  }
+  window._llCleanup = doCleanup;
+
+  // Online-State aus Presence
+  var onlineState = {};
+  try { onlineState = (CHAL && CHAL._getOnlineState) ? CHAL._getOnlineState() : {}; } catch(e){}
+
+  sb.rpc("get_login_log_staff", {p_limit: 200}).then(function(r){
+    // Auto-trim nach dem Laden
+    try { sb.rpc("trim_login_log_per_user"); } catch(e){}
+
     var rows = r.data || [];
-    var h = '<p class="eyebrow">Aktivität</p><h3 style="margin:8px 0 16px; color:#fff;">Login-Protokoll</h3>';
-    h += renderOnlineSection();
-    if(!rows.length){
+
+    // Gruppieren pro user_id
+    var playerMap = {}; // uid -> {name, role, entries:[]}
+    rows.forEach(function(x){
+      if(!playerMap[x.user_id]){
+        playerMap[x.user_id] = {name: x.display_name||'?', role: x.role||'', entries:[]};
+      }
+      playerMap[x.user_id].entries.push(x);
+    });
+
+    // Spieler ohne Logs aber gerade online auch anzeigen
+    Object.keys(onlineState).forEach(function(uid){
+      if(!playerMap[uid]){
+        playerMap[uid] = {name: onlineState[uid].name, role: onlineState[uid].role, entries:[]};
+      }
+    });
+
+    var playerIds = Object.keys(playerMap);
+
+    // Sortierung: Online zuerst, dann nach letztem Login DESC
+    playerIds.sort(function(a,b){
+      var aOn = !!onlineState[a], bOn = !!onlineState[b];
+      if(aOn !== bOn) return bOn ? 1 : -1;
+      var aLast = playerMap[a].entries.length ? new Date(playerMap[a].entries[0].occurred_at) : new Date(0);
+      var bLast = playerMap[b].entries.length ? new Date(playerMap[b].entries[0].occurred_at) : new Date(0);
+      return bLast - aLast;
+    });
+
+    var isSuperadmin = PROFILE && (PROFILE.role === 'leiter' || PROFILE.role === 'superadmin');
+
+    var h = '<p class="eyebrow">Aktivität</p>';
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">';
+    h += '<h3 style="margin:0;color:#fff;">Login-Protokoll</h3>';
+    if(isSuperadmin){
+      h += '<div style="display:flex;gap:8px;flex-wrap:wrap;">';
+      h += '<button class="btn-ghost" style="font-size:12px;padding:6px 12px;color:var(--neon-rose);border-color:var(--neon-rose);" onclick="_llCleanup(\'1 week\')">🗑 &gt; 1 Woche löschen</button>';
+      h += '<button class="btn-ghost" style="font-size:12px;padding:6px 12px;color:var(--neon-rose);border-color:var(--neon-rose);" onclick="_llCleanup(\'1 month\')">🗑 &gt; 1 Monat löschen</button>';
+      h += '<button class="btn-ghost" style="font-size:12px;padding:6px 12px;color:var(--neon-rose);border-color:var(--neon-rose);" onclick="_llCleanup(\'3 months\')">🗑 &gt; 3 Monate löschen</button>';
+      h += '</div>';
+    }
+    h += '</div>';
+
+    if(!playerIds.length){
       h += '<p class="muted">Noch keine Einträge.</p>';
     } else {
-      h += '<table><thead><tr><th>Spieler/in</th><th>Rolle</th><th>Ereignis</th><th>Zeit (Lokalzeit)</th><th>Online-Dauer</th></tr></thead><tbody>';
-      rows.forEach(function(x){
-        var dt = new Date(x.occurred_at);
-        var isLogin = x.event_type === "login";
-        var typeLabel = isLogin
-          ? '<span class="tag" style="color:var(--neon-green);border-color:var(--neon-green);">🔑 Login</span>'
-          : '<span class="tag" style="color:var(--text-3);border-color:var(--glass-border);">🚪 Logout</span>';
-        var roleLabel = x.role === 'spieler' ? '⚽' : x.role === 'trainer' ? '📋' : x.role === 'leiter' ? '🔑' : (x.role||'');
-        var dauerCell = isLogin && x.duration_sec != null
-          ? '<span style="color:var(--gold);font-weight:600;">'+fmtDauer(x.duration_sec)+'</span>'
-          : (isLogin ? '<span class="muted" style="font-size:11px;">noch online / kein Logout</span>' : '-');
-        h += '<tr>'
-           + '<td style="color:#fff;font-weight:600;">'+esc(x.display_name||'?')+'</td>'
-           + '<td class="muted" style="font-size:12px;">'+roleLabel+'</td>'
-           + '<td>'+typeLabel+'</td>'
-           + '<td class="muted">'+dt.toLocaleString("de-CH")+'</td>'
-           + '<td>'+dauerCell+'</td>'
-           + '</tr>';
+      playerIds.forEach(function(uid){
+        var pl = playerMap[uid];
+        var isOnline = !!onlineState[uid];
+        var onlineBadge = isOnline
+          ? '<span style="background:rgba(0,255,0,0.12);border:1px solid var(--neon-green);border-radius:20px;padding:2px 10px;font-size:11px;color:var(--neon-green);font-weight:700;margin-left:8px;">🟢 Online</span>'
+          : '<span style="background:rgba(255,255,255,0.04);border:1px solid var(--glass-border);border-radius:20px;padding:2px 10px;font-size:11px;color:var(--text-3);margin-left:8px;">⚫ Offline</span>';
+        var roleIcon = pl.role==='spieler'?'⚽':pl.role==='trainer'?'📋':pl.role==='leiter'?'🔑':'👤';
+        var lastSeen = pl.entries.length
+          ? '<span class="muted" style="font-size:11px;margin-left:8px;">Zuletzt: '+fmtTime(new Date(pl.entries[0].occurred_at))+'</span>'
+          : '';
+
+        h += '<div style="margin-bottom:10px;background:var(--glass-bg-2);border:1px solid '+(isOnline?'var(--neon-green)':'var(--glass-border)')+';border-radius:var(--r-md);overflow:hidden;">';
+
+        // Header (immer sichtbar, klickbar)
+        h += '<div onclick="_llToggle(\''+uid+'\')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;user-select:none;">';
+        h += '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">';
+        h += '<span style="font-size:13px;color:var(--text-3);">'+roleIcon+'</span>';
+        h += '<span style="color:#fff;font-weight:700;font-size:14px;">'+esc(pl.name)+'</span>';
+        h += onlineBadge;
+        h += lastSeen;
+        h += '</div>';
+        h += '<div style="display:flex;align-items:center;gap:10px;">';
+        h += '<span class="muted" style="font-size:11px;">'+pl.entries.length+' Einträge</span>';
+        h += '<span id="llarrow-'+uid+'" style="color:var(--text-3);font-size:12px;">▶</span>';
+        h += '</div></div>';
+
+        // Body (eingeklappt by default)
+        h += '<div id="llbody-'+uid+'" style="display:none;border-top:1px solid var(--glass-border);padding:0 12px 12px;">';
+        if(!pl.entries.length){
+          h += '<p class="muted" style="font-size:12px;padding-top:10px;">Noch keine Logs für diesen Spieler.</p>';
+        } else {
+          h += '<table style="margin-top:10px;"><thead><tr><th>Ereignis</th><th>Zeit</th><th>Online-Dauer</th></tr></thead><tbody>';
+          pl.entries.forEach(function(x){
+            var isLogin = x.event_type === 'login';
+            var typeLabel = isLogin
+              ? '<span class="tag" style="font-size:11px;color:var(--neon-green);border-color:var(--neon-green);">🔑 Login</span>'
+              : '<span class="tag" style="font-size:11px;color:var(--text-3);border-color:var(--glass-border);">🚪 Logout</span>';
+            var dauerCell = isLogin && x.duration_sec != null
+              ? '<span style="color:var(--gold);font-weight:600;">'+fmtDauer(x.duration_sec)+'</span>'
+              : (isLogin ? '<span class="muted" style="font-size:10px;">kein Logout</span>' : '-');
+            h += '<tr><td>'+typeLabel+'</td>'
+               + '<td class="muted" style="font-size:12px;">'+fmtTime(new Date(x.occurred_at))+'</td>'
+               + '<td>'+dauerCell+'</td></tr>';
+          });
+          h += '</tbody></table>';
+        }
+        h += '</div></div>';
       });
-      h += '</tbody></table>';
     }
+
     el("staff-log").innerHTML = h;
-  }).catch(function(){
+  }).catch(function(e){
     el("staff-log").innerHTML = '<p class="muted">Fehler beim Laden des Login-Protokolls.</p>';
   });
 }
-
 function loadStaffModules(){
   el("staff-vor").innerHTML='<div class="spinner"></div>';
   sb.rpc("get_module_status").then(function(r){
