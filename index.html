@@ -6458,6 +6458,7 @@ var CHAL = (function(){
     if(!box) return;
     if(box.contains(ev.target) || (pill && pill.contains(ev.target))) return;
     box.classList.add('hidden');
+    document.removeEventListener('click', outsideCloseHandler, true);
   }
 
   return {
@@ -6520,8 +6521,9 @@ var CHAL = (function(){
       }
       box.classList.toggle('hidden');
       if(willOpen){
+        document.removeEventListener('click', outsideCloseHandler, true);
         setTimeout(function(){
-          document.addEventListener('click', outsideCloseHandler, {capture:true, once:true});
+          document.addEventListener('click', outsideCloseHandler, true);
         }, 0);
       }
     },
