@@ -1637,8 +1637,15 @@ footer {
         <button class="btn" onclick="CAPRA.staffSave()">💾 Speichern</button>
         <button class="btn btn-ghost" onclick="CAPRA.exportSpielerPDF()" id="capra-btn-pdf-spieler">📄 Spielerprofil PDF</button>
         <button class="btn btn-ghost" onclick="CAPRA.exportGespraechPDF()" id="capra-btn-pdf-gespraech">📋 Gesprächsmappe PDF</button>
+        <button class="btn btn-ghost" onclick="CAPRA.staffDelete()" style="border-color:rgba(255,68,136,0.35);color:rgba(255,68,136,0.8);" title="Bewertung dieser Saison löschen">🗑 Löschen</button>
       </div>
       <p id="capra-staff-msg" class="hidden" style="font-size:13px; font-weight:600; margin-top:8px;"></p>
+
+      <!-- Verlauf / Protokoll -->
+      <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--line);">
+        <p style="font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:rgba(168,85,247,0.6); margin-bottom:10px;">📋 Verlauf dieser Saison</p>
+        <div id="capra-history-box"></div>
+      </div>
 
       <!-- Radar-Vorschau -->
       <div id="capra-staff-preview" class="hidden" style="margin-top:20px; padding-top:20px; border-top:1px solid var(--line);">
@@ -8904,46 +8911,86 @@ var CAPRA = (function(){
   }
 
   /* ── Staff: Init ───────────────────────────────────────────── */
+  /* ── Staff: Daten in Formular laden (intern) ───────────────── */
+  function _fillForm(d) {
+    DIMS.forEach(function(dim){
+      var s=el('capra-slider-'+dim.key), v=el('capra-val-'+dim.key);
+      var val=parseFloat(d[dim.key]||d['p_'+dim.key])||5;
+      if(s) s.value=val;
+      if(v) v.textContent=val.toFixed(1);
+      _updateStufenHint(dim.key, val);
+    });
+    var notiz=el('capra-notiz'); if(notiz) notiz.value=d.trainer_notiz||d.notiz_intern||'';
+    var staerken=el('capra-staerken'); if(staerken) staerken.value=d.staerken_text||'';
+    var entw=el('capra-entwicklung'); if(entw) entw.value=d.entwicklung_text||'';
+    var pos=el('capra-position-select'); if(pos) pos.value=d.position_spieler||'';
+    var fin=el('capra-finalize-cb'); if(fin) fin.checked=!!d.finalized;
+    _renderProfilSelector(d.profil_typ||'');
+    var box=el('capra-profil-selector'); if(box&&d.profil_typ) box.dataset.selected=d.profil_typ;
+    _previewRadar();
+  }
+
+  /* ── Staff: Sliders auf Neutralwerte zurücksetzen ───────────── */
+  function _resetForm() {
+    DIMS.forEach(function(dim){
+      var s=el('capra-slider-'+dim.key), v=el('capra-val-'+dim.key);
+      if(s) s.value=5; if(v) v.textContent='5.0';
+      _updateStufenHint(dim.key, 5);
+    });
+    var notiz=el('capra-notiz'); if(notiz) notiz.value='';
+    var staerken=el('capra-staerken'); if(staerken) staerken.value='';
+    var entw=el('capra-entwicklung'); if(entw) entw.value='';
+    var pos=el('capra-position-select'); if(pos) pos.value='';
+    var fin=el('capra-finalize-cb'); if(fin) fin.checked=false;
+    _renderProfilSelector('');
+    var box=el('capra-profil-selector'); if(box) box.dataset.selected='';
+    _previewRadar();
+    _renderHistory([]);
+  }
+
+  /* ── Staff: Init ───────────────────────────────────────────── */
   function staffInit() {
     renderSliders('capra-staff-sliders');
     _renderProfilSelector('');
+    // Spielerliste laden
     sb.from('profiles').select('id,display_name').eq('role','spieler').eq('is_active',true).order('display_name').then(function(r){
       var sel=el('capra-player-select');
       if(!sel) return;
       sel.innerHTML='<option value="">— Spieler wählen —</option>';
       (r.data||[]).forEach(function(p){ sel.innerHTML+='<option value="'+p.id+'">'+esc(p.display_name)+'</option>'; });
+      // Dropdown-Change → auto-laden
+      sel.onchange = function() { if(sel.value) staffLoad(true); else _resetForm(); };
     });
     _previewRadar();
+    _renderHistory([]);
   }
 
-  /* ── Staff: Bestehende Bewertung laden ─────────────────────── */
-  function staffLoad() {
+  /* ── Staff: Bewertung laden (auto=true: kein Toast bei leer) ── */
+  function staffLoad(auto) {
     var pid=el('capra-player-select')&&el('capra-player-select').value;
     var season=el('capra-season-select')&&el('capra-season-select').value;
     if(!pid){ _toast('Bitte Spieler auswählen','error'); return; }
-    sb.rpc('get_player_capra',{p_player_id:pid}).then(function(r){
-      var rows=(r.data||[]).filter(function(x){ return x.season===season; });
-      if(!rows.length){ _toast('Noch keine Bewertung für diese Saison','info'); return; }
-      var d=rows[0];
-      DIMS.forEach(function(dim){
-        var s=el('capra-slider-'+dim.key), v=el('capra-val-'+dim.key);
-        if(s){ s.value=parseFloat(d[dim.key])||5; }
-        if(v){ v.textContent=(parseFloat(d[dim.key])||5).toFixed(1); }
-        _updateStufenHint(dim.key, parseFloat(d[dim.key])||5);
-      });
-      var notiz=el('capra-notiz'); if(notiz) notiz.value=d.trainer_notiz||'';
-      var staerken=el('capra-staerken'); if(staerken) staerken.value=d.staerken_text||'';
-      var entw=el('capra-entwicklung'); if(entw) entw.value=d.entwicklung_text||'';
-      var pos=el('capra-position-select'); if(pos) pos.value=d.position_spieler||'';
-      var fin=el('capra-finalize-cb'); if(fin) fin.checked=!!d.finalized;
-      _renderProfilSelector(d.profil_typ||'');
-      var box=el('capra-profil-selector'); if(box&&d.profil_typ) box.dataset.selected=d.profil_typ;
-      _previewRadar();
-      _toast('Bewertung geladen','success');
+    // Gleichzeitig: aktuelle Bewertung + History laden
+    Promise.all([
+      sb.rpc('get_player_capra',{p_player_id:pid}),
+      sb.rpc('get_capra_history',{p_player_id:pid})
+    ]).then(function(res){
+      var capraRows=(res[0].data||[]).filter(function(x){ return x.season===season; });
+      var histRows=res[1].data||[];
+      // Formular füllen
+      if(capraRows.length){
+        _fillForm(capraRows[0]);
+        if(!auto) _toast('Bewertung geladen','success');
+      } else {
+        _resetForm();
+        if(!auto) _toast('Noch keine Bewertung für diese Saison','info');
+      }
+      // Verlauf rendern (alle Saisons)
+      _renderHistory(histRows.filter(function(h){ return h.season===season; }));
     });
   }
 
-  /* ── Staff: Speichern ──────────────────────────────────────── */
+  /* ── Staff: Speichern + History ────────────────────────────── */
   function staffSave() {
     var pid=el('capra-player-select')&&el('capra-player-select').value;
     var season=el('capra-season-select')&&el('capra-season-select').value;
@@ -8964,10 +9011,72 @@ var CAPRA = (function(){
     if(msg){ msg.textContent='⏳ Speichert…'; msg.style.color='var(--text-3)'; msg.classList.remove('hidden'); }
     sb.rpc('upsert_capra_assessment',params).then(function(r){
       if(r.error){ if(msg){ msg.textContent='⚠️ Fehler: '+r.error.message; msg.style.color='var(--bad)'; } return; }
-      if(msg){ msg.textContent='✅ Gespeichert!'; msg.style.color='var(--good)'; }
+      if(msg){ msg.textContent='✅ Gespeichert & protokolliert — '+_fmtDatetime(new Date().toISOString()); msg.style.color='var(--good)'; }
       _toast('CAPRA gespeichert','success');
-      setTimeout(function(){ if(msg) msg.classList.add('hidden'); },3000);
+      // History nachladen
+      var season2=el('capra-season-select')&&el('capra-season-select').value;
+      sb.rpc('get_capra_history',{p_player_id:pid}).then(function(r2){
+        _renderHistory((r2.data||[]).filter(function(h){ return h.season===season2; }));
+      });
+      setTimeout(function(){ if(msg) msg.classList.add('hidden'); },5000);
     });
+  }
+
+  /* ── Staff: Bewertung löschen ──────────────────────────────── */
+  function staffDelete() {
+    var pid=el('capra-player-select')&&el('capra-player-select').value;
+    var season=el('capra-season-select')&&el('capra-season-select').value;
+    if(!pid){ _toast('Bitte Spieler auswählen','error'); return; }
+    var playerName=el('capra-player-select').options[el('capra-player-select').selectedIndex].text;
+    if(!confirm('⚠️ Bewertung von «'+playerName+'» für Saison '+season+' und den gesamten Verlauf dieser Saison löschen?\n\nDiese Aktion kann nicht rückgängig gemacht werden.')) return;
+    sb.rpc('delete_capra_assessment',{p_player_id:pid,p_season:season}).then(function(r){
+      if(r.error){ _toast('Fehler: '+r.error.message,'error'); return; }
+      _toast('Bewertung gelöscht','success');
+      _resetForm();
+    });
+  }
+
+  /* ── Verlauf rendern ───────────────────────────────────────── */
+  function _renderHistory(rows) {
+    var box=el('capra-history-box');
+    if(!box) return;
+    if(!rows||!rows.length){
+      box.innerHTML='<p style="font-size:12px;color:var(--text-3);font-style:italic;">Noch kein Verlauf für diese Saison.</p>';
+      return;
+    }
+    var html='';
+    rows.forEach(function(h,i){
+      var vals=[h.charakter,h.ausstrahlung,h.persoenlichkeit,h.resilienz,h.auftreten].map(function(v){return parseFloat(v)||0;});
+      var avg=(vals.reduce(function(a,b){return a+b;},0)/vals.length).toFixed(1);
+      var dt=_fmtDatetime(h.saved_at);
+      var finBadge=h.finalized?'<span style="background:rgba(34,201,122,0.15);color:var(--neon-green);border:1px solid rgba(34,201,122,0.3);border-radius:6px;padding:1px 7px;font-size:10px;font-weight:700;margin-left:6px;">✓ Freigegeben</span>':'<span style="background:rgba(255,255,255,0.05);color:var(--text-3);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:1px 7px;font-size:10px;font-weight:700;margin-left:6px;">Entwurf</span>';
+      html+='<div style="border:1px solid rgba(168,85,247,0.15);border-radius:10px;padding:10px 14px;margin-bottom:8px;background:rgba(168,85,247,0.04);">';
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
+      html+='<span style="font-size:11.5px;font-weight:700;color:var(--text-2);">'+dt+' · '+esc(h.trainer_name||'—')+'</span>';
+      html+=finBadge;
+      html+='<span style="font-size:13px;font-weight:800;color:#f0e8ff;margin-left:auto;padding-left:10px;">Ø '+avg+'</span>';
+      html+='</div>';
+      // Kompakte Dimensionswerte
+      html+='<div style="display:flex;gap:12px;flex-wrap:wrap;">';
+      DIMS.forEach(function(d,di){
+        html+='<span style="font-size:11px;color:'+d.color+';font-weight:700;">'+d.short+' '+parseFloat(vals[di]).toFixed(1)+'</span>';
+      });
+      html+='</div>';
+      // Stärken/Entwicklung wenn vorhanden
+      if(h.staerken_text) html+='<p style="font-size:11px;color:var(--neon-green);margin-top:5px;line-height:1.5;">✅ '+esc(h.staerken_text).substring(0,120)+(h.staerken_text.length>120?'…':'')+'</p>';
+      if(h.notiz_intern) html+='<p style="font-size:11px;color:rgba(255,68,136,0.7);margin-top:3px;line-height:1.5;">🔒 '+esc(h.notiz_intern).substring(0,80)+(h.notiz_intern.length>80?'…':'')+'</p>';
+      html+='</div>';
+    });
+    box.innerHTML=html;
+  }
+
+  /* ── Datum formatieren ─────────────────────────────────────── */
+  function _fmtDatetime(ts) {
+    if(!ts) return '—';
+    try{
+      var d=new Date(ts);
+      return d.toLocaleDateString('de-CH')+' '+d.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'});
+    }catch(e){ return ts; }
   }
 
   /* ── Mini-Toast ────────────────────────────────────────────── */
@@ -9349,6 +9458,7 @@ var CAPRA = (function(){
     staffInit:        staffInit,
     staffLoad:        staffLoad,
     staffSave:        staffSave,
+    staffDelete:      staffDelete,
     exportSpielerPDF: exportSpielerPDF,
     exportGespraechPDF: exportGespraechPDF,
     _previewRadar:    _previewRadar,
