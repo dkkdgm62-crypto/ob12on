@@ -1646,7 +1646,7 @@ footer {
       <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
         <button class="btn" onclick="CAPRA.staffSave()">💾 Speichern</button>
         <button class="btn btn-ghost" onclick="CAPRA.exportSpielerPDF()" id="capra-btn-pdf-spieler">📄 Spielerprofil PDF</button>
-        <button class="btn btn-ghost" onclick="CAPRA.exportGespraechPDF()" id="capra-btn-pdf-gespraech">📋 Gesprächsmappe PDF</button>
+        <button class="btn btn-ghost" onclick="CAPRA.exportGespraechPDF()" id="capra-btn-pdf-gespraech">📄 Gesamt-PDF (CAPRA + Zielvereinbarung)</button>
         <button class="btn btn-ghost" onclick="CAPRA.staffDelete()" style="border-color:rgba(255,68,136,0.35);color:rgba(255,68,136,0.8);" title="Bewertung dieser Saison löschen">🗑 Löschen</button>
       </div>
       <p id="capra-staff-msg" class="hidden" style="font-size:13px; font-weight:600; margin-top:8px;"></p>
@@ -2007,7 +2007,7 @@ footer {
         <span style="font-size:20px;">🎯</span>
         <span style="font-size:13px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--text-2);">Zielvereinbarung</span>
         <span style="flex:1; height:1px; background:linear-gradient(90deg,rgba(168,85,247,0.35),transparent);"></span>
-        <button class="btn-ghost" style="padding:7px 13px; font-size:12.5px;" onclick="Ziel.exportPdf(Ziel.state.activeCycleId)">📄 Zielvereinbarung als PDF</button>
+        <button class="btn-ghost" style="padding:7px 13px; font-size:12.5px;" onclick="CAPRA.exportMyEntwicklungPDF()">📄 Gesamt-PDF (CAPRA + Zielvereinbarung)</button>
       </div>
 
       <div class="card">
@@ -3663,6 +3663,7 @@ function loadPlayerDashboard(){
           }
 
           box.innerHTML = html;
+          if(typeof CAPRA!=='undefined' && CAPRA.renderMiniCard) CAPRA.renderMiniCard(box);
         }catch(e){ showDashboardError(e); }
       }).catch(showDashboardError);
     }catch(e){ showDashboardError(e); }
@@ -3784,7 +3785,44 @@ function loadStaffDashboard(){
     html += '</div></div>';
 
     box.innerHTML = html;
+    if(typeof renderStaffEntwicklungOverview==='function') renderStaffEntwicklungOverview(box);
   });
+}
+
+/* Staff-Dashboard: kompakte Entwicklungsprofile-Übersicht (CAPRA + Ziel-Status) */
+function renderStaffEntwicklungOverview(box){
+  if(!box) return;
+  var card=document.createElement('div');
+  card.className='card';
+  card.style.cssText='margin-top:18px;';
+  card.innerHTML='<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px;">'
+    +'<h3 style="margin:0; color:#fff; font-size:16px;">🎯 Entwicklungsprofile</h3>'
+    +'<button class="btn-ghost" style="font-size:12px; padding:6px 12px;" onclick="showStaffTab(\'ziel\')">Alle verwalten →</button></div>'
+    +'<div id="dash-entw-overview"><div class="spinner"></div></div>';
+  box.appendChild(card);
+  Promise.all([
+    sb.from('profiles').select('id,display_name').eq('role','spieler').eq('is_active',true).order('display_name'),
+    sb.from('capra_assessments').select('player_id,finalized'),
+    sb.from('dev_cycles').select('player_id,capra_reference_scores')
+  ]).then(function(res){
+    var obox=el('dash-entw-overview'); if(!obox) return;
+    var players=(res[0].data)||[], capra=(res[1].data)||[], cycles=(res[2].data)||[];
+    if(!players.length){ obox.innerHTML='<p class="muted" style="font-size:12px;">Keine aktiven Spieler.</p>'; return; }
+    var rows=players.map(function(p){
+      var ca=capra.filter(function(x){return x.player_id===p.id;});
+      var caStatus= ca.length ? (ca.some(function(x){return x.finalized;})
+                     ? '<span style="color:var(--good);">✅ Frei</span>'
+                     : '<span style="color:var(--neon-amber);">🟡 Entwurf</span>')
+                   : '<span style="color:var(--text-3);">⚪ Keine</span>';
+      var pc=cycles.filter(function(c){return c.player_id===p.id;});
+      var zStatus= pc.length ? (pc.length+' Zyklus/en') : '<span style="color:var(--text-3);">—</span>';
+      var linked= pc.some(function(c){return c.capra_reference_scores;}) ? '🔗' : '—';
+      return '<tr><td>'+esc(p.display_name)+'</td><td>'+caStatus+'</td><td class="muted" style="font-size:12px;">'+zStatus+'</td>'
+        +'<td style="text-align:center;">'+linked+'</td>'
+        +'<td><button class="btn-ghost" style="font-size:11px; padding:4px 10px; white-space:nowrap;" onclick="showStaffTab(\'ziel\'); setTimeout(function(){ if(typeof Entwicklung!==\'undefined\') Entwicklung.openPlayer(\''+p.id+'\'); },250);">Öffnen</button></td></tr>';
+    }).join('');
+    obox.innerHTML='<table style="width:100%;"><thead><tr><th>Spieler</th><th>CAPRA</th><th>Zielvereinbarung</th><th style="text-align:center;">🔗</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  }).catch(function(){ var obox=el('dash-entw-overview'); if(obox) obox.innerHTML='<p class="muted" style="font-size:12px;">Übersicht nicht verfügbar.</p>'; });
 }
 function showStaffTab(t){
   scrollToTop();
@@ -8078,21 +8116,30 @@ var Entwicklung = (function(){
   function selectPlayer(){
     var m=el('entw-player-select');
     var val=m?m.value:'';
-    var cps=el('capra-player-select'); if(cps) cps.value=val;
-    var zsp=el('ziel-staff-player');  if(zsp) zsp.value=val;
     if(val){
+      _ensureOpt(el('capra-player-select'), val);
+      _ensureOpt(el('ziel-staff-player'),  val);
       CAPRA.staffLoad(true);   // CAPRA-Formular laden
       Ziel.staffLoadPlayer();  // Zielvereinbarung laden
       var season=el('capra-season-select')?el('capra-season-select').value:null;
       if(typeof NoteHistory!=='undefined') NoteHistory.load(val, season, 'entw-history-box-staff');
     } else {
-      if(cps){ try{ cps.dispatchEvent(new Event('change')); }catch(e){} }
+      var cps=el('capra-player-select'); if(cps){ cps.value=''; try{ cps.dispatchEvent(new Event('change')); }catch(e){} }
+      var zsp=el('ziel-staff-player'); if(zsp) zsp.value='';
       var zb=el('ziel-staff-body'); if(zb) zb.innerHTML='<p class="muted" style="font-size:13px;">Bitte oben eine/n Spieler/in auswählen.</p>';
     }
   }
   // Aus der Übersichtstabelle heraus einen Spieler öffnen
+  function _ensureOpt(sel,id){
+    if(!sel) return;
+    var found=false;
+    for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===id){ found=true; break; } }
+    if(!found){ var o=document.createElement('option'); o.value=id; o.text='…'; sel.appendChild(o); }
+    sel.value=id;
+  }
   function openPlayer(id){
-    var m=el('entw-player-select'); if(m) m.value=id;
+    // robust: Option sicherstellen, auch wenn Dropdowns noch nicht befüllt sind
+    _ensureOpt(el('entw-player-select'), id);
     selectPlayer();
     scrollToTop();
   }
@@ -9243,16 +9290,17 @@ var CAPRA = (function(){
     var pid=el('capra-player-select')&&el('capra-player-select').value;
     var season=el('capra-season-select')&&el('capra-season-select').value;
     if(!pid){ _toast('Bitte Spieler wählen','error'); return; }
-    _toast('Gesprächsmappe wird erstellt…','info');
+    _toast('Gesamt-PDF wird erstellt…','info');
     sb.rpc('get_capra_with_ziel',{p_player_id:pid,p_season:season}).then(function(r){
       if(r.error||!r.data){ _toast('Fehler beim Laden','error'); return; }
       var obj = r.data;
       var capra = obj.capra;
       var profile = obj.profile||{};
       var cycles = obj.cycles||[];
+      var notes  = obj.notes||[];
       // Interne Notiz: mit Checkbox abfragen
-      var inclNotiz = confirm('Interne Trainer-Notiz in der Gesprächsmappe mitdrucken?\n\n(«OK» = ja, «Abbrechen» = nein)');
-      _buildGespraechPDF(capra, profile, cycles, inclNotiz);
+      var inclNotiz = confirm('Interne Trainer-Notizen & interne Kommentare im Gesamt-PDF mitdrucken?\n\n(«OK» = ja, «Abbrechen» = nein)');
+      _buildGespraechPDF(capra, profile, cycles, inclNotiz, notes);
     });
   }
 
@@ -9437,12 +9485,12 @@ var CAPRA = (function(){
   }
 
   /* ── PDF B: Gesprächsmappe ──────────────────────────────────── */
-  function _buildGespraechPDF(capra, profile, cycles, inclNotiz) {
-    if(!capra){ _toast('Keine CAPRA-Daten vorhanden','error'); return; }
+  function _buildGespraechPDF(capra, profile, cycles, inclNotiz, notes) {
+    if(!capra && (!cycles||!cycles.length) && (!notes||!notes.length)){ _toast('Keine Daten vorhanden','error'); return; }
     var doc=new window.jspdf.jsPDF();
     var GOLD=[212,175,55], MARGIN=14, PW=210, PH=297;
     var name=nfc(_profileName(profile));
-    var season=nfc(capra.season||'');
+    var season=nfc((capra&&capra.season) || (cycles&&cycles[0]&&cycles[0].season_label) || '');
 
     function chk(y,need){ if(y+need>PH-22){doc.addPage();return 20;}return y; }
     function secH(title,y){
@@ -9453,18 +9501,16 @@ var CAPRA = (function(){
       doc.line(MARGIN,y+2,PW-MARGIN,y+2);
       return y+9;
     }
+    function fmtTS(ts){ if(!ts) return '—'; try{ var d=new Date(ts); var p=function(n){return('0'+n).slice(-2);}; return p(d.getDate())+'.'+p(d.getMonth()+1)+'.'+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes()); }catch(e){ return '—'; } }
 
-    // === SEITE 1: SPIELERPROFIL ===
-    _buildSpielerPDF(capra, profile, true);
-    // Hinweis: _buildSpielerPDF erstellt eigenes PDF — für Gesprächsmappe bauen wir separat
-    // (da _buildSpielerPDF async wegen SVG-Canvas ist, hier synchrone Version ohne Radar-Bild)
+    // === SEITE 1: CAPRA CHARAKTERPROFIL (inline aufgebaut) ===
 
     // Logo + Titel
     if(typeof LOGO_BASE64==='string'&&LOGO_BASE64.indexOf('data:')===0){
       try{doc.addImage(LOGO_BASE64,'PNG',178,8,18,15.6);}catch(e){}
     }
     doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.setTextColor(20,20,20);
-    doc.text('Gesprächsmappe · '+name,MARGIN,16);
+    doc.text('Entwicklungsprofil · '+name,MARGIN,16);
     doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(110,110,110);
     doc.text('BSC Old Boys Basel · FE12 · Saison '+season,MARGIN,22.5);
     doc.setDrawColor(GOLD[0],GOLD[1],GOLD[2]); doc.setLineWidth(0.8);
@@ -9483,10 +9529,11 @@ var CAPRA = (function(){
     doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(120,120,120);
     doc.text('SAISON / POSITION',PW/2+4,boxY+7);
     doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(15,15,15);
-    doc.text(season+' · '+(capra.position_spieler||'—'),PW/2+4,boxY+15);
+    doc.text(season+' · '+((capra&&capra.position_spieler)||'—'),PW/2+4,boxY+15);
 
     var y=boxY+30;
 
+    if(capra){
     // CAPRA Dimensionen
     y=secH('CAPRA Dimensionen',y);
     var vals=DIMS.map(function(d){return parseFloat(capra[d.key])||0;});
@@ -9545,23 +9592,120 @@ var CAPRA = (function(){
       doc.text(ntxt,MARGIN+4,y+4);
       y+=notizH+6;
     }
+    } else {
+      y=secH('CAPRA Charakterprofil',y);
+      doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(90,90,90);
+      doc.text('Noch keine CAPRA-Bewertung freigeschaltet.',MARGIN,y); y+=10;
+    }
 
-    // === SEITE 2+: ZIELVEREINBARUNGEN ===
-    if(cycles&&cycles.length){
-      doc.addPage();
-      y=20;
-      y=secH('Zielvereinbarungen Saison '+season,y);
-      cycles.forEach(function(c,ci){
+    // === SEITE 2+: ZIELVEREINBARUNG (vollständig) ===
+    var BER  = {technik:'Technik (TE)', taktik:'Taktik (TA)', athletik:'Athletik (ATH)', mental:'Mental (ME)'};
+    var FSTAT= {offen:'Offen', in_arbeit:'In Arbeit', erreicht:'Erreicht'};
+    var MILE = {zwischengespraech:'Zwischengespräch', standortgespraech_eltern:'Standortgespräch (Eltern)', fruehjahrsgespraech:'Frühjahrsgespräch', finale:'Abschlussgespräch'};
+    var STUF = {fe13:'FE13', fe14:'FE14', nicht_erreicht:'Nicht erreicht'};
+
+    if(cycles && cycles.length){
+      cycles.forEach(function(c){
         if(!c) return;
-        y=chk(y,20);
-        doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(50,50,50);
-        doc.text(nfc('Zyklus '+(ci+1)+': '+(c.cycle_type==='vorrunde'?'Vorrunde':'Rückrunde')),MARGIN,y);
-        y+=8;
+        doc.addPage(); y=20;
+        y=secH('Zielvereinbarung · '+(c.cycle_type==='vorrunde'?'Vorrunde':'Rückrunde')+' · Saison '+season, y);
+
         if(c.staerke_text){
-          doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(80,80,80);
-          var sp3=doc.splitTextToSize('Stärken: '+nfc(c.staerke_text),PW-2*MARGIN);
-          doc.text(sp3,MARGIN,y); y+=sp3.length*4.5+4;
+          doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(40,40,40);
+          doc.text('Stärken:', MARGIN, y); y+=5;
+          doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(40,40,40);
+          var sst=doc.splitTextToSize(nfc(c.staerke_text), PW-2*MARGIN); doc.text(sst,MARGIN,y); y+=sst.length*5+4;
         }
+
+        // Entwicklungsziele (4 Bereiche)
+        var goals = c.goals||[];
+        if(goals.length){
+          y=chk(y,16); y=secH('Entwicklungsziele', y);
+          doc.autoTable({
+            startY:y, margin:{left:MARGIN,right:MARGIN},
+            head:[['Bereich','Thema','Massnahmen','Erfasst','Ziel bis','Status']],
+            body:goals.map(function(g){
+              return [ BER[g.bereich]||g.bereich, nfc(g.thema||'—'), nfc(g.massnahmen||'—'),
+                       _fmtDate(g.erfasst_am), _fmtDate(g.ziel_bis), FSTAT[g.fortschritt_status]||g.fortschritt_status||'—' ];
+            }),
+            styles:{fontSize:7.5,cellPadding:2.5,overflow:'linebreak',valign:'top'},
+            headStyles:{fillColor:[18,18,18],textColor:GOLD,fontStyle:'bold'},
+            columnStyles:{0:{cellWidth:24},1:{cellWidth:30},2:{cellWidth:'auto'},3:{cellWidth:20,halign:'center'},4:{cellWidth:20,halign:'center'},5:{cellWidth:18,halign:'center'}}
+          });
+          y=doc.lastAutoTable.finalY+8;
+        }
+
+        // Gespräche / Meilensteine
+        var meetings = c.meetings||[];
+        if(meetings.length){
+          y=chk(y,16); y=secH('Gespräche / Meilensteine', y);
+          doc.autoTable({
+            startY:y, margin:{left:MARGIN,right:MARGIN},
+            head:[['Meilenstein','Geplant','Durchgeführt','Status','Ergebnis','Protokoll']],
+            body:meetings.map(function(m){
+              return [ MILE[m.milestone_type]||m.milestone_type, _fmtDate(m.geplant_datum),
+                       m.durchgefuehrt_am?fmtTS(m.durchgefuehrt_am):'—',
+                       m.status==='erledigt'?'Erledigt':'Offen',
+                       m.stufenergebnis?(STUF[m.stufenergebnis]||m.stufenergebnis):'—',
+                       nfc(m.protokoll||'—') ];
+            }),
+            styles:{fontSize:7.5,cellPadding:2.5,overflow:'linebreak',valign:'top'},
+            headStyles:{fillColor:[18,18,18],textColor:GOLD,fontStyle:'bold'},
+            columnStyles:{0:{cellWidth:28},1:{cellWidth:20,halign:'center'},2:{cellWidth:24,halign:'center'},3:{cellWidth:16,halign:'center'},4:{cellWidth:20,halign:'center'},5:{cellWidth:'auto'}}
+          });
+          y=doc.lastAutoTable.finalY+8;
+        }
+
+        // Gelbe Karte / Verwarnungen
+        var warnings = c.warnings||[];
+        if(warnings.length){
+          y=chk(y,16); y=secH('Gelbe Karte / Verwarnungen', y);
+          warnings.forEach(function(w){
+            y=chk(y,18);
+            doc.setFillColor(255,250,230); doc.setDrawColor(230,180,40); doc.setLineWidth(0.4);
+            var wtxt='Grund: '+nfc(w.grund||'—')+'   |   Frist bis: '+_fmtDate(w.frist_bis)+'   |   Status: '+(w.status||'—')+'   |   Ausgestellt: '+fmtTS(w.issued_at)+(w.confirmed_at?('   |   Bestätigt: '+fmtTS(w.confirmed_at)):'');
+            var wl=doc.splitTextToSize(wtxt, PW-2*MARGIN-8); var wh=wl.length*4.5+6;
+            doc.rect(MARGIN,y-2,PW-2*MARGIN,wh,'FD');
+            doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(120,80,0);
+            doc.text(wl,MARGIN+4,y+3); y+=wh+4;
+            if(w.brief_text){
+              var bl=doc.splitTextToSize('Brief: '+nfc(w.brief_text), PW-2*MARGIN);
+              y=chk(y,bl.length*4.5+4);
+              doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(90,90,90);
+              doc.text(bl,MARGIN,y); y+=bl.length*4.5+4;
+            }
+          });
+          y+=4;
+        }
+
+        // Kommentare (chronologisch, mit Zeitstempel)
+        var comments = (c.comments||[]).filter(function(cm){ return inclNotiz || !cm.is_internal; });
+        if(comments.length){
+          y=chk(y,16); y=secH('Kommentare (chronologisch)', y);
+          comments.forEach(function(cm){
+            y=chk(y,12);
+            doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(120,120,120);
+            doc.text(fmtTS(cm.created_at)+' · '+(cm.author_role||'—')+(cm.is_internal?'  [intern]':''), MARGIN, y); y+=4;
+            doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(40,40,40);
+            var cl=doc.splitTextToSize(nfc(cm.kommentar||''), PW-2*MARGIN); doc.text(cl,MARGIN,y); y+=cl.length*4.5+4;
+          });
+        }
+      });
+    }
+
+    // === LETZTE SEITE: VERSIONSHISTORIE (Notizen & Bemerkungen, saison-weit) ===
+    var notesArr = (notes||[]).filter(function(n){ return inclNotiz || !n.is_internal; });
+    if(notesArr.length){
+      doc.addPage(); y=20;
+      y=secH('Versionshistorie · Notizen & Bemerkungen', y);
+      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(120,120,120);
+      doc.text('Chronologisch, neueste zuerst · langzeit-dokumentiert', MARGIN, y); y+=7;
+      notesArr.forEach(function(n){
+        y=chk(y,14);
+        doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(120,120,120);
+        doc.text(fmtTS(n.created_at)+' · '+nfc(n.author_name||'—')+' · '+nfc(n.context_label||n.context||'')+(n.is_internal?'  [intern]':''), MARGIN, y); y+=4;
+        doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(40,40,40);
+        var nl=doc.splitTextToSize(nfc(n.content||''), PW-2*MARGIN); doc.text(nl,MARGIN,y); y+=nl.length*4.5+5;
       });
     }
 
@@ -9570,11 +9714,11 @@ var CAPRA = (function(){
     for(var i=1;i<=pgCount;i++){
       doc.setPage(i);
       doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(140,140,140);
-      doc.text('BSC Old Boys Basel FE12 · Gesprächsmappe · Vertraulich',MARGIN,PH-8);
+      doc.text('BSC Old Boys Basel FE12 · Entwicklungsprofil · Vertraulich',MARGIN,PH-8);
       doc.text('Seite '+i+' / '+pgCount,PW-MARGIN,PH-8,{align:'right'});
       doc.text(new Date().toLocaleDateString('de-CH'),PW/2,PH-8,{align:'center'});
     }
-    doc.save('FE12_Gespraechsmappe_'+name.replace(/\s+/g,'_')+'_'+season.replace('/','_')+'.pdf');
+    doc.save('FE12_Entwicklungsprofil_'+name.replace(/\s+/g,'_')+'_'+season.replace('/','_')+'.pdf');
   }
 
   /* ── Hilfsfunktionen ───────────────────────────────────────── */
@@ -9589,8 +9733,46 @@ var CAPRA = (function(){
     return p[2]+'.'+p[1]+'.'+p[0];
   }
 
+  /* ── Dashboard-Mini-Card (kompakter Radar + Score) ── */
+  function renderMiniCard(container){
+    var box = (typeof container==='string') ? el(container) : container;
+    if(!box) return;
+    sb.rpc('get_my_capra').then(function(r){
+      var rows=(r&&r.data)||[]; if(!rows.length) return;
+      var d=rows[0];
+      if(d.finalized===false) return;
+      var vals=DIMS.map(function(dim){ return parseFloat(d[dim.key])||0; });
+      var total=(vals.reduce(function(a,b){return a+b;},0)/vals.length).toFixed(1);
+      var svgId='dash-capra-radar';
+      var html='<div class="card" style="margin-bottom:16px; display:flex; gap:20px; align-items:center; flex-wrap:wrap; cursor:pointer; border:1px solid rgba(168,85,247,0.28);" onclick="showPlayerTab(\'ziel\')">'
+        + '<svg id="'+svgId+'" width="130" height="130" viewBox="0 0 200 200" style="flex:0 0 auto;"></svg>'
+        + '<div style="flex:1; min-width:180px;">'
+        +   '<p style="font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:rgba(168,85,247,0.7); margin-bottom:6px;">Dein CAPRA-Profil</p>'
+        +   '<div style="display:flex; align-items:baseline; gap:8px; margin-bottom:6px;"><span style="font-size:40px; font-weight:800; color:#f0e8ff; line-height:1;">'+total+'</span><span style="font-size:16px; color:var(--text-3);">/ 10</span></div>'
+        +   '<p style="font-size:12.5px; color:var(--text-2);">Tippen für dein vollständiges Profil &amp; deine Ziele →</p>'
+        + '</div></div>';
+      var wrap=document.createElement('div'); wrap.innerHTML=html;
+      if(wrap.firstChild){ box.insertBefore(wrap.firstChild, box.firstChild); setTimeout(function(){ drawRadar(svgId, vals); }, 60); }
+    }).catch(function(){});
+  }
+
+  /* ── Spieler/Familie: Gesamt-PDF (eigene Daten, ohne interne Notizen) ── */
+  function exportMyEntwicklungPDF(){
+    _toast('Gesamt-PDF wird erstellt…','info');
+    sb.rpc('get_my_entwicklung',{p_season:null}).then(function(r){
+      if(r.error||!r.data){ _toast('Fehler beim Laden','error'); return; }
+      var obj=r.data;
+      var capra=obj.capra, profile=obj.profile||{}, cycles=obj.cycles||[], notes=obj.notes||[];
+      if(!capra && (!cycles||!cycles.length)){ _toast('Noch keine Daten für ein PDF vorhanden','info'); return; }
+      // Spieler-PDF: interne Notizen NIE mitdrucken
+      _buildGespraechPDF(capra, profile, cycles, false, notes);
+    }).catch(function(){ _toast('Fehler beim Erstellen','error'); });
+  }
+
   return {
     loadPlayer:       loadPlayer,
+    renderMiniCard:   renderMiniCard,
+    exportMyEntwicklungPDF: exportMyEntwicklungPDF,
     staffInit:        staffInit,
     staffLoad:        staffLoad,
     staffSave:        staffSave,
