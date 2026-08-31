@@ -8851,11 +8851,17 @@ var CAPRA = (function(){
     empty.classList.add('hidden'); content.classList.add('hidden');
     var dimsBox=el('capra-dims');
     if(dimsBox) dimsBox.innerHTML='<div class="spinner" style="margin:20px auto;"></div>';
-    // Content bereits einblenden damit SVG-Elemente im DOM vorhanden sind
     content.classList.remove('hidden');
 
     sb.rpc('get_my_capra').then(function(r){
-      if(r.error || !r.data || !r.data.length){
+      if(r.error) {
+        content.classList.add('hidden');
+        empty.classList.remove('hidden');
+        var emptyCard = empty.querySelector('div');
+        if(emptyCard) emptyCard.innerHTML += '<p style="color:var(--bad);font-size:11px;margin-top:8px;">Fehler: '+esc(r.error.message||'RPC-Fehler')+'</p>';
+        return;
+      }
+      if(!r.data || !r.data.length){
         content.classList.add('hidden');
         empty.classList.remove('hidden');
         return;
@@ -8867,14 +8873,12 @@ var CAPRA = (function(){
       var vals=DIMS.map(function(dim){ return parseFloat(d[dim.key])||0; });
 
       renderDims('capra-dims',d);
-      // Kurz warten damit SVG im DOM gerendert ist
-      setTimeout(function(){ drawRadar('capra-radar',vals); }, 50);
+      setTimeout(function(){ drawRadar('capra-radar',vals); }, 80);
 
       var tot=el('capra-total'); if(tot) tot.textContent=res.total+' / 10';
       var verd=el('capra-verdict'); if(verd) verd.innerHTML=res.verdikt;
       var coach=el('capra-coaching-text'); if(coach) coach.innerHTML=res.coaching;
 
-      // Profil-Typ Banner
       var banner=el('capra-profil-banner');
       if(banner) banner.classList.add('hidden');
       if(d.profil_typ && PROFIL_TYPEN[d.profil_typ] && banner) {
@@ -8885,17 +8889,17 @@ var CAPRA = (function(){
         banner.classList.remove('hidden');
       }
 
-      // Stärken
       var stEl=el('capra-staerken-text');
-      if(stEl) stEl.innerHTML = d.staerken_text ? esc(d.staerken_text).replace(/\n/g,'<br>') : '<span style="color:var(--text-3);">Noch keine Stärken eingetragen.</span>';
+      if(stEl) stEl.innerHTML = d.staerken_text ? esc(d.staerken_text).replace(/\n/g,'<br>') : '<span style="color:var(--text-3);">—</span>';
 
-      // Entwicklung / nächster Schritt
       var fokEl=el('capra-focus-text');
-      if(fokEl) fokEl.innerHTML = d.entwicklung_text ? esc(d.entwicklung_text).replace(/\n/g,'<br>') : '<span style="color:var(--text-3);">Noch kein Entwicklungsfeld eingetragen.</span>';
+      if(fokEl) fokEl.innerHTML = d.entwicklung_text ? esc(d.entwicklung_text).replace(/\n/g,'<br>') : '<span style="color:var(--text-3);">—</span>';
 
     }).catch(function(e){
       content.classList.add('hidden');
       empty.classList.remove('hidden');
+      var emptyCard = empty.querySelector('div');
+      if(emptyCard && e) emptyCard.innerHTML += '<p style="color:var(--bad);font-size:11px;margin-top:8px;">JS-Fehler: '+esc(String(e))+'</p>';
     });
   }
 
