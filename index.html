@@ -1552,54 +1552,103 @@ footer {
 
     <!-- Staff: CAPRA Bewertungen -->
     <div id="staff-capra" class="card hidden">
-      <p class="eyebrow">Charakterprofil</p>
+      <p class="eyebrow">NLZ Charakterprofil · FE12</p>
       <h3 style="margin:8px 0 6px; color:#fff;">🧠 CAPRA Bewertungen</h3>
-      <p class="muted" style="font-size:13px; margin-bottom:20px;">Spieler auswählen, alle 5 Dimensionen bewerten und optional für den Spieler freischalten.</p>
+      <p class="muted" style="font-size:13px; margin-bottom:20px;">Alle 5 Dimensionen bewerten — fussballspezifisch, NLZ-gerecht. Bewertung erst freischalten wenn vollständig.</p>
 
-      <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px;">
-        <div style="flex:1; min-width:200px;">
+      <!-- Spieler / Saison / Position -->
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:20px; flex-wrap:wrap;">
+        <div>
           <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-3); margin-bottom:6px;">Spieler</label>
           <select id="capra-player-select" style="width:100%;"></select>
         </div>
-        <div style="min-width:120px;">
+        <div>
           <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-3); margin-bottom:6px;">Saison</label>
           <select id="capra-season-select">
             <option value="2024/25">2024/25</option>
             <option value="2025/26">2025/26</option>
           </select>
         </div>
-        <div style="display:flex; align-items:flex-end;">
-          <button class="btn btn-ghost" onclick="CAPRA.staffLoad()" style="white-space:nowrap;">🔄 Laden</button>
+        <div>
+          <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-3); margin-bottom:6px;">Position</label>
+          <select id="capra-position-select">
+            <option value="">— wählen —</option>
+            <option value="TW">TW — Torhüter</option>
+            <option value="IV">IV — Innenverteidiger</option>
+            <option value="AV">AV — Aussenverteidiger</option>
+            <option value="DM">DM — Defensives Mittelfeld</option>
+            <option value="ZM">ZM — Zentrales Mittelfeld</option>
+            <option value="AM">AM — Offensives Mittelfeld</option>
+            <option value="LA">LA — Linksaussen</option>
+            <option value="RA">RA — Rechtsaussen</option>
+            <option value="ST">ST — Stürmer</option>
+          </select>
         </div>
       </div>
+      <div style="display:flex; gap:10px; margin-bottom:24px;">
+        <button class="btn btn-ghost" onclick="CAPRA.staffLoad()" style="white-space:nowrap;">🔄 Laden</button>
+      </div>
 
-      <div id="capra-staff-sliders" style="display:flex; flex-direction:column; gap:16px; margin-bottom:20px;"></div>
+      <!-- 5 NLZ-Dimensionen Sliders -->
+      <div id="capra-staff-sliders" style="display:flex; flex-direction:column; gap:20px; margin-bottom:24px;"></div>
 
+      <!-- Profil-Typ -->
       <div style="margin-bottom:16px;">
-        <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-3); margin-bottom:6px;">Trainer-Notiz (intern — Spieler sieht das nicht)</label>
-        <textarea id="capra-notiz" rows="3" placeholder="Persönliche Einschätzung, Entwicklungshinweise…" style="width:100%; resize:vertical;"></textarea>
+        <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-3); margin-bottom:8px;">Spieler-Typ (Profil)</label>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;" id="capra-profil-selector"></div>
       </div>
 
-      <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+      <!-- Stärken (für Spieler sichtbar) -->
+      <div style="margin-bottom:14px;">
+        <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-3); margin-bottom:6px;">
+          ✅ Stärken <span style="font-weight:400; text-transform:none; font-size:10.5px;">(Spieler sieht das — motivierend formulieren)</span>
+        </label>
+        <textarea id="capra-staerken" rows="3" placeholder="z.B. «Du bist im Zweikampf aussergewöhnlich präsent und gibst dem Team durch deine Körpersprache Stabilität…»" style="width:100%; resize:vertical;"></textarea>
+      </div>
+
+      <!-- Entwicklungsfeld (für Spieler sichtbar, positiv formuliert) -->
+      <div style="margin-bottom:14px;">
+        <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-3); margin-bottom:6px;">
+          🎯 Nächster Schritt <span style="font-weight:400; text-transform:none; font-size:10.5px;">(Spieler sieht das — als Einladung zur Entwicklung formulieren)</span>
+        </label>
+        <textarea id="capra-entwicklung" rows="3" placeholder="z.B. «Dein nächster Schritt ist, nach Fehlern noch schneller wieder in den Fokus zu kommen — das ist dein Schlüssel zur nächsten Stufe…»" style="width:100%; resize:vertical;"></textarea>
+      </div>
+
+      <!-- Interne Notiz (NUR Trainer) -->
+      <div style="margin-bottom:20px;">
+        <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:rgba(255,68,136,0.7); margin-bottom:6px;">
+          🔒 Interne Trainer-Notiz <span style="font-weight:400; text-transform:none; font-size:10.5px; color:var(--text-3);">(Spieler sieht das NICHT — nur für Gesprächsmappe mit Checkbox)</span>
+        </label>
+        <textarea id="capra-notiz" rows="3" placeholder="Persönliche Beobachtungen, Gesprächsthemen, Familienkontext…" style="width:100%; resize:vertical;"></textarea>
+      </div>
+
+      <!-- Freischalten -->
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px; padding:12px 14px; background:rgba(168,85,247,0.06); border-radius:10px; border:1px solid rgba(168,85,247,0.15);">
         <input type="checkbox" id="capra-finalize-cb" style="width:16px; height:16px; cursor:pointer; flex-shrink:0;" />
-        <label for="capra-finalize-cb" style="font-size:13px; color:var(--text-2); cursor:pointer;">Für Spieler sichtbar freischalten</label>
+        <label for="capra-finalize-cb" style="font-size:13px; color:var(--text-1); cursor:pointer; font-weight:600;">Für Spieler freischalten (Profil wird sichtbar)</label>
       </div>
 
-      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
+      <!-- Aktionen -->
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
         <button class="btn" onclick="CAPRA.staffSave()">💾 Speichern</button>
+        <button class="btn btn-ghost" onclick="CAPRA.exportSpielerPDF()" id="capra-btn-pdf-spieler">📄 Spielerprofil PDF</button>
+        <button class="btn btn-ghost" onclick="CAPRA.exportGespraechPDF()" id="capra-btn-pdf-gespraech">📋 Gesprächsmappe PDF</button>
       </div>
-      <p id="capra-staff-msg" class="hidden" style="font-size:13px; font-weight:600;"></p>
+      <p id="capra-staff-msg" class="hidden" style="font-size:13px; font-weight:600; margin-top:8px;"></p>
 
-      <!-- Vorschau -->
+      <!-- Radar-Vorschau -->
       <div id="capra-staff-preview" class="hidden" style="margin-top:20px; padding-top:20px; border-top:1px solid var(--line);">
-        <p style="font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:rgba(168,85,247,0.6); margin-bottom:12px;">Radar-Vorschau</p>
-        <svg id="capra-radar-staff" width="180" height="180" viewBox="0 0 200 200" aria-label="CAPRA Vorschau"></svg>
+        <p style="font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:rgba(168,85,247,0.6); margin-bottom:12px;">Live-Vorschau Radar</p>
+        <div style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap;">
+          <svg id="capra-radar-staff" width="180" height="180" viewBox="0 0 200 200" aria-label="CAPRA Vorschau"></svg>
+          <div id="capra-staff-score-preview" style="font-size:13px; color:var(--text-2); line-height:1.8;"></div>
+        </div>
       </div>
     </div>
 
     <div id="staff-ziel" class="card hidden">
       <p class="eyebrow">Individuelle Entwicklung</p>
-      <h3 style="margin:8px 0 16px; color:#fff;">🎯 Zielvereinbarungen — Übersicht</h3>
+      <h3 style="margin:8px 0 16px; color:#fff;">🌱 Zielvereinbarungen — Übersicht</h3>
       <p class="muted" style="font-size:13px; margin-bottom:16px;">Übersicht aller Spieler mit Ampel-Status. Wähle einen Spieler an, um Zyklus, Ziele, Gespräche und Gelbe Karte zu verwalten.</p>
       <div id="ziel-staff-overview" style="margin-bottom:24px;"><div class="spinner"></div></div>
 
@@ -2061,10 +2110,31 @@ footer {
           <div id="capra-coaching-text" style="font-size:13.5px; color:var(--text-2); line-height:1.7;"></div>
         </div>
 
-        <!-- Tipps je nach schwächster Dimension -->
+        <!-- Profil-Typ Banner -->
+        <div id="capra-profil-banner" class="hidden" style="margin-bottom:12px; padding:16px 20px; border-radius:14px; background:linear-gradient(135deg,rgba(168,85,247,0.18),rgba(109,40,217,0.12)); border:1px solid rgba(168,85,247,0.3); display:flex; align-items:center; gap:14px;">
+          <div id="capra-profil-icon" style="font-size:32px; flex-shrink:0;"></div>
+          <div>
+            <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.12em; color:rgba(168,85,247,0.7); margin-bottom:3px;">Dein Spieler-Typ</div>
+            <div id="capra-profil-label" style="font-size:18px; font-weight:800; color:#f0e8ff;"></div>
+            <div id="capra-profil-desc" style="font-size:12px; color:var(--text-3); margin-top:2px;"></div>
+          </div>
+        </div>
+
+        <!-- Stärken (vom Trainer) -->
+        <div class="card" id="capra-staerken-card" style="margin-bottom:12px;">
+          <p style="font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:rgba(34,201,122,0.8); margin-bottom:8px;">✅ Deine Stärken</p>
+          <div id="capra-staerken-text" style="font-size:13.5px; color:var(--text-2); line-height:1.75;"></div>
+        </div>
+
+        <!-- Nächster Schritt / Entwicklung -->
         <div class="card" id="capra-focus-card">
-          <p style="font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:rgba(168,85,247,0.6); margin-bottom:8px;">🎯 Mein Fokus-Bereich</p>
-          <div id="capra-focus-text" style="font-size:13.5px; color:var(--text-2); line-height:1.7;"></div>
+          <p style="font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:rgba(168,85,247,0.6); margin-bottom:8px;">🎯 Dein nächster Schritt</p>
+          <div id="capra-focus-text" style="font-size:13.5px; color:var(--text-2); line-height:1.75;"></div>
+        </div>
+
+        <!-- PDF Spielerprofil -->
+        <div style="margin-top:16px; text-align:center;">
+          <button class="btn btn-ghost" onclick="CAPRA.exportSpielerPDF()" style="font-size:13px;">📄 Mein Profil als PDF</button>
         </div>
 
       </div>
@@ -8541,276 +8611,731 @@ var Reflex = (function(){
 })();
 
 /* ══════════════════════════════════════════════════════════════
-   🧠 CAPRA — Charakterprofil-System
-   C = Charakter · A = Ausstrahlung · P = Persönlichkeit
-   R = Resilienz · A = Auftreten
-   Trainer bewertet, Spieler sieht Radar + Score (ohne Notiz)
+   🧠 CAPRA — NLZ Charakterprofil-System
+   C=Charakter · A=Athletik&Auftreten · P=Persönlichkeit
+   R=Resilienz · A=Ausführung&Ausdauer
+   NLZ-gerecht, fussballspezifisch, FE12 U12/U13
    ══════════════════════════════════════════════════════════════ */
 var CAPRA = (function(){
 
+  /* ── NLZ-Dimensionen ──────────────────────────────────────── */
   var DIMS = [
-    { key:'charakter',      label:'Charakter',      short:'C', color:'#a855f7', desc:'Verantwortung, Ehrlichkeit, Teamgeist' },
-    { key:'ausstrahlung',   label:'Ausstrahlung',   short:'A', color:'#818cf8', desc:'Präsenz und Wirkung im Team' },
-    { key:'persoenlichkeit',label:'Persönlichkeit', short:'P', color:'#22c97a', desc:'Führungsqualitäten, Eigeninitiative' },
-    { key:'resilienz',      label:'Resilienz',      short:'R', color:'#f59e0b', desc:'Umgang mit Rückschlägen und Druck' },
-    { key:'auftreten',      label:'Auftreten',      short:'A₂',color:'#00f0ff', desc:'Körpersprache und Selbstpräsentation' }
+    {
+      key:'charakter', label:'Charakter', short:'C', color:'#a855f7',
+      nlzDesc:'Fairplay, Respekt, Lernbereitschaft, Verantwortung',
+      stufen:{
+        2:'Zeigt grundlegendes Fairplay; braucht Erinnerung an Regeln und Respekt.',
+        4:'Verhält sich meistens fair; nimmt Korrekturen an, aber nicht immer aktiv.',
+        6:'Zeigt Eigenverantwortung und Fairplay auch ohne Aufforderung.',
+        8:'Positives Vorbild im Team — respektiert Gegner, Schiedsrichter und Mitspieler.',
+        10:'Aussergewöhnliche Integrität und Vorbildfunktion; lebt NLZ-Werte vollständig vor.'
+      }
+    },
+    {
+      key:'ausstrahlung', label:'Athletik & Auftreten', short:'A', color:'#818cf8',
+      nlzDesc:'Körpersprache auf dem Platz, Einsatz, Zweikampfbereitschaft',
+      stufen:{
+        2:'Passives Auftreten; meidet Zweikämpfe, wirkt wenig präsent.',
+        4:'Engagiert sich, aber Körpersprache und Zweikampfbereitschaft noch ausbaufähig.',
+        6:'Klare physische Präsenz; geht in Zweikämpfe, bleibt auch nach Fehlern präsent.',
+        8:'Starke Körpersprache, Einsatzbereitschaft führt das Team mit; setzt Akzente.',
+        10:'Ausserordentliche athletische Präsenz; zieht das Team durch Auftreten und Energie.'
+      }
+    },
+    {
+      key:'persoenlichkeit', label:'Persönlichkeit', short:'P', color:'#22c97a',
+      nlzDesc:'Initiative, Fehlerkultur, Kommunikation, Teamplayer',
+      stufen:{
+        2:'Zurückhaltend; wartet auf Anweisungen, kommuniziert wenig.',
+        4:'Bringt sich ein, aber Eigeninitiative und Kommunikation noch inkonsistent.',
+        6:'Kommuniziert aktiv, übernimmt Verantwortung, zeigt Teamgedanken.',
+        8:'Führt durch Persönlichkeit — motiviert andere, löst Konflikte, denkt für das Team.',
+        10:'Aussergewöhnliche Führungspersönlichkeit; Katalysator für das gesamte Team.'
+      }
+    },
+    {
+      key:'resilienz', label:'Resilienz', short:'R', color:'#f59e0b',
+      nlzDesc:'Umgang mit Misserfolg, Konzentration nach Fehlern, Druckfestigkeit',
+      stufen:{
+        2:'Bricht nach Fehlern oder Niederlagen sichtbar ein; braucht lange zum Erholen.',
+        4:'Arbeitet an Fehlerverarbeitung; gelegentliche Rückschläge beeinflussen Leistung.',
+        6:'Steckt Rückschläge weg, findet schnell zurück zur Konzentration.',
+        8:'Fehler werden unmittelbar verarbeitet; unter Druck oft beste Leistung.',
+        10:'Mentale Stärke auf höchstem Niveau — wächst in Drucksituationen und zieht andere mit.'
+      }
+    },
+    {
+      key:'auftreten', label:'Ausführung & Ausdauer', short:'A₂', color:'#00f0ff',
+      nlzDesc:'Trainingsqualität, Konstanz, Wille zur Verbesserung',
+      stufen:{
+        2:'Unregelmässige Einsatzbereitschaft; Trainingsqualität schwankend.',
+        4:'Bemüht, aber Konstanz und Detailarbeit noch nicht durchgängig.',
+        6:'Verlässliche Trainingsqualität; zeigt Wille zur Verbesserung bei Korrekturen.',
+        8:'Hohe Konstanz und Qualität; arbeitet eigenständig an Schwächen.',
+        10:'Überdurchschnittliche Trainingsethik; strebt konsequent nach Exzellenz.'
+      }
+    }
   ];
 
-  // ── Radar SVG zeichnen ──────────────────────────────────────
+  /* ── Profil-Typen ─────────────────────────────────────────── */
+  var PROFIL_TYPEN = {
+    teamleader: { label:'Teamleader',  icon:'⚡', desc:'Führt durch Präsenz und Persönlichkeit. Zieht andere mit.' },
+    kaempfer:   { label:'Kämpfer',     icon:'🔥', desc:'Maximale Einsatzbereitschaft. Gibt nie auf.' },
+    stratege:   { label:'Stratege',    icon:'♟',  desc:'Denkt das Spiel. Kommuniziert klug und antizipiert.' },
+    entwickler: { label:'Entwickler',  icon:'🌱', desc:'Hohe Lernbereitschaft. Wächst konstant.' },
+    allrounder: { label:'Allrounder',  icon:'⭐', desc:'Stark in mehreren Bereichen. Ausgeglichenes Profil.' }
+  };
+
+  /* ── Stufentext je Wert ────────────────────────────────────── */
+  function _stufenText(dim, val) {
+    var v = Math.round(val);
+    var keys = [2,4,6,8,10];
+    var best = 2;
+    for (var i=0; i<keys.length; i++) { if(v >= keys[i]) best = keys[i]; }
+    return dim.stufen[best] || '';
+  }
+
+  /* ── Radar SVG ────────────────────────────────────────────── */
   function drawRadar(svgId, vals) {
     var svg = el(svgId);
     if (!svg) return;
-    var cx = 100, cy = 100, R = 78, n = 5;
-    var pts = DIMS.map(function(_, i) {
-      var a = (Math.PI * 2 * i / n) - Math.PI / 2;
-      return { x: cx + R * Math.cos(a), y: cy + R * Math.sin(a) };
+    var cx=100, cy=100, R=78, n=5;
+    var pts = DIMS.map(function(_,i){
+      var a = (Math.PI*2*i/n) - Math.PI/2;
+      return { x: cx+R*Math.cos(a), y: cy+R*Math.sin(a) };
     });
-    // Grid (3 Ringe)
-    var grid = '';
-    [0.33, 0.66, 1].forEach(function(f) {
-      var gPts = pts.map(function(p) {
-        return (cx + (p.x - cx) * f) + ',' + (cy + (p.y - cy) * f);
-      }).join(' ');
-      grid += '<polygon points="' + gPts + '" fill="none" stroke="rgba(168,85,247,0.15)" stroke-width="0.8"/>';
+    var grid='';
+    [0.33,0.66,1].forEach(function(f){
+      var gp = pts.map(function(p){ return (cx+(p.x-cx)*f)+','+(cy+(p.y-cy)*f); }).join(' ');
+      grid += '<polygon points="'+gp+'" fill="none" stroke="rgba(168,85,247,0.15)" stroke-width="0.8"/>';
     });
-    // Achsen
-    var axes = pts.map(function(p) {
-      return '<line x1="' + cx + '" y1="' + cy + '" x2="' + p.x + '" y2="' + p.y + '" stroke="rgba(168,85,247,0.12)" stroke-width="0.8"/>';
+    var axes = pts.map(function(p){
+      return '<line x1="'+cx+'" y1="'+cy+'" x2="'+p.x+'" y2="'+p.y+'" stroke="rgba(168,85,247,0.12)" stroke-width="0.8"/>';
     }).join('');
-    // Datenpunkt-Polygon
-    var dataPts = pts.map(function(p, i) {
-      var v = Math.max(0, Math.min(10, vals[i] || 0)) / 10;
-      return (cx + (p.x - cx) * v) + ',' + (cy + (p.y - cy) * v);
+    var dataPts = pts.map(function(p,i){
+      var v = Math.max(0,Math.min(10,vals[i]||0))/10;
+      return (cx+(p.x-cx)*v)+','+(cy+(p.y-cy)*v);
     }).join(' ');
-    var dataShape = '<polygon points="' + dataPts + '" fill="rgba(168,85,247,0.22)" stroke="#a855f7" stroke-width="2" stroke-linejoin="round"/>';
-    // Datenpunkte (Dots)
-    var dots = pts.map(function(p, i) {
-      var v = Math.max(0, Math.min(10, vals[i] || 0)) / 10;
-      var dx = cx + (p.x - cx) * v;
-      var dy = cy + (p.y - cy) * v;
-      return '<circle cx="' + dx + '" cy="' + dy + '" r="3.5" fill="' + DIMS[i].color + '"/>';
+    var dataShape = '<polygon points="'+dataPts+'" fill="rgba(168,85,247,0.22)" stroke="#a855f7" stroke-width="2" stroke-linejoin="round"/>';
+    var dots = pts.map(function(p,i){
+      var v = Math.max(0,Math.min(10,vals[i]||0))/10;
+      return '<circle cx="'+(cx+(p.x-cx)*v)+'" cy="'+(cy+(p.y-cy)*v)+'" r="3.5" fill="'+DIMS[i].color+'"/>';
     }).join('');
-    // Achsenbeschriftung
-    var labels = pts.map(function(p, i) {
-      var lx = cx + (p.x - cx) * 1.2;
-      var ly = cy + (p.y - cy) * 1.2;
-      return '<text x="' + lx + '" y="' + ly + '" text-anchor="middle" dominant-baseline="central" fill="rgba(240,232,255,0.75)" font-size="11" font-weight="700" font-family="Sora,sans-serif">' + DIMS[i].short + '</text>';
+    var labels = pts.map(function(p,i){
+      var lx=cx+(p.x-cx)*1.22, ly=cy+(p.y-cy)*1.22;
+      return '<text x="'+lx+'" y="'+ly+'" text-anchor="middle" dominant-baseline="central" fill="rgba(240,232,255,0.75)" font-size="11" font-weight="700" font-family="Sora,sans-serif">'+DIMS[i].short+'</text>';
     }).join('');
-    // Mittelpunkt
-    var center = '<circle cx="' + cx + '" cy="' + cy + '" r="4" fill="rgba(168,85,247,0.45)"/>';
-    svg.innerHTML = grid + axes + dataShape + dots + labels + center;
+    svg.innerHTML = grid+axes+dataShape+dots+labels+'<circle cx="'+cx+'" cy="'+cy+'" r="4" fill="rgba(168,85,247,0.45)"/>';
   }
 
-  // ── Dimensions-Kacheln (Spieler-Ansicht) ───────────────────
+  /* ── Dimensions-Kacheln (Spieler-Ansicht) ─────────────────── */
   function renderDims(containerId, data) {
     var box = el(containerId);
-    if (!box) return;
-    var html = '';
-    DIMS.forEach(function(d) {
-      var v = parseFloat(data[d.key]) || 0;
-      var pct = (v / 10 * 100).toFixed(0);
-      html += '<div style="display:flex;align-items:center;gap:12px;">';
-      html += '<div style="width:32px;height:32px;border-radius:9px;background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.22);display:flex;align-items:center;justify-content:center;flex-shrink:0;">';
-      html += '<span style="font-size:12px;font-weight:800;color:' + d.color + ';">' + d.short + '</span></div>';
+    if(!box) return;
+    var html='';
+    DIMS.forEach(function(d){
+      var v = parseFloat(data[d.key])||0;
+      var pct = (v/10*100).toFixed(0);
+      var stufeTxt = _stufenText(d, v);
+      html += '<div style="display:flex;align-items:flex-start;gap:12px;">';
+      html += '<div style="width:32px;height:32px;border-radius:9px;background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.22);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">';
+      html += '<span style="font-size:11px;font-weight:800;color:'+d.color+';">'+d.short+'</span></div>';
       html += '<div style="flex:1;min-width:0;">';
       html += '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">';
-      html += '<span style="font-size:12px;font-weight:700;color:var(--text-2);">' + d.label + '</span>';
-      html += '<span style="font-size:13px;font-weight:800;color:#f0e8ff;">' + v.toFixed(1) + '</span></div>';
+      html += '<span style="font-size:12px;font-weight:700;color:var(--text-2);">'+d.label+'</span>';
+      html += '<span style="font-size:13px;font-weight:800;color:#f0e8ff;">'+v.toFixed(1)+'</span></div>';
       html += '<div style="height:4px;border-radius:99px;background:rgba(168,85,247,0.12);">';
-      html += '<div style="height:100%;width:' + pct + '%;border-radius:99px;background:linear-gradient(90deg,' + d.color + '88,' + d.color + ');transition:width .6s cubic-bezier(0.16,1,0.3,1);"></div></div>';
-      html += '<span style="font-size:10.5px;color:var(--text-3);">' + d.desc + '</span>';
+      html += '<div style="height:100%;width:'+pct+'%;border-radius:99px;background:linear-gradient(90deg,'+d.color+'88,'+d.color+');transition:width .6s cubic-bezier(0.16,1,0.3,1);"></div></div>';
+      html += '<span style="font-size:10.5px;color:var(--text-3);line-height:1.5;">'+stufeTxt+'</span>';
       html += '</div></div>';
     });
     box.innerHTML = html;
   }
 
-  // ── Slider-Rendering (Staff-Formular) ──────────────────────
+  /* ── Slider-Rendering (Staff-Formular) ────────────────────── */
   function renderSliders(containerId) {
     var box = el(containerId);
-    if (!box) return;
-    var html = '';
-    DIMS.forEach(function(d) {
+    if(!box) return;
+    var html='';
+    DIMS.forEach(function(d){
+      html += '<div style="background:rgba(168,85,247,0.04);border:1px solid rgba(168,85,247,0.12);border-radius:12px;padding:14px 16px;">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">';
       html += '<div>';
-      html += '<div style="display:flex;justify-content:space-between;margin-bottom:6px;">';
-      html += '<label style="font-size:12px;font-weight:700;color:var(--text-2);">';
-      html += '<span style="color:' + d.color + ';font-weight:800;">' + d.short + '</span> ' + d.label;
-      html += ' <span style="font-size:11px;color:var(--text-3);">— ' + d.desc + '</span></label>';
-      html += '<span id="capra-val-' + d.key + '" style="font-size:15px;font-weight:800;color:#f0e8ff;min-width:32px;text-align:right;">5.0</span></div>';
-      html += '<input type="range" id="capra-slider-' + d.key + '" min="0" max="10" step="0.5" value="5"';
-      html += ' oninput="(function(el,id){var v=parseFloat(el.value);var disp=document.getElementById(id);if(disp)disp.textContent=v.toFixed(1);CAPRA._previewRadar();})(this,\'capra-val-' + d.key + '\')"';
-      html += ' style="width:100%;" />';
+      html += '<div style="font-size:13px;font-weight:700;color:var(--text-1);"><span style="color:'+d.color+';font-weight:800;">'+d.short+'</span> — '+d.label+'</div>';
+      html += '<div style="font-size:11px;color:var(--text-3);margin-top:2px;">'+d.nlzDesc+'</div>';
       html += '</div>';
+      html += '<span id="capra-val-'+d.key+'" style="font-size:18px;font-weight:800;color:#f0e8ff;min-width:36px;text-align:right;">5.0</span>';
+      html += '</div>';
+      html += '<input type="range" id="capra-slider-'+d.key+'" min="0" max="10" step="0.5" value="5" aria-label="'+d.label+' bewerten"';
+      html += ' oninput="(function(el,id,dk){var v=parseFloat(el.value);var disp=document.getElementById(id);if(disp)disp.textContent=v.toFixed(1);CAPRA._previewRadar();CAPRA._updateStufenHint(dk,v);})(this,\'capra-val-'+d.key+'\',\''+d.key+'\')"';
+      html += ' style="width:100%;margin-bottom:8px;" />';
+      html += '<div id="capra-hint-'+d.key+'" style="font-size:11px;color:rgba(168,85,247,0.7);font-style:italic;line-height:1.5;min-height:18px;"></div>';
+      html += '</div>';
+    });
+    box.innerHTML = html;
+    // Init hints
+    DIMS.forEach(function(d){ _updateStufenHint(d.key, 5); });
+  }
+
+  /* ── Stufenhinweis im Slider ───────────────────────────────── */
+  function _updateStufenHint(key, val) {
+    var hintEl = el('capra-hint-'+key);
+    if(!hintEl) return;
+    var dim = DIMS.find(function(d){ return d.key===key; });
+    if(dim) hintEl.textContent = _stufenText(dim, val);
+  }
+
+  /* ── Profil-Typ Selector rendern ───────────────────────────── */
+  function _renderProfilSelector(selected) {
+    var box = el('capra-profil-selector');
+    if(!box) return;
+    var html='';
+    Object.keys(PROFIL_TYPEN).forEach(function(k){
+      var p = PROFIL_TYPEN[k];
+      var active = selected === k;
+      html += '<button onclick="CAPRA._selectProfil(\''+k+'\')" id="capra-profil-btn-'+k+'" style="';
+      html += 'padding:8px 14px;border-radius:10px;border:1.5px solid ';
+      html += active ? 'rgba(168,85,247,0.6);background:rgba(168,85,247,0.15);' : 'rgba(168,85,247,0.2);background:transparent;';
+      html += 'color:'+(active?'#f0e8ff':'var(--text-3)')+';font-size:12.5px;font-weight:700;cursor:pointer;';
+      html += 'transition:border-color .15s,background .15s,color .15s;';
+      html += '" title="'+p.desc+'">';
+      html += p.icon+' '+p.label+'</button>';
     });
     box.innerHTML = html;
   }
 
-  // ── Radar-Vorschau im Staff-Form (live) ────────────────────
-  function _previewRadar() {
-    var staffSvgId = 'capra-radar-staff';
-    if (!el(staffSvgId)) return;
-    var vals = DIMS.map(function(d) {
-      var s = el('capra-slider-' + d.key);
-      return s ? parseFloat(s.value) : 5;
-    });
-    el('capra-staff-preview') && el('capra-staff-preview').classList.remove('hidden');
-    drawRadar(staffSvgId, vals);
+  function _selectProfil(key) {
+    _renderProfilSelector(key);
+    // store selection in a data attribute
+    var box = el('capra-profil-selector');
+    if(box) box.dataset.selected = key;
   }
 
-  // ── Verdikt-Text generieren ────────────────────────────────
+  /* ── Radar-Vorschau (Staff) + Score-Preview ────────────────── */
+  function _previewRadar() {
+    if(!el('capra-radar-staff')) return;
+    var vals = DIMS.map(function(d){ var s=el('capra-slider-'+d.key); return s?parseFloat(s.value):5; });
+    el('capra-staff-preview') && el('capra-staff-preview').classList.remove('hidden');
+    drawRadar('capra-radar-staff', vals);
+    var total = (vals.reduce(function(a,b){return a+b;},0)/vals.length).toFixed(1);
+    var scoreEl = el('capra-staff-score-preview');
+    if(scoreEl) scoreEl.innerHTML = '<b style="font-size:20px;color:#f0e8ff;">'+total+' / 10</b><br><span style="font-size:11px;color:var(--text-3);">Ø aller 5 Dimensionen</span>';
+  }
+
+  /* ── Verdikt (intern für JS, nicht für DB) ─────────────────── */
   function _makeVerdict(data) {
-    var vals = DIMS.map(function(d) { return parseFloat(data[d.key]) || 0; });
-    var total = vals.reduce(function(a, b) { return a + b; }, 0) / vals.length;
-    var minIdx = vals.indexOf(Math.min.apply(null, vals));
-    var maxIdx = vals.indexOf(Math.max.apply(null, vals));
-    var verdikt = '';
-    if (total >= 8) verdikt = '🌟 Aussergewöhnliches Gesamtprofil — du bist in allen Bereichen stark.';
-    else if (total >= 6.5) verdikt = '💪 Gutes Profil mit klaren Stärken. Weiter so!';
-    else if (total >= 5) verdikt = '📈 Solide Basis — mit gezieltem Fokus noch viel Potenzial.';
-    else verdikt = '🌱 Frühe Phase — jeder startet irgendwo. Dein Einsatz zählt!';
+    var vals = DIMS.map(function(d){ return parseFloat(data[d.key])||0; });
+    var total = vals.reduce(function(a,b){return a+b;},0)/vals.length;
+    var minI = vals.indexOf(Math.min.apply(null,vals));
+    var maxI = vals.indexOf(Math.max.apply(null,vals));
+    var verd='';
+    if(total>=8.5) verd='🌟 Aussergewöhnliches NLZ-Profil — du bist in allen Bereichen stark.';
+    else if(total>=7) verd='⚡ Sehr gutes Profil. Klare Stärken, gezielter Fokus bringt dich auf die nächste Stufe.';
+    else if(total>=5.5) verd='📈 Solide Basis — mit Disziplin und Fokus hast du grosses Potenzial.';
+    else verd='🌱 Du bist am Anfang — jeder grosse Spieler hat hier angefangen. Dein Einsatz entscheidet.';
     return {
       total: total.toFixed(1),
-      verdikt: verdikt,
-      coaching: 'Deine stärkste Dimension ist <b style="color:#f0e8ff;">' + DIMS[maxIdx].label + '</b>. ' +
-        'Das ist dein natürliches Kapital im Team — nutze es bewusst.',
-      focus: '<b style="color:#f0e8ff;">' + DIMS[minIdx].label + '</b> ist dein Wachstumsbereich. ' +
-        DIMS[minIdx].desc + ' — sprich das mit deinem Trainer an und setze dir ein konkretes Ziel dafür.'
+      verdikt: verd,
+      coaching: 'Deine stärkste Dimension ist <b style="color:#f0e8ff;">'+DIMS[maxI].label+'</b> — '+DIMS[maxI].nlzDesc+'. Das ist dein natürliches Kapital auf dem Platz. Nutze es bewusst.',
     };
   }
 
-  // ── Spieler: eigenes Profil laden ─────────────────────────
+  /* ── Spieler: Profil laden ─────────────────────────────────── */
   function loadPlayer() {
-    var empty = el('capra-empty');
-    var content = el('capra-content');
-    if (!empty || !content) return;
-    empty.classList.add('hidden');
-    content.classList.add('hidden');
+    var empty=el('capra-empty'), content=el('capra-content');
+    if(!empty||!content) return;
+    empty.classList.add('hidden'); content.classList.add('hidden');
+    var dimsBox=el('capra-dims');
+    if(dimsBox) dimsBox.innerHTML='<div class="spinner" style="margin:20px auto;"></div>';
 
-    // Lade-Spinner in capra-dims zeigen
-    var dimsBox = el('capra-dims');
-    if (dimsBox) dimsBox.innerHTML = '<div class="spinner" style="margin:20px auto;"></div>';
+    sb.rpc('get_my_capra').then(function(r){
+      var rows=r.data||[];
+      if(!rows.length||r.error){ empty.classList.remove('hidden'); return; }
+      var d=rows[0];
+      var res=_makeVerdict(d);
 
-    sb.rpc('get_my_capra').then(function(r) {
-      var rows = r.data || [];
-      if (!rows.length || r.error) {
-        empty.classList.remove('hidden');
-        return;
+      var sl=el('capra-season-label'); if(sl) sl.textContent='Saison '+(d.season||'2024/25');
+      var vals=DIMS.map(function(dim){ return parseFloat(d[dim.key])||0; });
+
+      drawRadar('capra-radar',vals);
+      renderDims('capra-dims',d);
+
+      var tot=el('capra-total'); if(tot) tot.textContent=res.total+' / 10';
+      var verd=el('capra-verdict'); if(verd) verd.innerHTML=res.verdikt;
+      var coach=el('capra-coaching-text'); if(coach) coach.innerHTML=res.coaching;
+
+      // Profil-Typ Banner
+      var banner=el('capra-profil-banner');
+      if(d.profil_typ && PROFIL_TYPEN[d.profil_typ] && banner) {
+        var pt=PROFIL_TYPEN[d.profil_typ];
+        var pIcon=el('capra-profil-icon'); if(pIcon) pIcon.textContent=pt.icon;
+        var pLabel=el('capra-profil-label'); if(pLabel) pLabel.textContent='Du bist ein '+pt.label;
+        var pDesc=el('capra-profil-desc'); if(pDesc) pDesc.textContent=pt.desc;
+        banner.classList.remove('hidden');
       }
-      var d = rows[0];
-      var res = _makeVerdict(d);
 
-      // Saison
-      var seasonLabel = el('capra-season-label');
-      if (seasonLabel) seasonLabel.textContent = 'Saison ' + (d.season || '2024/25');
+      // Stärken
+      var stEl=el('capra-staerken-text');
+      if(stEl) stEl.innerHTML = d.staerken_text ? esc(d.staerken_text).replace(/\n/g,'<br>') : '<span style="color:var(--text-3);">—</span>';
 
-      // Radar
-      var vals = DIMS.map(function(dim) { return parseFloat(d[dim.key]) || 0; });
-      drawRadar('capra-radar', vals);
-
-      // Dimensions-Kacheln
-      renderDims('capra-dims', d);
-
-      // Score + Verdikt
-      var totalEl = el('capra-total');
-      var verdiktEl = el('capra-verdict');
-      if (totalEl) totalEl.textContent = res.total + ' / 10';
-      if (verdiktEl) verdiktEl.innerHTML = res.verdikt;
-
-      // Coaching
-      var coachEl = el('capra-coaching-text');
-      if (coachEl) coachEl.innerHTML = res.coaching;
-      var focusEl = el('capra-focus-text');
-      if (focusEl) focusEl.innerHTML = res.focus;
+      // Entwicklung / nächster Schritt
+      var fokEl=el('capra-focus-text');
+      if(fokEl) fokEl.innerHTML = d.entwicklung_text ? esc(d.entwicklung_text).replace(/\n/g,'<br>') : '<span style="color:var(--text-3);">—</span>';
 
       content.classList.remove('hidden');
-    }).catch(function() {
-      empty.classList.remove('hidden');
-    });
+    }).catch(function(){ empty.classList.remove('hidden'); });
   }
 
-  // ── Staff: Formular initialisieren ────────────────────────
+  /* ── Staff: Init ───────────────────────────────────────────── */
   function staffInit() {
     renderSliders('capra-staff-sliders');
-    // Spielerliste laden
-    sb.from('profiles').select('id,display_name').eq('role','spieler').eq('is_active',true).order('display_name').then(function(r) {
-      var sel = el('capra-player-select');
-      if (!sel) return;
-      sel.innerHTML = '<option value="">— Spieler wählen —</option>';
-      (r.data || []).forEach(function(p) {
-        sel.innerHTML += '<option value="' + p.id + '">' + esc(p.display_name) + '</option>';
-      });
+    _renderProfilSelector('');
+    sb.from('profiles').select('id,display_name').eq('role','spieler').eq('is_active',true).order('display_name').then(function(r){
+      var sel=el('capra-player-select');
+      if(!sel) return;
+      sel.innerHTML='<option value="">— Spieler wählen —</option>';
+      (r.data||[]).forEach(function(p){ sel.innerHTML+='<option value="'+p.id+'">'+esc(p.display_name)+'</option>'; });
     });
-    // Vorschau initial zeichnen
     _previewRadar();
   }
 
-  // ── Mini-Toast ─────────────────────────────────────────────
-  function _toast(msg, type) {
-    var t = document.createElement('div');
-    t.textContent = msg;
-    var color = type === 'success' ? 'rgba(34,201,122,0.5)' : type === 'error' ? 'rgba(255,68,136,0.5)' : 'rgba(168,85,247,0.4)';
-    t.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--bg-card);border:1px solid ' + color + ';color:#fff;padding:10px 18px;border-radius:var(--r-md);z-index:10001;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.5);pointer-events:none;';
-    document.body.appendChild(t);
-    setTimeout(function() { if(t.parentNode) t.parentNode.removeChild(t); }, 3000);
-  }
-
-  // ── Staff: bestehende Bewertung laden ─────────────────────
+  /* ── Staff: Bestehende Bewertung laden ─────────────────────── */
   function staffLoad() {
-    var pid = el('capra-player-select') && el('capra-player-select').value;
-    var season = el('capra-season-select') && el('capra-season-select').value;
-    if (!pid) { _toast('Bitte Spieler auswählen', 'error'); return; }
-    sb.rpc('get_player_capra', { p_player_id: pid }).then(function(r) {
-      var rows = (r.data || []).filter(function(x) { return x.season === season; });
-      if (!rows.length) { _toast('Noch keine Bewertung für diese Saison', 'info'); return; }
-      var d = rows[0];
-      DIMS.forEach(function(dim) {
-        var s = el('capra-slider-' + dim.key);
-        var v = el('capra-val-' + dim.key);
-        if (s) { s.value = parseFloat(d[dim.key]) || 5; }
-        if (v) { v.textContent = (parseFloat(d[dim.key]) || 5).toFixed(1); }
+    var pid=el('capra-player-select')&&el('capra-player-select').value;
+    var season=el('capra-season-select')&&el('capra-season-select').value;
+    if(!pid){ _toast('Bitte Spieler auswählen','error'); return; }
+    sb.rpc('get_player_capra',{p_player_id:pid}).then(function(r){
+      var rows=(r.data||[]).filter(function(x){ return x.season===season; });
+      if(!rows.length){ _toast('Noch keine Bewertung für diese Saison','info'); return; }
+      var d=rows[0];
+      DIMS.forEach(function(dim){
+        var s=el('capra-slider-'+dim.key), v=el('capra-val-'+dim.key);
+        if(s){ s.value=parseFloat(d[dim.key])||5; }
+        if(v){ v.textContent=(parseFloat(d[dim.key])||5).toFixed(1); }
+        _updateStufenHint(dim.key, parseFloat(d[dim.key])||5);
       });
-      var notiz = el('capra-notiz');
-      if (notiz) notiz.value = d.trainer_notiz || '';
-      var fin = el('capra-finalize-cb');
-      if (fin) fin.checked = !!d.finalized;
+      var notiz=el('capra-notiz'); if(notiz) notiz.value=d.trainer_notiz||'';
+      var staerken=el('capra-staerken'); if(staerken) staerken.value=d.staerken_text||'';
+      var entw=el('capra-entwicklung'); if(entw) entw.value=d.entwicklung_text||'';
+      var pos=el('capra-position-select'); if(pos) pos.value=d.position_spieler||'';
+      var fin=el('capra-finalize-cb'); if(fin) fin.checked=!!d.finalized;
+      _renderProfilSelector(d.profil_typ||'');
+      var box=el('capra-profil-selector'); if(box&&d.profil_typ) box.dataset.selected=d.profil_typ;
       _previewRadar();
-      _toast('Bewertung geladen', 'success');
+      _toast('Bewertung geladen','success');
     });
   }
 
-  // ── Staff: Bewertung speichern ─────────────────────────────
+  /* ── Staff: Speichern ──────────────────────────────────────── */
   function staffSave() {
-    var pid = el('capra-player-select') && el('capra-player-select').value;
-    var season = el('capra-season-select') && el('capra-season-select').value;
-    if (!pid) { _toast('Bitte Spieler auswählen', 'error'); return; }
-    var params = {
+    var pid=el('capra-player-select')&&el('capra-player-select').value;
+    var season=el('capra-season-select')&&el('capra-season-select').value;
+    if(!pid){ _toast('Bitte Spieler auswählen','error'); return; }
+    var profilBox=el('capra-profil-selector');
+    var params={
       p_player_id: pid,
       p_season: season,
-      p_trainer_notiz: (el('capra-notiz') && el('capra-notiz').value) || null,
-      p_finalized: !!(el('capra-finalize-cb') && el('capra-finalize-cb').checked)
+      p_trainer_notiz: (el('capra-notiz')&&el('capra-notiz').value)||null,
+      p_finalized: !!(el('capra-finalize-cb')&&el('capra-finalize-cb').checked),
+      p_position_spieler: (el('capra-position-select')&&el('capra-position-select').value)||null,
+      p_staerken_text: (el('capra-staerken')&&el('capra-staerken').value)||null,
+      p_entwicklung_text: (el('capra-entwicklung')&&el('capra-entwicklung').value)||null,
+      p_profil_typ: (profilBox&&profilBox.dataset.selected&&profilBox.dataset.selected!=='')?profilBox.dataset.selected:null
     };
-    DIMS.forEach(function(d) {
-      var s = el('capra-slider-' + d.key);
-      params['p_' + d.key] = s ? parseFloat(s.value) : 5;
+    DIMS.forEach(function(d){ var s=el('capra-slider-'+d.key); params['p_'+d.key]=s?parseFloat(s.value):5; });
+    var msg=el('capra-staff-msg');
+    if(msg){ msg.textContent='⏳ Speichert…'; msg.style.color='var(--text-3)'; msg.classList.remove('hidden'); }
+    sb.rpc('upsert_capra_assessment',params).then(function(r){
+      if(r.error){ if(msg){ msg.textContent='⚠️ Fehler: '+r.error.message; msg.style.color='var(--bad)'; } return; }
+      if(msg){ msg.textContent='✅ Gespeichert!'; msg.style.color='var(--good)'; }
+      _toast('CAPRA gespeichert','success');
+      setTimeout(function(){ if(msg) msg.classList.add('hidden'); },3000);
     });
-    var msg = el('capra-staff-msg');
-    if (msg) { msg.textContent = '⏳ Speichert…'; msg.style.color = 'var(--text-3)'; msg.classList.remove('hidden'); }
-    sb.rpc('upsert_capra_assessment', params).then(function(r) {
-      if (r.error) {
-        if (msg) { msg.textContent = '⚠️ Fehler: ' + r.error.message; msg.style.color = 'var(--bad)'; }
-        return;
+  }
+
+  /* ── Mini-Toast ────────────────────────────────────────────── */
+  function _toast(msg, type) {
+    var t=document.createElement('div');
+    t.textContent=msg;
+    var color=type==='success'?'rgba(34,201,122,0.5)':type==='error'?'rgba(255,68,136,0.5)':'rgba(168,85,247,0.4)';
+    t.style.cssText='position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--bg-card);border:1px solid '+color+';color:#fff;padding:10px 18px;border-radius:var(--r-md);z-index:10001;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.5);pointer-events:none;';
+    document.body.appendChild(t);
+    setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); },3000);
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     PDF A — Spielerprofil
+     (Spieler + Eltern: Radar, Dimensionen, Stärken, Nächster Schritt)
+     ═══════════════════════════════════════════════════════════ */
+  function exportSpielerPDF() {
+    // Daten aus aktuell geladenem Staff-Formular ODER aus Spieler-View
+    var isStaff = typeof isStaff === 'function' ? window.isStaff && window.isStaff() : false;
+    // Baue Daten-Objekt aus Formular (Staff) oder aus DOM-Elementen (Spieler)
+    _getPDFData(function(data, profile) {
+      _buildSpielerPDF(data, profile, false);
+    });
+  }
+
+  /* PDF B — Gesprächsmappe */
+  function exportGespraechPDF() {
+    var pid=el('capra-player-select')&&el('capra-player-select').value;
+    var season=el('capra-season-select')&&el('capra-season-select').value;
+    if(!pid){ _toast('Bitte Spieler wählen','error'); return; }
+    _toast('Gesprächsmappe wird erstellt…','info');
+    sb.rpc('get_capra_with_ziel',{p_player_id:pid,p_season:season}).then(function(r){
+      if(r.error||!r.data){ _toast('Fehler beim Laden','error'); return; }
+      var obj = r.data;
+      var capra = obj.capra;
+      var profile = obj.profile||{};
+      var cycles = obj.cycles||[];
+      // Interne Notiz: mit Checkbox abfragen
+      var inclNotiz = confirm('Interne Trainer-Notiz in der Gesprächsmappe mitdrucken?\n\n(«OK» = ja, «Abbrechen» = nein)');
+      _buildGespraechPDF(capra, profile, cycles, inclNotiz);
+    });
+  }
+
+  /* ── Hilfsfunktion: Daten sammeln (Staff-Formular oder Spieler-View) */
+  function _getPDFData(cb) {
+    var pid=el('capra-player-select')&&el('capra-player-select').value;
+    var season=el('capra-season-select')&&el('capra-season-select').value;
+
+    if(pid) {
+      // Staff-Kontext: aktuell geladene Slider-Werte verwenden
+      var profilBox=el('capra-profil-selector');
+      var data={
+        season: season,
+        position_spieler: (el('capra-position-select')&&el('capra-position-select').value)||'',
+        staerken_text: (el('capra-staerken')&&el('capra-staerken').value)||'',
+        entwicklung_text: (el('capra-entwicklung')&&el('capra-entwicklung').value)||'',
+        profil_typ: (profilBox&&profilBox.dataset.selected)||''
+      };
+      DIMS.forEach(function(d){ var s=el('capra-slider-'+d.key); data[d.key]=s?parseFloat(s.value):5; });
+      sb.from('profiles').select('display_name,vorname,nachname,geburtsdatum').eq('id',pid).single().then(function(r){
+        cb(data, r.data||{});
+      });
+    } else {
+      // Spieler-Kontext: aus get_my_capra
+      sb.rpc('get_my_capra').then(function(r){
+        var rows=r.data||[];
+        if(!rows.length){ _toast('Kein Profil vorhanden','error'); return; }
+        var d=rows[0];
+        sb.from('profiles').select('display_name,vorname,nachname,geburtsdatum').eq('id',sb.auth.currentUser&&sb.auth.currentUser.id||'').single().then(function(pr){
+          cb(d, pr.data||{});
+        }).catch(function(){ cb(d,{}); });
+      });
+    }
+  }
+
+  /* ── PDF A: Spielerprofil bauen ────────────────────────────── */
+  function _buildSpielerPDF(data, profile, forGespraech) {
+    var doc = new window.jspdf.jsPDF();
+    var GOLD=[212,175,55], BLACK=[18,18,18], WHITE=[255,255,255];
+    var MARGIN=14, PW=210, PH=297;
+    var vals = DIMS.map(function(d){ return parseFloat(data[d.key])||0; });
+    var total = (vals.reduce(function(a,b){return a+b;},0)/vals.length);
+    var name=nfc(_profileName(profile));
+    var geb=profile.geburtsdatum?_fmtDate(profile.geburtsdatum):'—';
+    var season=nfc(data.season||'2024/25');
+    var pos=data.position_spieler||'—';
+    var pt=data.profil_typ&&PROFIL_TYPEN[data.profil_typ]?PROFIL_TYPEN[data.profil_typ]:null;
+
+    function chk(y,need){ if(y+need>PH-22){doc.addPage();return 20;}return y; }
+    function secH(title,y){
+      y=chk(y,14);
+      doc.setFont('helvetica','bold'); doc.setFontSize(11.5); doc.setTextColor(20,20,20);
+      doc.text(nfc(title),MARGIN,y);
+      doc.setDrawColor(GOLD[0],GOLD[1],GOLD[2]); doc.setLineWidth(0.5);
+      doc.line(MARGIN,y+2,PW-MARGIN,y+2);
+      return y+9;
+    }
+
+    // Logo
+    if(typeof LOGO_BASE64==='string'&&LOGO_BASE64.indexOf('data:')===0){
+      try{doc.addImage(LOGO_BASE64,'PNG',178,8,18,15.6);}catch(e){}
+    }
+    // Titel
+    doc.setFont('helvetica','bold'); doc.setFontSize(forGespraech?13:16);
+    doc.setTextColor(20,20,20);
+    doc.text(forGespraech?'CAPRA Charakterprofil':'Spielerprofil — CAPRA Bewertung',MARGIN,16);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(110,110,110);
+    doc.text('BSC Old Boys Basel · FE12 · NLZ Charakterprofil',MARGIN,22.5);
+    doc.setTextColor(0,0,0);
+    doc.setDrawColor(GOLD[0],GOLD[1],GOLD[2]); doc.setLineWidth(0.8);
+    doc.line(MARGIN,27,PW-MARGIN,27);
+
+    // Info-Box
+    var boxY=33, boxH=34;
+    doc.setFillColor(248,248,246);
+    doc.rect(MARGIN,boxY,PW-2*MARGIN,boxH,'F');
+    doc.setDrawColor(GOLD[0],GOLD[1],GOLD[2]); doc.setLineWidth(0.35);
+    doc.rect(MARGIN,boxY,PW-2*MARGIN,boxH,'S');
+    doc.setLineWidth(0.2);
+    doc.line(PW/2,boxY,PW/2,boxY+boxH);
+
+    function infoF(label,val,x,y){
+      doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(120,120,120);
+      doc.text(label,x,y);
+      doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(15,15,15);
+      doc.text(nfc(val||'—'),x,y+6);
+    }
+    infoF('NAME',name,MARGIN+5,boxY+9);
+    infoF('GEBURTSJAHR / POSITION',geb+' · '+pos,MARGIN+5,boxY+22);
+    infoF('SAISON',season,PW/2+5,boxY+9);
+    infoF('CAPRA-SCORE',total.toFixed(1)+' / 10.0',PW/2+5,boxY+22);
+
+    var y=boxY+boxH+10;
+
+    // Profil-Typ
+    if(pt){
+      y=chk(y,14);
+      doc.setFillColor(245,240,255);
+      doc.rect(MARGIN,y,PW-2*MARGIN,14,'F');
+      doc.setDrawColor(160,100,220); doc.setLineWidth(0.4);
+      doc.rect(MARGIN,y,PW-2*MARGIN,14,'S');
+      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(80,30,140);
+      doc.text('Spieler-Typ: '+pt.label+' — '+nfc(pt.desc),MARGIN+4,y+9);
+      y+=20;
+    }
+
+    // Radar als Canvas-Bild
+    y=chk(y,75);
+    y=secH('CAPRA Radar-Profil',y);
+    var radarSvgId=el('capra-radar-staff')?'capra-radar-staff':'capra-radar';
+    var radarSvg=el(radarSvgId);
+    if(radarSvg){
+      try{
+        var svgData=new XMLSerializer().serializeToString(radarSvg);
+        var canvas=document.createElement('canvas');canvas.width=300;canvas.height=300;
+        var ctx=canvas.getContext('2d');
+        var img=new Image();
+        img.onload=function(){
+          ctx.drawImage(img,0,0,300,300);
+          var imgData=canvas.toDataURL('image/png');
+          doc.addImage(imgData,'PNG',MARGIN,y,65,65);
+          _addDimsTable(doc,data,vals,MARGIN+70,y,GOLD,y+70);
+          _finishSpielerPDF(doc,data,profile,y+80,secH,chk,GOLD,MARGIN,PW,PH,nfc,total);
+        };
+        img.src='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svgData)));
+      }catch(e){
+        _addDimsTable(doc,data,vals,MARGIN,y,GOLD,y);
+        _finishSpielerPDF(doc,data,profile,y+60,secH,chk,GOLD,MARGIN,PW,PH,nfc,total);
       }
-      if (msg) { msg.textContent = '✅ Gespeichert!'; msg.style.color = 'var(--good)'; }
-      _toast('CAPRA gespeichert', 'success');
-      setTimeout(function() { if(msg) msg.classList.add('hidden'); }, 3000);
+    } else {
+      _addDimsTable(doc,data,vals,MARGIN,y,GOLD,y);
+      _finishSpielerPDF(doc,data,profile,y+60,secH,chk,GOLD,MARGIN,PW,PH,nfc,total);
+    }
+  }
+
+  function _addDimsTable(doc,data,vals,x,y,GOLD,nextY){
+    // 5 Dimensionen als kompakte Tabelle rechts neben Radar
+    doc.autoTable({
+      startY: y,
+      margin:{left:x},
+      tableWidth: 120,
+      head:[['Dimension','Wert','Beschreibung']],
+      body: DIMS.map(function(d,i){
+        return [d.label+' ('+d.short+')', vals[i].toFixed(1), _stufenText(d,vals[i])];
+      }),
+      styles:{fontSize:7.5,cellPadding:2.5,overflow:'linebreak'},
+      headStyles:{fillColor:[18,18,18],textColor:GOLD,fontStyle:'bold',fontSize:8},
+      columnStyles:{0:{cellWidth:32},1:{cellWidth:12,halign:'center'},2:{cellWidth:76}},
+      didDrawPage:function(){}
     });
+  }
+
+  function _finishSpielerPDF(doc,data,profile,y,secH,chk,GOLD,MARGIN,PW,PH,nfcFn,total){
+    // Stärken
+    if(data.staerken_text){
+      y=chk(y,20);
+      y=secH('Stärken',y);
+      doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(30,30,30);
+      var split=doc.splitTextToSize(nfcFn(data.staerken_text),PW-2*MARGIN);
+      doc.text(split,MARGIN,y); y+=split.length*5+8;
+    }
+    // Nächster Schritt
+    if(data.entwicklung_text){
+      y=chk(y,20);
+      y=secH('Nächster Entwicklungsschritt',y);
+      doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(30,30,30);
+      var split2=doc.splitTextToSize(nfcFn(data.entwicklung_text),PW-2*MARGIN);
+      doc.text(split2,MARGIN,y); y+=split2.length*5+8;
+    }
+    // Footer auf jeder Seite
+    var pgCount=doc.getNumberOfPages();
+    for(var i=1;i<=pgCount;i++){
+      doc.setPage(i);
+      doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(140,140,140);
+      doc.text('BSC Old Boys Basel FE12 · NLZ Charakterprofil · Vertraulich',MARGIN,PH-8);
+      doc.text('Seite '+i+' / '+pgCount,PW-MARGIN,PH-8,{align:'right'});
+      doc.text(new Date().toLocaleDateString('de-CH'),PW/2,PH-8,{align:'center'});
+    }
+    var pname=nfcFn(_profileName(profile));
+    doc.save('FE12_CAPRA_'+pname.replace(/\s+/g,'_')+'_'+(data.season||'').replace('/','_')+'.pdf');
+  }
+
+  /* ── PDF B: Gesprächsmappe ──────────────────────────────────── */
+  function _buildGespraechPDF(capra, profile, cycles, inclNotiz) {
+    if(!capra){ _toast('Keine CAPRA-Daten vorhanden','error'); return; }
+    var doc=new window.jspdf.jsPDF();
+    var GOLD=[212,175,55], MARGIN=14, PW=210, PH=297;
+    var name=nfc(_profileName(profile));
+    var season=nfc(capra.season||'');
+
+    function chk(y,need){ if(y+need>PH-22){doc.addPage();return 20;}return y; }
+    function secH(title,y){
+      y=chk(y,14);
+      doc.setFont('helvetica','bold'); doc.setFontSize(11.5); doc.setTextColor(20,20,20);
+      doc.text(nfc(title),MARGIN,y);
+      doc.setDrawColor(GOLD[0],GOLD[1],GOLD[2]); doc.setLineWidth(0.5);
+      doc.line(MARGIN,y+2,PW-MARGIN,y+2);
+      return y+9;
+    }
+
+    // === SEITE 1: SPIELERPROFIL ===
+    _buildSpielerPDF(capra, profile, true);
+    // Hinweis: _buildSpielerPDF erstellt eigenes PDF — für Gesprächsmappe bauen wir separat
+    // (da _buildSpielerPDF async wegen SVG-Canvas ist, hier synchrone Version ohne Radar-Bild)
+
+    // Logo + Titel
+    if(typeof LOGO_BASE64==='string'&&LOGO_BASE64.indexOf('data:')===0){
+      try{doc.addImage(LOGO_BASE64,'PNG',178,8,18,15.6);}catch(e){}
+    }
+    doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.setTextColor(20,20,20);
+    doc.text('Gesprächsmappe · '+name,MARGIN,16);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(110,110,110);
+    doc.text('BSC Old Boys Basel · FE12 · Saison '+season,MARGIN,22.5);
+    doc.setDrawColor(GOLD[0],GOLD[1],GOLD[2]); doc.setLineWidth(0.8);
+    doc.line(MARGIN,27,PW-MARGIN,27);
+
+    // Spieler-Infos
+    var boxY=33;
+    doc.setFillColor(248,248,246);
+    doc.rect(MARGIN,boxY,PW-2*MARGIN,24,'F');
+    doc.setDrawColor(GOLD[0],GOLD[1],GOLD[2]); doc.setLineWidth(0.35);
+    doc.rect(MARGIN,boxY,PW-2*MARGIN,24,'S');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(120,120,120);
+    doc.text('SPIELER',MARGIN+4,boxY+7);
+    doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(15,15,15);
+    doc.text(name,MARGIN+4,boxY+15);
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(120,120,120);
+    doc.text('SAISON / POSITION',PW/2+4,boxY+7);
+    doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(15,15,15);
+    doc.text(season+' · '+(capra.position_spieler||'—'),PW/2+4,boxY+15);
+
+    var y=boxY+30;
+
+    // CAPRA Dimensionen
+    y=secH('CAPRA Dimensionen',y);
+    var vals=DIMS.map(function(d){return parseFloat(capra[d.key])||0;});
+    var total=(vals.reduce(function(a,b){return a+b;},0)/vals.length).toFixed(1);
+    doc.autoTable({
+      startY:y,
+      margin:{left:MARGIN,right:MARGIN},
+      head:[['Dimension','Wert','NLZ-Einschätzung']],
+      body:DIMS.map(function(d,i){
+        return [d.label+' ('+d.short+')',vals[i].toFixed(1),nfc(_stufenText(d,vals[i]))];
+      }),
+      foot:[['CAPRA-Score (Ø)',total,'']],
+      styles:{fontSize:8,cellPadding:3,overflow:'linebreak'},
+      headStyles:{fillColor:[18,18,18],textColor:GOLD,fontStyle:'bold'},
+      footStyles:{fillColor:[240,235,255],textColor:[60,30,100],fontStyle:'bold'},
+      columnStyles:{0:{cellWidth:45},1:{cellWidth:15,halign:'center'},2:{cellWidth:'auto'}}
+    });
+    y=doc.lastAutoTable.finalY+10;
+
+    // Profil-Typ
+    if(capra.profil_typ&&PROFIL_TYPEN[capra.profil_typ]){
+      var pt=PROFIL_TYPEN[capra.profil_typ];
+      y=chk(y,12);
+      doc.setFillColor(245,240,255);
+      doc.rect(MARGIN,y,PW-2*MARGIN,12,'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(80,30,140);
+      doc.text('Spieler-Typ: '+pt.label+' — '+nfc(pt.desc),MARGIN+4,y+8);
+      y+=18;
+    }
+
+    // Stärken
+    if(capra.staerken_text){
+      y=secH('Stärken',y);
+      doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(30,30,30);
+      var sp=doc.splitTextToSize(nfc(capra.staerken_text),PW-2*MARGIN);
+      doc.text(sp,MARGIN,y); y+=sp.length*5+8;
+    }
+
+    // Nächster Schritt
+    if(capra.entwicklung_text){
+      y=secH('Nächster Entwicklungsschritt',y);
+      doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(30,30,30);
+      var sp2=doc.splitTextToSize(nfc(capra.entwicklung_text),PW-2*MARGIN);
+      doc.text(sp2,MARGIN,y); y+=sp2.length*5+8;
+    }
+
+    // Interne Notiz (nur wenn gewählt)
+    if(inclNotiz&&capra.trainer_notiz){
+      y=chk(y,20);
+      y=secH('Interne Trainer-Notiz',y);
+      doc.setFillColor(255,248,248);
+      var ntxt=doc.splitTextToSize(nfc(capra.trainer_notiz),PW-2*MARGIN-8);
+      var notizH=ntxt.length*5+8;
+      doc.rect(MARGIN,y-2,PW-2*MARGIN,notizH,'F');
+      doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(100,20,20);
+      doc.text(ntxt,MARGIN+4,y+4);
+      y+=notizH+6;
+    }
+
+    // === SEITE 2+: ZIELVEREINBARUNGEN ===
+    if(cycles&&cycles.length){
+      doc.addPage();
+      y=20;
+      y=secH('Zielvereinbarungen Saison '+season,y);
+      cycles.forEach(function(c,ci){
+        if(!c) return;
+        y=chk(y,20);
+        doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(50,50,50);
+        doc.text(nfc('Zyklus '+(ci+1)+': '+(c.cycle_type==='vorrunde'?'Vorrunde':'Rückrunde')),MARGIN,y);
+        y+=8;
+        if(c.staerke_text){
+          doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(80,80,80);
+          var sp3=doc.splitTextToSize('Stärken: '+nfc(c.staerke_text),PW-2*MARGIN);
+          doc.text(sp3,MARGIN,y); y+=sp3.length*4.5+4;
+        }
+      });
+    }
+
+    // Footer
+    var pgCount=doc.getNumberOfPages();
+    for(var i=1;i<=pgCount;i++){
+      doc.setPage(i);
+      doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(140,140,140);
+      doc.text('BSC Old Boys Basel FE12 · Gesprächsmappe · Vertraulich',MARGIN,PH-8);
+      doc.text('Seite '+i+' / '+pgCount,PW-MARGIN,PH-8,{align:'right'});
+      doc.text(new Date().toLocaleDateString('de-CH'),PW/2,PH-8,{align:'center'});
+    }
+    doc.save('FE12_Gespraechsmappe_'+name.replace(/\s+/g,'_')+'_'+season.replace('/','_')+'.pdf');
+  }
+
+  /* ── Hilfsfunktionen ───────────────────────────────────────── */
+  function _profileName(p){
+    if(!p) return 'Spieler';
+    if(p.vorname||p.nachname) return ((p.vorname||'')+' '+(p.nachname||'')).trim();
+    return p.display_name||'Spieler';
+  }
+  function _fmtDate(d){
+    if(!d) return '—';
+    var p=d.split('-'); if(p.length<3) return d;
+    return p[2]+'.'+p[1]+'.'+p[0];
   }
 
   return {
-    loadPlayer: loadPlayer,
-    staffInit: staffInit,
-    staffLoad: staffLoad,
-    staffSave: staffSave,
-    _previewRadar: _previewRadar
+    loadPlayer:       loadPlayer,
+    staffInit:        staffInit,
+    staffLoad:        staffLoad,
+    staffSave:        staffSave,
+    exportSpielerPDF: exportSpielerPDF,
+    exportGespraechPDF: exportGespraechPDF,
+    _previewRadar:    _previewRadar,
+    _selectProfil:    _selectProfil,
+    _updateStufenHint:_updateStufenHint
   };
 })();
 
