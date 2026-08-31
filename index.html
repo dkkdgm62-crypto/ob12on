@@ -1565,8 +1565,12 @@ footer {
         <div>
           <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-3); margin-bottom:6px;">Saison</label>
           <select id="capra-season-select">
-            <option value="2024/25">2024/25</option>
             <option value="2025/26">2025/26</option>
+            <option value="2026/27" selected>2026/27</option>
+            <option value="2027/28">2027/28</option>
+            <option value="2028/29">2028/29</option>
+            <option value="2029/30">2029/30</option>
+            <option value="2030/31">2030/31</option>
           </select>
         </div>
         <div>
@@ -8847,18 +8851,24 @@ var CAPRA = (function(){
     empty.classList.add('hidden'); content.classList.add('hidden');
     var dimsBox=el('capra-dims');
     if(dimsBox) dimsBox.innerHTML='<div class="spinner" style="margin:20px auto;"></div>';
+    // Content bereits einblenden damit SVG-Elemente im DOM vorhanden sind
+    content.classList.remove('hidden');
 
     sb.rpc('get_my_capra').then(function(r){
-      var rows=r.data||[];
-      if(!rows.length||r.error){ empty.classList.remove('hidden'); return; }
-      var d=rows[0];
+      if(r.error || !r.data || !r.data.length){
+        content.classList.add('hidden');
+        empty.classList.remove('hidden');
+        return;
+      }
+      var d=r.data[0];
       var res=_makeVerdict(d);
 
-      var sl=el('capra-season-label'); if(sl) sl.textContent='Saison '+(d.season||'2024/25');
+      var sl=el('capra-season-label'); if(sl) sl.textContent='Saison '+(d.season||'');
       var vals=DIMS.map(function(dim){ return parseFloat(d[dim.key])||0; });
 
-      drawRadar('capra-radar',vals);
       renderDims('capra-dims',d);
+      // Kurz warten damit SVG im DOM gerendert ist
+      setTimeout(function(){ drawRadar('capra-radar',vals); }, 50);
 
       var tot=el('capra-total'); if(tot) tot.textContent=res.total+' / 10';
       var verd=el('capra-verdict'); if(verd) verd.innerHTML=res.verdikt;
@@ -8866,6 +8876,7 @@ var CAPRA = (function(){
 
       // Profil-Typ Banner
       var banner=el('capra-profil-banner');
+      if(banner) banner.classList.add('hidden');
       if(d.profil_typ && PROFIL_TYPEN[d.profil_typ] && banner) {
         var pt=PROFIL_TYPEN[d.profil_typ];
         var pIcon=el('capra-profil-icon'); if(pIcon) pIcon.textContent=pt.icon;
@@ -8876,14 +8887,16 @@ var CAPRA = (function(){
 
       // Stärken
       var stEl=el('capra-staerken-text');
-      if(stEl) stEl.innerHTML = d.staerken_text ? esc(d.staerken_text).replace(/\n/g,'<br>') : '<span style="color:var(--text-3);">—</span>';
+      if(stEl) stEl.innerHTML = d.staerken_text ? esc(d.staerken_text).replace(/\n/g,'<br>') : '<span style="color:var(--text-3);">Noch keine Stärken eingetragen.</span>';
 
       // Entwicklung / nächster Schritt
       var fokEl=el('capra-focus-text');
-      if(fokEl) fokEl.innerHTML = d.entwicklung_text ? esc(d.entwicklung_text).replace(/\n/g,'<br>') : '<span style="color:var(--text-3);">—</span>';
+      if(fokEl) fokEl.innerHTML = d.entwicklung_text ? esc(d.entwicklung_text).replace(/\n/g,'<br>') : '<span style="color:var(--text-3);">Noch kein Entwicklungsfeld eingetragen.</span>';
 
-      content.classList.remove('hidden');
-    }).catch(function(){ empty.classList.remove('hidden'); });
+    }).catch(function(e){
+      content.classList.add('hidden');
+      empty.classList.remove('hidden');
+    });
   }
 
   /* ── Staff: Init ───────────────────────────────────────────── */
@@ -9019,7 +9032,8 @@ var CAPRA = (function(){
         var rows=r.data||[];
         if(!rows.length){ _toast('Kein Profil vorhanden','error'); return; }
         var d=rows[0];
-        sb.from('profiles').select('display_name,vorname,nachname,geburtsdatum').eq('id',sb.auth.currentUser&&sb.auth.currentUser.id||'').single().then(function(pr){
+        var myid = (typeof ME !== 'undefined' && ME && ME.id) ? ME.id : '';
+        sb.from('profiles').select('display_name,vorname,nachname,geburtsdatum').eq('id',myid).single().then(function(pr){
           cb(d, pr.data||{});
         }).catch(function(){ cb(d,{}); });
       });
