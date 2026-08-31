@@ -1161,8 +1161,7 @@ footer {
       <button id="stab-vor" class="sidebar-btn" onclick="showStaffTab('vor')"><span class="sb-icon">📚</span>Module ansehen</button>
       <button id="stab-inhalte" class="sidebar-btn" onclick="showStaffTab('inhalte')"><span class="sb-icon">✏️</span>Inhalte bearbeiten</button>
       <button id="stab-jonglier" class="sidebar-btn" onclick="showStaffTab('jonglier')"><span class="sb-icon">🎓</span>Jonglierreihe</button>
-      <button id="stab-capra" class="sidebar-btn" onclick="showStaffTab('capra')"><span class="sb-icon">🧠</span>CAPRA Bewertungen</button>
-      <button id="stab-ziel" class="sidebar-btn" onclick="showStaffTab('ziel')"><span class="sb-icon">🎯</span>Zielvereinbarungen</button>
+      <button id="stab-ziel" class="sidebar-btn" onclick="showStaffTab('ziel')"><span class="sb-icon">🎯</span>Entwicklungsprofile</button>
       <button id="stab-spiele" class="sidebar-btn" onclick="showStaffTab('spiele')"><span class="sb-icon">📅</span>Spielplan</button>
       <button id="stab-reflex" class="sidebar-btn" onclick="showStaffTab('reflex')"><span class="sb-icon">🪞</span>Selbstreflexion</button>
 
@@ -1550,17 +1549,17 @@ footer {
       <div id="jr-staff-body"><p class="muted" style="font-size:13px;">Bitte Spieler/in auswählen.</p></div>
     </div>
 
-    <!-- Staff: CAPRA Bewertungen -->
-    <div id="staff-capra" class="card hidden">
-      <p class="eyebrow">NLZ Charakterprofil · FE12</p>
-      <h3 style="margin:8px 0 6px; color:#fff;">🧠 CAPRA Bewertungen</h3>
-      <p class="muted" style="font-size:13px; margin-bottom:20px;">Alle 5 Dimensionen bewerten — fussballspezifisch, NLZ-gerecht. Bewertung erst freischalten wenn vollständig.</p>
+    <!-- Staff: Entwicklungsprofile (CAPRA + Zielvereinbarung zusammengeführt) -->
+    <div id="staff-ziel" class="card hidden">
+      <p class="eyebrow">Individuelle Entwicklung · FE12</p>
+      <h3 style="margin:8px 0 6px; color:#fff;">🎯 Entwicklungsprofile</h3>
+      <p class="muted" style="font-size:13px; margin-bottom:20px;">CAPRA-Charakterprofil und Zielvereinbarung — pro Spieler an einem Ort. Spieler wählen, oben bewerten, unten Ziele / Gespräche / Gelbe Karte verwalten.</p>
 
-      <!-- Spieler / Saison / Position -->
-      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:20px; flex-wrap:wrap;">
+      <!-- Master-Auswahl: Spieler / Saison / Position -->
+      <div style="display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
         <div>
           <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-3); margin-bottom:6px;">Spieler</label>
-          <select id="capra-player-select" style="width:100%;"></select>
+          <select id="entw-player-select" style="width:100%;"></select>
         </div>
         <div>
           <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-3); margin-bottom:6px;">Saison</label>
@@ -1589,6 +1588,17 @@ footer {
           </select>
         </div>
       </div>
+      <!-- versteckte Mirror-Selects (werden von der Master-Auswahl gesteuert) -->
+      <select id="capra-player-select" style="display:none;"></select>
+      <select id="ziel-staff-player" style="display:none;" onchange="Ziel.staffLoadPlayer()"></select>
+
+      <!-- ═══ CAPRA-Bewertung ═══ -->
+      <div style="display:flex; align-items:center; gap:12px; margin:6px 0 18px;">
+        <span style="font-size:18px;">🧠</span>
+        <span style="font-size:12.5px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--text-2);">CAPRA Bewertung</span>
+        <span style="flex:1; height:1px; background:linear-gradient(90deg,rgba(168,85,247,0.35),transparent);"></span>
+      </div>
+      <p class="muted" style="font-size:12.5px; margin-bottom:16px;">Alle 5 Dimensionen bewerten — fussballspezifisch, NLZ-gerecht. Erst freischalten wenn vollständig.</p>
       <div style="display:flex; gap:10px; margin-bottom:24px;">
         <button class="btn btn-ghost" onclick="CAPRA.staffLoad()" style="white-space:nowrap;">🔄 Laden</button>
       </div>
@@ -1655,20 +1665,24 @@ footer {
           <div id="capra-staff-score-preview" style="font-size:13px; color:var(--text-2); line-height:1.8;"></div>
         </div>
       </div>
-    </div>
+      <!-- ═══ Zielvereinbarung ═══ -->
+      <div style="display:flex; align-items:center; gap:12px; margin:32px 0 16px;">
+        <span style="font-size:18px;">🎯</span>
+        <span style="font-size:12.5px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--text-2);">Zielvereinbarung</span>
+        <span style="flex:1; height:1px; background:linear-gradient(90deg,rgba(168,85,247,0.35),transparent);"></span>
+      </div>
+      <p class="muted" style="font-size:12.5px; margin-bottom:14px;">Übersicht aller Spieler mit Ampel-Status. Über die Master-Auswahl oben oder «Öffnen» einen Spieler laden, um Zyklus, Ziele, Gespräche und Gelbe Karte zu verwalten.</p>
+      <div id="ziel-staff-overview" style="margin-bottom:20px;"><div class="spinner"></div></div>
+      <div id="ziel-staff-body"><p class="muted" style="font-size:13px;">Bitte oben eine/n Spieler/in auswählen.</p></div>
 
-    <div id="staff-ziel" class="card hidden">
-      <p class="eyebrow">Individuelle Entwicklung</p>
-      <h3 style="margin:8px 0 16px; color:#fff;">🌱 Zielvereinbarungen — Übersicht</h3>
-      <p class="muted" style="font-size:13px; margin-bottom:16px;">Übersicht aller Spieler mit Ampel-Status. Wähle einen Spieler an, um Zyklus, Ziele, Gespräche und Gelbe Karte zu verwalten.</p>
-      <div id="ziel-staff-overview" style="margin-bottom:24px;"><div class="spinner"></div></div>
-
-      <div style="border-top:1px solid var(--line); padding-top:20px;">
-        <div style="max-width:340px; margin-bottom:16px;">
-          <label>Spieler/in auswählen</label>
-          <select id="ziel-staff-player" onchange="Ziel.staffLoadPlayer()"></select>
+      <!-- ═══ Versionshistorie (Notizen & Bemerkungen) ═══ -->
+      <div style="margin-top:28px; padding-top:18px; border-top:1px solid var(--line);">
+        <div onclick="NoteHistory.toggle('entw-history-box-staff')" style="display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none;">
+          <span id="entw-history-box-staff-caret" style="color:var(--accent); font-size:12px;">▸</span>
+          <span style="font-size:12px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--text-2);">📜 Versionshistorie — Notizen &amp; Bemerkungen</span>
         </div>
-        <div id="ziel-staff-body"><p class="muted" style="font-size:13px;">Bitte Spieler/in auswählen.</p></div>
+        <p class="muted" style="font-size:11px; margin:6px 0 0 20px;">Alle gespeicherten Stärken-, Entwicklungs-, internen Notizen &amp; Kommentare — chronologisch, langzeit-gespeichert. Wird nur bei vollständiger Spieler-Löschung entfernt.</p>
+        <div id="entw-history-box-staff" class="hidden" style="margin-top:14px;"></div>
       </div>
     </div>
 
@@ -1737,8 +1751,7 @@ footer {
       <button id="tab-schach" class="sidebar-btn" onclick="showPlayerTab('schach')"><span class="sb-icon">♟</span>Schach</button>
 
       <div class="sidebar-group-label">Meine Entwicklung</div>
-      <button id="tab-ziel" class="sidebar-btn" onclick="showPlayerTab('ziel')"><span class="sb-icon">🎯</span>Zielvereinbarung</button>
-      <button id="tab-capra" class="sidebar-btn" onclick="showPlayerTab('capra')"><span class="sb-icon">🧠</span>CAPRA Profil</button>
+      <button id="tab-ziel" class="sidebar-btn" onclick="showPlayerTab('ziel')"><span class="sb-icon">🎯</span>Meine Entwicklung</button>
       <button id="tab-spiele" class="sidebar-btn" onclick="showPlayerTab('spiele')"><span class="sb-icon">📅</span>Spielplan / Selbstreflexion</button>
       <button id="tab-ernaehrung" class="sidebar-btn" onclick="showPlayerTab('ernaehrung')"><span class="sb-icon">🍎</span>Ernährung &amp; Erholung</button>
 
@@ -1899,25 +1912,127 @@ footer {
   </div>
 
   <!-- ============ ZIELVEREINBARUNG (SPIELER) ============ -->
-  <div id="view-ziel" class="hidden" style="padding-top:20px; padding-bottom:40px;">
-    <div class="card" style="max-width:880px; margin:0 auto;">
-      <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:14px;">
-        <div>
-          <p class="eyebrow">Individuelle Entwicklung</p>
-          <h2 style="margin:4px 0 6px; color:#fff;">🎯 Deine Zielvereinbarung</h2>
-          <p class="muted" style="font-size:12px;">Deine persönlichen Entwicklungsziele, gemeinsam mit deinem Trainer.</p>
+  <div id="view-ziel" class="hidden" style="padding-top:24px; padding-bottom:60px;">
+    <div style="max-width:980px; margin:0 auto; padding:0 var(--sp-5);">
+
+      <!-- ═══ Master-Header ═══ -->
+      <div style="margin-bottom:26px;">
+        <p style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:rgba(168,85,247,0.65); margin-bottom:8px;">Individuelle Entwicklung · FE12</p>
+        <h2 style="font-size:32px; font-weight:800; color:#f0e8ff; margin:0 0 6px;">🎯 Meine Entwicklung</h2>
+        <p style="font-size:14px; color:var(--text-3);">Dein Charakterprofil und deine persönlichen Ziele — gemeinsam mit deinem Trainerteam.</p>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════════
+           SEKTION 1 · CAPRA CHARAKTERPROFIL (read-only)
+           ═══════════════════════════════════════════════════════════ -->
+      <div style="display:flex; align-items:center; gap:12px; margin:8px 0 18px;">
+        <span style="font-size:20px;">🧠</span>
+        <span style="font-size:13px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--text-2);">Charakterprofil (CAPRA)</span>
+        <span style="flex:1; height:1px; background:linear-gradient(90deg,rgba(168,85,247,0.35),transparent);"></span>
+        <span id="capra-season-label" style="font-size:12px; color:var(--text-3);">Saison 2024/25</span>
+      </div>
+
+      <!-- Kein Profil vorhanden -->
+      <div id="capra-empty" class="hidden">
+        <div class="card" style="text-align:center; padding:48px 24px;">
+          <div style="font-size:52px; margin-bottom:14px;">🧠</div>
+          <h3 style="color:#fff; font-size:19px; margin:0 0 10px;">Noch keine Bewertung</h3>
+          <p class="muted" style="font-size:14px; max-width:400px; margin:0 auto; line-height:1.7;">Dein CAPRA-Profil wird vom Trainerteam erstellt. Schau nach dem nächsten Gespräch mit deinem Trainer wieder rein.</p>
         </div>
-        <button class="btn-ghost" style="padding:8px 14px; font-size:13px;" onclick="Ziel.exportPdf(Ziel.state.activeCycleId)">📄 Als PDF</button>
       </div>
 
-      <div id="ziel-warning-banner" class="hidden banner" style="margin-bottom:18px;"></div>
+      <!-- Profil (wenn Daten vorhanden) -->
+      <div id="capra-content" class="hidden">
 
-      <div style="display:flex; gap:8px; margin-bottom:18px;">
-        <button id="ziel-subtab-vorrunde" class="btn-ghost" style="flex:1; font-size:13px; padding:9px;" onclick="Ziel.switchCycle('vorrunde')">Vorrunde</button>
-        <button id="ziel-subtab-rueckrunde" class="btn-ghost" style="flex:1; font-size:13px; padding:9px;" onclick="Ziel.switchCycle('rueckrunde')">Rückrunde</button>
+        <!-- ① SCORE-BANNER -->
+        <div id="capra-score-banner" style="position:relative; background:rgba(13,10,36,0.95); border:1px solid rgba(168,85,247,0.28); border-radius:20px; padding:32px 36px; margin-bottom:20px; overflow:hidden;">
+          <div style="position:absolute; inset:0; pointer-events:none; overflow:hidden; border-radius:20px;">
+            <div style="position:absolute; width:500px; height:500px; background:radial-gradient(circle, rgba(168,85,247,0.12) 0%, transparent 70%); top:-150px; left:-100px; animation:g-drift1 14s ease-in-out infinite alternate;"></div>
+            <div style="position:absolute; width:400px; height:400px; background:radial-gradient(circle, rgba(109,40,217,0.08) 0%, transparent 70%); bottom:-80px; right:-80px; animation:g-drift2 18s ease-in-out infinite alternate;"></div>
+          </div>
+          <div style="position:relative; z-index:1;">
+            <p style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:rgba(168,85,247,0.6); margin-bottom:10px;">CAPRA Score</p>
+            <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:12px;">
+              <span style="font-size:64px; font-weight:800; color:#f0e8ff; line-height:1;" id="capra-total">—</span>
+              <span style="font-size:22px; color:var(--text-3); font-weight:600;">/ 10</span>
+            </div>
+            <div style="font-size:16px; color:var(--text-2); line-height:1.6;" id="capra-verdict"></div>
+          </div>
+        </div>
+
+        <!-- ② RADAR + PROFIL-TYP -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+          <div style="position:relative; background:rgba(13,10,36,0.92); border:1px solid rgba(168,85,247,0.18); border-radius:18px; padding:24px; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+            <div style="position:absolute; inset:0; pointer-events:none; background:radial-gradient(circle at 50% 50%, rgba(168,85,247,0.08) 0%, transparent 65%);"></div>
+            <svg id="capra-radar" width="320" height="320" viewBox="0 0 200 200" aria-label="CAPRA Radar-Chart" style="position:relative; z-index:1;"></svg>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div id="capra-profil-banner" class="hidden" style="flex:0 0 auto; padding:22px 24px; border-radius:16px; background:linear-gradient(135deg,rgba(168,85,247,0.2),rgba(109,40,217,0.14)); border:1px solid rgba(168,85,247,0.35);">
+              <div id="capra-profil-icon" style="font-size:44px; margin-bottom:8px; line-height:1;"></div>
+              <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.12em; color:rgba(168,85,247,0.7); margin-bottom:6px;">Dein Spieler-Typ</div>
+              <div id="capra-profil-label" style="font-size:22px; font-weight:800; color:#f0e8ff; margin-bottom:4px;"></div>
+              <div id="capra-profil-desc" style="font-size:13px; color:var(--text-3); line-height:1.5;"></div>
+            </div>
+            <div class="card" style="flex:1;" id="capra-coaching-card">
+              <p style="font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:rgba(168,85,247,0.6); margin-bottom:10px;">Was bedeutet das für mich?</p>
+              <div id="capra-coaching-text" style="font-size:15px; color:var(--text-1); line-height:1.75;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ③ DIMENSIONEN -->
+        <div style="background:rgba(13,10,36,0.85); border:1px solid rgba(168,85,247,0.18); border-radius:18px; padding:28px 32px; margin-bottom:20px;">
+          <p style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:rgba(168,85,247,0.6); margin-bottom:20px;">Deine 5 Dimensionen</p>
+          <div id="capra-dims" style="display:flex; flex-direction:column; gap:20px;"></div>
+        </div>
+
+        <!-- ④ STÄRKEN + NÄCHSTER SCHRITT -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+          <div class="card" id="capra-staerken-card">
+            <p style="font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:rgba(34,201,122,0.8); margin-bottom:12px;">✅ Deine Stärken</p>
+            <div id="capra-staerken-text" style="font-size:15px; color:var(--text-1); line-height:1.8;"></div>
+          </div>
+          <div class="card" id="capra-focus-card">
+            <p style="font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:rgba(168,85,247,0.6); margin-bottom:12px;">🎯 Dein nächster Schritt</p>
+            <div id="capra-focus-text" style="font-size:15px; color:var(--text-1); line-height:1.8;"></div>
+          </div>
+        </div>
+
       </div>
 
-      <div id="ziel-body"><div class="spinner"></div></div>
+      <!-- ═══════════════════════════════════════════════════════════
+           SEKTION 2 · ZIELVEREINBARUNG
+           ═══════════════════════════════════════════════════════════ -->
+      <div style="display:flex; align-items:center; gap:12px; margin:36px 0 18px;">
+        <span style="font-size:20px;">🎯</span>
+        <span style="font-size:13px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--text-2);">Zielvereinbarung</span>
+        <span style="flex:1; height:1px; background:linear-gradient(90deg,rgba(168,85,247,0.35),transparent);"></span>
+        <button class="btn-ghost" style="padding:7px 13px; font-size:12.5px;" onclick="Ziel.exportPdf(Ziel.state.activeCycleId)">📄 Zielvereinbarung als PDF</button>
+      </div>
+
+      <div class="card">
+        <p class="muted" style="font-size:12px; margin-bottom:16px;">Deine persönlichen Entwicklungsziele, gemeinsam mit deinem Trainer.</p>
+
+        <div id="ziel-warning-banner" class="hidden banner" style="margin-bottom:18px;"></div>
+
+        <div style="display:flex; gap:8px; margin-bottom:18px;">
+          <button id="ziel-subtab-vorrunde" class="btn-ghost" style="flex:1; font-size:13px; padding:9px;" onclick="Ziel.switchCycle('vorrunde')">Vorrunde</button>
+          <button id="ziel-subtab-rueckrunde" class="btn-ghost" style="flex:1; font-size:13px; padding:9px;" onclick="Ziel.switchCycle('rueckrunde')">Rückrunde</button>
+        </div>
+
+        <div id="ziel-body"><div class="spinner"></div></div>
+      </div>
+
+      <!-- ═══ Versionshistorie (Spieler-Sicht: nur nicht-interne Einträge) ═══ -->
+      <div class="card" style="margin-top:20px;">
+        <div onclick="NoteHistory.toggle('entw-history-box-player')" style="display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none;">
+          <span id="entw-history-box-player-caret" style="color:var(--accent); font-size:12px;">▸</span>
+          <span style="font-size:12px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--text-2);">📜 Verlauf — Notizen deines Trainers</span>
+        </div>
+        <p class="muted" style="font-size:11px; margin:6px 0 0 20px;">Frühere Bemerkungen und Rückmeldungen deines Trainerteams, chronologisch.</p>
+        <div id="entw-history-box-player" class="hidden" style="margin-top:14px;"></div>
+      </div>
+
     </div>
   </div>
 
@@ -2062,99 +2177,6 @@ footer {
   </div>
 
   <!-- ============ HILFE / LEXIKON (SPIELER) ============ -->
-  <!-- ═══ CAPRA — Charakterprofil ═══════════════════════════════════ -->
-  <div id="view-capra" class="hidden" style="padding-top:24px; padding-bottom:60px;">
-    <div style="max-width:980px; margin:0 auto; padding:0 var(--sp-5);">
-
-      <!-- Header -->
-      <div style="margin-bottom:28px;">
-        <p style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:rgba(168,85,247,0.65); margin-bottom:8px;">Mein Profil · FE12</p>
-        <h2 style="font-size:32px; font-weight:800; color:#f0e8ff; margin:0 0 6px;" id="capra-player-title">Charakterprofil</h2>
-        <p style="font-size:14px; color:var(--text-3);" id="capra-season-label">Saison 2024/25</p>
-      </div>
-
-      <!-- Kein Profil vorhanden -->
-      <div id="capra-empty" class="hidden">
-        <div class="card" style="text-align:center; padding:60px 24px;">
-          <div style="font-size:56px; margin-bottom:16px;">🧠</div>
-          <h3 style="color:#fff; font-size:20px; margin:0 0 10px;">Noch keine Bewertung</h3>
-          <p class="muted" style="font-size:14px; max-width:400px; margin:0 auto; line-height:1.7;">Dein CAPRA-Profil wird vom Trainerteam erstellt. Schau nach dem nächsten Gespräch mit deinem Trainer wieder rein.</p>
-        </div>
-      </div>
-
-      <!-- Profil (wenn Daten vorhanden) -->
-      <div id="capra-content" class="hidden">
-
-        <!-- ① SCORE-BANNER oben — gross & klar -->
-        <div id="capra-score-banner" style="position:relative; background:rgba(13,10,36,0.95); border:1px solid rgba(168,85,247,0.28); border-radius:20px; padding:32px 36px; margin-bottom:20px; overflow:hidden;">
-          <div style="position:absolute; inset:0; pointer-events:none; overflow:hidden; border-radius:20px;">
-            <div style="position:absolute; width:500px; height:500px; background:radial-gradient(circle, rgba(168,85,247,0.12) 0%, transparent 70%); top:-150px; left:-100px; animation:g-drift1 14s ease-in-out infinite alternate;"></div>
-            <div style="position:absolute; width:400px; height:400px; background:radial-gradient(circle, rgba(109,40,217,0.08) 0%, transparent 70%); bottom:-80px; right:-80px; animation:g-drift2 18s ease-in-out infinite alternate;"></div>
-          </div>
-          <div style="position:relative; z-index:1;">
-            <p style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:rgba(168,85,247,0.6); margin-bottom:10px;">CAPRA Score</p>
-            <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:12px;">
-              <span style="font-size:64px; font-weight:800; color:#f0e8ff; line-height:1;" id="capra-total">—</span>
-              <span style="font-size:22px; color:var(--text-3); font-weight:600;">/ 10</span>
-            </div>
-            <div style="font-size:16px; color:var(--text-2); line-height:1.6;" id="capra-verdict"></div>
-          </div>
-        </div>
-
-        <!-- ② RADAR + PROFIL-TYP nebeneinander -->
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
-
-          <!-- Radar -->
-          <div style="position:relative; background:rgba(13,10,36,0.92); border:1px solid rgba(168,85,247,0.18); border-radius:18px; padding:24px; overflow:hidden; display:flex; align-items:center; justify-content:center;">
-            <div style="position:absolute; inset:0; pointer-events:none; background:radial-gradient(circle at 50% 50%, rgba(168,85,247,0.08) 0%, transparent 65%);"></div>
-            <svg id="capra-radar" width="320" height="320" viewBox="0 0 200 200" aria-label="CAPRA Radar-Chart" style="position:relative; z-index:1;"></svg>
-          </div>
-
-          <!-- Profil-Typ + Coaching -->
-          <div style="display:flex; flex-direction:column; gap:12px;">
-            <!-- Profil-Typ -->
-            <div id="capra-profil-banner" class="hidden" style="flex:0 0 auto; padding:22px 24px; border-radius:16px; background:linear-gradient(135deg,rgba(168,85,247,0.2),rgba(109,40,217,0.14)); border:1px solid rgba(168,85,247,0.35);">
-              <div id="capra-profil-icon" style="font-size:44px; margin-bottom:8px; line-height:1;"></div>
-              <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.12em; color:rgba(168,85,247,0.7); margin-bottom:6px;">Dein Spieler-Typ</div>
-              <div id="capra-profil-label" style="font-size:22px; font-weight:800; color:#f0e8ff; margin-bottom:4px;"></div>
-              <div id="capra-profil-desc" style="font-size:13px; color:var(--text-3); line-height:1.5;"></div>
-            </div>
-            <!-- Was bedeutet das -->
-            <div class="card" style="flex:1;" id="capra-coaching-card">
-              <p style="font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:rgba(168,85,247,0.6); margin-bottom:10px;">Was bedeutet das für mich?</p>
-              <div id="capra-coaching-text" style="font-size:15px; color:var(--text-1); line-height:1.75;"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ③ DIMENSIONEN — volle Breite, gross -->
-        <div style="background:rgba(13,10,36,0.85); border:1px solid rgba(168,85,247,0.18); border-radius:18px; padding:28px 32px; margin-bottom:20px;">
-          <p style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:rgba(168,85,247,0.6); margin-bottom:20px;">Deine 5 Dimensionen</p>
-          <div id="capra-dims" style="display:flex; flex-direction:column; gap:20px;"></div>
-        </div>
-
-        <!-- ④ STÄRKEN + NÄCHSTER SCHRITT nebeneinander -->
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
-          <div class="card" id="capra-staerken-card">
-            <p style="font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:rgba(34,201,122,0.8); margin-bottom:12px;">✅ Deine Stärken</p>
-            <div id="capra-staerken-text" style="font-size:15px; color:var(--text-1); line-height:1.8;"></div>
-          </div>
-          <div class="card" id="capra-focus-card">
-            <p style="font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:rgba(168,85,247,0.6); margin-bottom:12px;">🎯 Dein nächster Schritt</p>
-            <div id="capra-focus-text" style="font-size:15px; color:var(--text-1); line-height:1.8;"></div>
-          </div>
-        </div>
-
-        <!-- ⑤ PDF Button -->
-        <div style="text-align:center;">
-          <button class="btn btn-ghost" onclick="CAPRA.exportSpielerPDF()" style="font-size:14px; padding:12px 28px;">📄 Mein Profil als PDF</button>
-        </div>
-
-      </div>
-
-    </div>
-  </div>
-
   <div id="view-hilfe" class="hidden" style="padding-top:20px; padding-bottom:40px;">
     <div class="card" style="max-width:820px; margin:0 auto;">
       <p class="eyebrow">Nachschlagewerk</p>
@@ -2480,7 +2502,7 @@ function fmtDT(ts){
 }
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
 function only(id){
-  var v=["view-setup","view-login","view-closed","view-modules","view-learn","view-quiz","view-result","view-rang","view-skills","view-staff","view-register","view-schach","view-ziel","view-spiele","view-dashboard-player","view-hilfe","view-ernaehrung","view-capra"];
+  var v=["view-setup","view-login","view-closed","view-modules","view-learn","view-quiz","view-result","view-rang","view-skills","view-staff","view-register","view-schach","view-ziel","view-spiele","view-dashboard-player","view-hilfe","view-ernaehrung"];
   for(var i=0;i<v.length;i++) hide(v[i]);
   show(id);
 }
@@ -2914,8 +2936,9 @@ function openSkillsOnly(){
 }
 function showPlayerTab(t){
   scrollToTop();
+  if(t==="capra") t="ziel";   // CAPRA in "Meine Entwicklung" zusammengeführt
   playerTab=t;
-  ["dashboard","lernen","skills","schach","rang","ziel","capra","spiele","ernaehrung","hilfe"].forEach(function(k){
+  ["dashboard","lernen","skills","schach","rang","ziel","spiele","ernaehrung","hilfe"].forEach(function(k){
     var btn = el("tab-"+k);
     if(btn){ btn.classList.toggle("active", k===t); }
   });
@@ -2940,7 +2963,9 @@ function showPlayerTab(t){
   } else if(t==="ziel") {
     only("view-ziel"); show("app-head"); show("player-nav");
     loadPlayerStats();
-    Ziel.playerInit();
+    CAPRA.loadPlayer();   // CAPRA-Profil (oben)
+    Ziel.playerInit();    // Zielvereinbarung (unten)
+    if(typeof NoteHistory!=='undefined' && typeof ME!=='undefined' && ME) NoteHistory.load(ME.id, null, 'entw-history-box-player');
   } else if(t==="spiele") {
     only("view-spiele"); show("app-head"); show("player-nav");
     loadPlayerStats();
@@ -2948,10 +2973,6 @@ function showPlayerTab(t){
   } else if(t==="ernaehrung") {
     only("view-ernaehrung"); show("app-head"); show("player-nav");
     loadPlayerStats();
-  } else if(t==="capra") {
-    only("view-capra"); show("app-head"); show("player-nav");
-    loadPlayerStats();
-    CAPRA.loadPlayer();
   } else if(t==="hilfe") {
     only("view-hilfe"); show("app-head"); show("player-nav");
     loadPlayerStats();
@@ -3767,8 +3788,9 @@ function loadStaffDashboard(){
 }
 function showStaffTab(t){
   scrollToTop();
+  if(t==="capra") t="ziel";   // CAPRA in "Entwicklungsprofile" zusammengeführt
   staffTab = t;
-  ["dashboard","kader","skills","rang","frei","zeit","runden","log","vor","spieler","consent","anfragen","inhalte","jonglier","capra","ziel","spiele","reflex","archiv"].forEach(function(k){
+  ["dashboard","kader","skills","rang","frei","zeit","runden","log","vor","spieler","consent","anfragen","inhalte","jonglier","ziel","spiele","reflex","archiv"].forEach(function(k){
     var btn = el("stab-"+k);
     if(btn){ btn.classList.toggle("active", k===t); }
     var c = el("staff-"+k); if(c) c.classList.toggle("hidden", k!==t);
@@ -3800,8 +3822,7 @@ function showStaffTab(t){
   if(t==="anfragen") loadSupportRequests();
   if(t==="inhalte") CE.load();
   if(t==="jonglier") loadJrStaffForm();
-  if(t==="capra") CAPRA.staffInit();
-  if(t==="ziel") Ziel.staffInit();
+  if(t==="ziel") Entwicklung.staffInit();
   if(t==="spiele") Spielplan.staffInit();
   if(t==="reflex") Reflex.staffInit();
   if(t==="archiv") SeasonArchiv.init();
@@ -7600,6 +7621,13 @@ var Ziel = (function(){
     sb.rpc("add_dev_comment", {p_cycle_id:cycleId, p_goal_id:null, p_kommentar:txt, p_is_internal:isInternal}).then(function(r){
       if(r.error){ alert("Fehler: "+r.error.message); return; }
       if(state.isStaff) staffRenderCycle(); else renderActiveCycle();
+      // Kommentar zusätzlich in die Versionshistorie (nur Staff-Rolle darf add_dev_note)
+      if(state.isStaff && typeof NoteHistory!=='undefined'){
+        var pid=state.staffPlayerId, seas=seasonLabel();
+        NoteHistory.snapshot(pid, seas, 'ziel_kommentar', 'Zielvereinbarung · Kommentar', txt, isInternal).then(function(){
+          NoteHistory.load(pid, seas, 'entw-history-box-staff');
+        });
+      }
     });
   }
 
@@ -7632,7 +7660,7 @@ var Ziel = (function(){
         var pw = warnings.find(function(w){return w.player_id===p.id;});
         var ampel = pw ? '🟨' : (pc.length>0 ? '🟢' : '⚪');
         var status = pw ? 'Gelbe Karte' : (pc.length>0 ? pc.length+' Zyklus/en aktiv' : 'Kein Zyklus');
-        return '<tr><td>'+ampel+'</td><td>'+esc(p.display_name)+'</td><td class="muted" style="font-size:12.5px;">'+status+'</td><td><button class="btn-ghost" style="font-size:11.5px; padding:5px 10px;" onclick="el(\'ziel-staff-player\').value=\''+p.id+'\'; Ziel.staffLoadPlayer();">Öffnen</button></td></tr>';
+        return '<tr><td>'+ampel+'</td><td>'+esc(p.display_name)+'</td><td class="muted" style="font-size:12.5px;">'+status+'</td><td><button class="btn-ghost" style="font-size:11.5px; padding:5px 10px;" onclick="Entwicklung.openPlayer(\''+p.id+'\')">Öffnen</button></td></tr>';
       }).join('');
       box.innerHTML = '<table style="width:100%;"><thead><tr><th></th><th>Spieler</th><th>Status</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
     });
@@ -8023,6 +8051,102 @@ var Ziel = (function(){
     staffRevokeWarning: staffRevokeWarning,
     exportPdf: exportPdf
   };
+})();
+
+/* ══════════════════════════════════════════════════════════════
+   🎯 ENTWICKLUNG — Orchestrator: verbindet CAPRA + Zielvereinbarung
+   Eine Master-Spielerauswahl steuert beide (versteckte) Sub-Selects.
+   ══════════════════════════════════════════════════════════════ */
+var Entwicklung = (function(){
+  function staffInit(){
+    CAPRA.staffInit();   // füllt capra-player-select (versteckt) + Slider + Profil-Selector
+    Ziel.staffInit();    // füllt ziel-staff-player (versteckt) + Übersichtstabelle
+    // Master-Auswahl aus aktiven Spielern befüllen
+    sb.from('profiles').select('id,display_name').eq('role','spieler').eq('is_active',true).order('display_name').then(function(r){
+      var sel=el('entw-player-select'); if(!sel) return;
+      sel.innerHTML='<option value="">— Spieler wählen —</option>';
+      (r.data||[]).forEach(function(p){ sel.innerHTML+='<option value="'+p.id+'">'+esc(p.display_name)+'</option>'; });
+      sel.onchange=function(){ selectPlayer(); };
+    });
+    // Saison-Wechsel → CAPRA neu laden (falls Spieler gewählt)
+    var ss=el('capra-season-select');
+    if(ss) ss.onchange=function(){
+      var cps=el('capra-player-select');
+      if(cps&&cps.value){ CAPRA.staffLoad(true); if(typeof NoteHistory!=='undefined') NoteHistory.load(cps.value, ss.value, 'entw-history-box-staff'); }
+    };
+  }
+  function selectPlayer(){
+    var m=el('entw-player-select');
+    var val=m?m.value:'';
+    var cps=el('capra-player-select'); if(cps) cps.value=val;
+    var zsp=el('ziel-staff-player');  if(zsp) zsp.value=val;
+    if(val){
+      CAPRA.staffLoad(true);   // CAPRA-Formular laden
+      Ziel.staffLoadPlayer();  // Zielvereinbarung laden
+      var season=el('capra-season-select')?el('capra-season-select').value:null;
+      if(typeof NoteHistory!=='undefined') NoteHistory.load(val, season, 'entw-history-box-staff');
+    } else {
+      if(cps){ try{ cps.dispatchEvent(new Event('change')); }catch(e){} }
+      var zb=el('ziel-staff-body'); if(zb) zb.innerHTML='<p class="muted" style="font-size:13px;">Bitte oben eine/n Spieler/in auswählen.</p>';
+    }
+  }
+  // Aus der Übersichtstabelle heraus einen Spieler öffnen
+  function openPlayer(id){
+    var m=el('entw-player-select'); if(m) m.value=id;
+    selectPlayer();
+    scrollToTop();
+  }
+  return { staffInit: staffInit, selectPlayer: selectPlayer, openPlayer: openPlayer };
+})();
+
+/* ══════════════════════════════════════════════════════════════
+   📜 NOTE-HISTORY — Versionshistorie (append-only, zeitgestempelt)
+   Speichert Snapshots von Notizfeldern; zeigt sie chronologisch (neu→alt).
+   ══════════════════════════════════════════════════════════════ */
+var NoteHistory = (function(){
+  var _last = {};   // context -> zuletzt gespeicherter Inhalt (Duplikat-Schutz)
+  function fmt(ts){
+    try{ var d=new Date(ts); var p=function(n){return('0'+n).slice(-2);};
+      return p(d.getDate())+'.'+p(d.getMonth()+1)+'.'+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes()); }
+    catch(e){ return ''; }
+  }
+  function load(playerId, season, boxId){
+    var box=el(boxId); if(!box) return;
+    if(!playerId){ box.innerHTML='<p class="muted" style="font-size:12px;">Kein Spieler ausgewählt.</p>'; return; }
+    box.innerHTML='<div class="spinner" style="margin:12px auto;"></div>';
+    sb.rpc('get_notes_history',{p_player_id:playerId, p_season:season||null}).then(function(r){
+      if(r.error){ box.innerHTML='<p class="muted" style="font-size:12px;">Historie nicht verfügbar.</p>'; return; }
+      var rows=r.data||[];
+      _last={};
+      rows.forEach(function(n){ if(_last[n.context]===undefined) _last[n.context]=n.content; });
+      render(boxId, rows);
+    });
+  }
+  function render(boxId, rows){
+    var box=el(boxId); if(!box) return;
+    if(!rows.length){ box.innerHTML='<p class="muted" style="font-size:12px;">Noch keine Einträge in der Versionshistorie.</p>'; return; }
+    box.innerHTML = rows.map(function(n){
+      var internal = n.is_internal ? '<span style="color:rgba(255,68,136,0.85); font-weight:700;">🔒 intern</span> · ' : '';
+      return '<div style="padding:10px 12px; border-left:2px solid rgba(168,85,247,0.4); background:rgba(255,255,255,0.02); border-radius:0 8px 8px 0; margin-bottom:8px;">'
+        + '<div style="font-size:10.5px; color:var(--text-3); margin-bottom:4px;">'+internal+esc(fmt(n.created_at))+' · '+esc(n.author_name||'—')+' · <b style="color:var(--text-2);">'+esc(n.context_label||n.context)+'</b></div>'
+        + '<div style="font-size:13px; color:var(--text-1); line-height:1.6; white-space:pre-wrap;">'+esc(n.content)+'</div>'
+        + '</div>';
+    }).join('');
+  }
+  function snapshot(playerId, season, context, label, content, isInternal){
+    if(!playerId || !content || !String(content).trim()) return Promise.resolve(false);
+    if(_last[context] === content) return Promise.resolve(false);   // unverändert → kein Duplikat
+    return sb.rpc('add_dev_note',{p_player_id:playerId, p_season:season||null, p_context:context,
+                                  p_context_label:label, p_content:content, p_is_internal:!!isInternal})
+      .then(function(r){ if(!r.error){ _last[context]=content; return true; } return false; })
+      .catch(function(){ return false; });
+  }
+  function toggle(id){
+    var b=el(id); if(!b) return;
+    b.classList.toggle('hidden');
+    var c=el(id+'-caret'); if(c) c.textContent = b.classList.contains('hidden')?'▸':'▾';
+  }
+  return { load:load, render:render, snapshot:snapshot, toggle:toggle };
 })();
 
 /* ══════════════════════════════════════════════════════════════
@@ -9017,6 +9141,14 @@ var CAPRA = (function(){
       if(r.error){ if(msg){ msg.textContent='⚠️ Fehler: '+r.error.message; msg.style.color='var(--bad)'; } return; }
       if(msg){ msg.textContent='✅ Gespeichert & protokolliert — '+_fmtDatetime(new Date().toISOString()); msg.style.color='var(--good)'; }
       _toast('CAPRA gespeichert','success');
+      // Notiz-Historie: Snapshots der Notizfelder (nur bei Änderung)
+      if(typeof NoteHistory!=='undefined'){
+        Promise.all([
+          NoteHistory.snapshot(pid, season, 'capra_staerken',    'CAPRA · Stärken',           params.p_staerken_text,    false),
+          NoteHistory.snapshot(pid, season, 'capra_entwicklung', 'CAPRA · Nächster Schritt',  params.p_entwicklung_text, false),
+          NoteHistory.snapshot(pid, season, 'capra_notiz',       'CAPRA · Interne Notiz',     params.p_trainer_notiz,    true)
+        ]).then(function(){ NoteHistory.load(pid, season, 'entw-history-box-staff'); });
+      }
       // History nachladen
       var season2=el('capra-season-select')&&el('capra-season-select').value;
       sb.rpc('get_capra_history',{p_player_id:pid}).then(function(r2){
