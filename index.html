@@ -141,7 +141,7 @@ body {
 .field-penalty-box-right {
   display: block !important;
   position: absolute; border-radius: 50%;
-  filter: blur(80px); will-change: transform;
+  filter: blur(80px);
 }
 .field-center-line {
   width: 700px; height: 700px;
@@ -382,7 +382,8 @@ body {
   font-family: var(--font-body);
   font-size: var(--text-sm); font-weight: 600;
   cursor: pointer; border: none;
-  transition: all var(--dur-fast) var(--ease-out);
+  transition: transform var(--dur-fast) cubic-bezier(0.16,1,0.3,1),
+              box-shadow var(--dur-fast) cubic-bezier(0.16,1,0.3,1);
   white-space: nowrap; position: relative;
   text-decoration: none; line-height: 1;
   background: linear-gradient(135deg, var(--accent2), var(--accent));
@@ -390,10 +391,10 @@ body {
   box-shadow: 0 4px 20px rgba(var(--accent-rgb),0.35);
 }
 .g-btn:hover, .btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 28px rgba(var(--accent-rgb),0.5);
+  transform: translateY(-2px) scale(1.015);
+  box-shadow: 0 8px 32px rgba(var(--accent-rgb),0.52);
 }
-.g-btn:active, .btn:active { transform: scale(0.97) translateY(0); }
+.g-btn:active, .btn:active { transform: scale(0.96) translateY(0); transition-duration: 80ms; }
 .g-btn:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* Ghost Button */
@@ -449,7 +450,10 @@ body {
   background: var(--glass-bg-2);
   border: 1px solid var(--glass-border);
   color: var(--text-2);
-  transition: all var(--dur-base) var(--ease-out);
+  transition: background var(--dur-base) var(--ease-out),
+              border-color var(--dur-base) var(--ease-out),
+              color var(--dur-base) var(--ease-out),
+              box-shadow var(--dur-base) var(--ease-out);
 }
 .pill.active, .pill.open {
   background: var(--accent-10); color: var(--accent);
@@ -496,7 +500,11 @@ body {
   cursor: pointer; border: 1px solid transparent;
   background: transparent; color: var(--text-3);
   font-family: var(--font-body);
-  transition: all var(--dur-base) var(--ease-out);
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out),
+              box-shadow var(--dur-fast) var(--ease-out),
+              transform var(--dur-fast) cubic-bezier(0.16,1,0.3,1);
 }
 .nav button:hover, .nav .g-tab:hover {
   color: #fff; background: var(--accent-18);
@@ -519,14 +527,14 @@ body {
 .nav-wrap button, .nav-wrap .g-tab {
   border-radius: var(--r-md);
 }
-.dash-tile { background: rgba(255,255,255,0.03); transition: all var(--dur-base) var(--ease-out); }
+.dash-tile { background: rgba(255,255,255,0.03); transition: background var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out), transform var(--dur-base) cubic-bezier(0.16,1,0.3,1); }
 .dash-tile:hover { background: var(--accent-10); border-color: var(--accent-28); box-shadow: 0 0 20px var(--accent-18), var(--glow-sm); transform: translateY(-3px); }
 /* Hover-Hilfe: Panel erscheint nur, wenn man ueber den Button faehrt (oder ihn per Tastatur fokussiert) */
 .help-hover-panel { display:none; }
 .help-hover-wrap:hover .help-hover-panel,
 .help-hover-wrap:focus-within .help-hover-panel { display:block; }
 /* Checkbox-Label, das beim Ankreuzen deutlich sichtbar hervortritt (Farbe/Rahmen/Fettschrift) - wirkt sofort, auch ohne JS */
-.checkbox-label { transition: all 0.15s ease; }
+.checkbox-label { transition: background 0.13s var(--ease-out), border-color 0.13s var(--ease-out), color 0.13s var(--ease-out); }
 .checkbox-label:has(input:checked) {
   background: rgba(230,180,40,0.20) !important;
   border-color: rgba(230,180,40,0.7) !important;
@@ -551,7 +559,10 @@ body {
   font-size: var(--text-sm); font-weight: 500; cursor: pointer;
   border: none; background: none; color: var(--text-3);
   font-family: var(--font-body); text-align: center;
-  transition: all var(--dur-base) var(--ease-out);
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out),
+              box-shadow var(--dur-fast) var(--ease-out);
 }
 .g-tab:hover { color: var(--text-1); background: var(--glass-bg-2); }
 .g-tab.active { background: var(--accent-10); color: var(--accent); border: 1px solid var(--accent-28); box-shadow: var(--glow-sm); }
@@ -707,7 +718,9 @@ p  { color: var(--text-2); font-size: var(--text-sm); line-height: 1.6; }
   border-radius: var(--r-lg);
   padding: var(--sp-4);
   cursor: pointer;
-  transition: all var(--dur-base) var(--ease-out);
+  transition: border-color var(--dur-base) var(--ease-out),
+              box-shadow var(--dur-base) var(--ease-out),
+              transform var(--dur-base) cubic-bezier(0.16,1,0.3,1);
   position: relative; overflow: hidden;
 }
 .mod:hover { border-color: var(--glass-border-2); box-shadow: var(--glow-accent); transform: translateY(-2px); }
@@ -785,7 +798,9 @@ p  { color: var(--text-2); font-size: var(--text-sm); line-height: 1.6; }
   background: var(--glass-bg);
   cursor: pointer; font-size: var(--text-sm);
   color: var(--text-2);
-  transition: all var(--dur-base) var(--ease-out);
+  transition: border-color var(--dur-fast) var(--ease-out),
+              background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
   margin-bottom: var(--sp-2);
 }
 .opt:hover { border-color: var(--glass-border-2); background: var(--glass-bg-2); color: var(--text-1); }
@@ -849,7 +864,10 @@ p  { color: var(--text-2); font-size: var(--text-sm); line-height: 1.6; }
   border: 1px solid var(--glass-border);
   background: var(--glass-bg); color: var(--text-3);
   cursor: pointer; font-size: var(--text-sm); font-weight: 700;
-  transition: all var(--dur-base) var(--ease-out);
+  transition: border-color var(--dur-fast) var(--ease-out),
+              background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out),
+              box-shadow var(--dur-fast) var(--ease-out);
   display: flex; align-items: center; justify-content: center;
 }
 .logbuch-day-btn:hover { border-color: var(--glass-border-2); color: var(--text-1); }
@@ -862,7 +880,8 @@ p  { color: var(--text-2); font-size: var(--text-sm); line-height: 1.6; }
   border-radius: var(--r-md);
   border: 1px solid var(--glass-border);
   background: var(--glass-bg);
-  transition: all var(--dur-base) var(--ease-out);
+  transition: border-color var(--dur-fast) var(--ease-out),
+              background var(--dur-fast) var(--ease-out);
 }
 .unlock-item:hover { border-color: var(--glass-border-2); background: var(--glass-bg-2); }
 
@@ -976,11 +995,11 @@ footer {
       <div class="card" style="max-width:380px; width:100%; padding:26px 26px 28px;">
         <p class="eyebrow" style="text-align:center; margin-bottom:18px;">🔐 Anmelden</p>
         <div style="margin-bottom:14px;">
-          <p style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-3); margin-bottom:6px;">Benutzername</p>
+          <label for="in-user" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-3); margin-bottom:6px;">Benutzername</label>
           <input id="in-user" autocomplete="username" placeholder="z.B. noah" onkeydown="if(event.key==='Enter') doLogin()" />
         </div>
         <div style="margin-bottom:22px;">
-          <p style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-3); margin-bottom:6px;">Passwort</p>
+          <label for="in-pass" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-3); margin-bottom:6px;">Passwort</label>
           <input id="in-pass" type="password" autocomplete="current-password" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()" />
         </div>
         <button class="btn" style="width:100%; justify-content:center;" onclick="doLogin()">Einloggen</button>
@@ -1142,6 +1161,7 @@ footer {
       <button id="stab-vor" class="sidebar-btn" onclick="showStaffTab('vor')"><span class="sb-icon">📚</span>Module ansehen</button>
       <button id="stab-inhalte" class="sidebar-btn" onclick="showStaffTab('inhalte')"><span class="sb-icon">✏️</span>Inhalte bearbeiten</button>
       <button id="stab-jonglier" class="sidebar-btn" onclick="showStaffTab('jonglier')"><span class="sb-icon">🎓</span>Jonglierreihe</button>
+      <button id="stab-capra" class="sidebar-btn" onclick="showStaffTab('capra')"><span class="sb-icon">🧠</span>CAPRA Bewertungen</button>
       <button id="stab-ziel" class="sidebar-btn" onclick="showStaffTab('ziel')"><span class="sb-icon">🎯</span>Zielvereinbarungen</button>
       <button id="stab-spiele" class="sidebar-btn" onclick="showStaffTab('spiele')"><span class="sb-icon">📅</span>Spielplan</button>
       <button id="stab-reflex" class="sidebar-btn" onclick="showStaffTab('reflex')"><span class="sb-icon">🪞</span>Selbstreflexion</button>
@@ -1530,6 +1550,53 @@ footer {
       <div id="jr-staff-body"><p class="muted" style="font-size:13px;">Bitte Spieler/in auswählen.</p></div>
     </div>
 
+    <!-- Staff: CAPRA Bewertungen -->
+    <div id="staff-capra" class="card hidden">
+      <p class="eyebrow">Charakterprofil</p>
+      <h3 style="margin:8px 0 6px; color:#fff;">🧠 CAPRA Bewertungen</h3>
+      <p class="muted" style="font-size:13px; margin-bottom:20px;">Spieler auswählen, alle 5 Dimensionen bewerten und optional für den Spieler freischalten.</p>
+
+      <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px;">
+        <div style="flex:1; min-width:200px;">
+          <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-3); margin-bottom:6px;">Spieler</label>
+          <select id="capra-player-select" style="width:100%;"></select>
+        </div>
+        <div style="min-width:120px;">
+          <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-3); margin-bottom:6px;">Saison</label>
+          <select id="capra-season-select">
+            <option value="2024/25">2024/25</option>
+            <option value="2025/26">2025/26</option>
+          </select>
+        </div>
+        <div style="display:flex; align-items:flex-end;">
+          <button class="btn btn-ghost" onclick="CAPRA.staffLoad()" style="white-space:nowrap;">🔄 Laden</button>
+        </div>
+      </div>
+
+      <div id="capra-staff-sliders" style="display:flex; flex-direction:column; gap:16px; margin-bottom:20px;"></div>
+
+      <div style="margin-bottom:16px;">
+        <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-3); margin-bottom:6px;">Trainer-Notiz (intern — Spieler sieht das nicht)</label>
+        <textarea id="capra-notiz" rows="3" placeholder="Persönliche Einschätzung, Entwicklungshinweise…" style="width:100%; resize:vertical;"></textarea>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+        <input type="checkbox" id="capra-finalize-cb" style="width:16px; height:16px; cursor:pointer; flex-shrink:0;" />
+        <label for="capra-finalize-cb" style="font-size:13px; color:var(--text-2); cursor:pointer;">Für Spieler sichtbar freischalten</label>
+      </div>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
+        <button class="btn" onclick="CAPRA.staffSave()">💾 Speichern</button>
+      </div>
+      <p id="capra-staff-msg" class="hidden" style="font-size:13px; font-weight:600;"></p>
+
+      <!-- Vorschau -->
+      <div id="capra-staff-preview" class="hidden" style="margin-top:20px; padding-top:20px; border-top:1px solid var(--line);">
+        <p style="font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:rgba(168,85,247,0.6); margin-bottom:12px;">Radar-Vorschau</p>
+        <svg id="capra-radar-staff" width="180" height="180" viewBox="0 0 200 200" aria-label="CAPRA Vorschau"></svg>
+      </div>
+    </div>
+
     <div id="staff-ziel" class="card hidden">
       <p class="eyebrow">Individuelle Entwicklung</p>
       <h3 style="margin:8px 0 16px; color:#fff;">🎯 Zielvereinbarungen — Übersicht</h3>
@@ -1611,6 +1678,7 @@ footer {
 
       <div class="sidebar-group-label">Meine Entwicklung</div>
       <button id="tab-ziel" class="sidebar-btn" onclick="showPlayerTab('ziel')"><span class="sb-icon">🎯</span>Zielvereinbarung</button>
+      <button id="tab-capra" class="sidebar-btn" onclick="showPlayerTab('capra')"><span class="sb-icon">🧠</span>CAPRA Profil</button>
       <button id="tab-spiele" class="sidebar-btn" onclick="showPlayerTab('spiele')"><span class="sb-icon">📅</span>Spielplan / Selbstreflexion</button>
       <button id="tab-ernaehrung" class="sidebar-btn" onclick="showPlayerTab('ernaehrung')"><span class="sb-icon">🍎</span>Ernährung &amp; Erholung</button>
 
@@ -1934,6 +2002,76 @@ footer {
   </div>
 
   <!-- ============ HILFE / LEXIKON (SPIELER) ============ -->
+  <!-- ═══ CAPRA — Charakterprofil ═══════════════════════════════════ -->
+  <div id="view-capra" class="hidden" style="padding-top:20px; padding-bottom:48px;">
+    <div style="max-width:820px; margin:0 auto; padding:0 var(--sp-5);">
+
+      <!-- Header -->
+      <div style="margin-bottom:24px;">
+        <p style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:rgba(168,85,247,0.65); margin-bottom:6px;">Mein Profil · FE12</p>
+        <h2 style="font-size:26px; font-weight:800; color:#f0e8ff; margin:0 0 4px;" id="capra-player-title">Charakterprofil</h2>
+        <p style="font-size:12.5px; color:var(--text-3);" id="capra-season-label">Saison 2024/25</p>
+      </div>
+
+      <!-- Kein Profil vorhanden -->
+      <div id="capra-empty" class="hidden">
+        <div class="card" style="text-align:center; padding:40px 24px;">
+          <div style="font-size:42px; margin-bottom:12px;">🧠</div>
+          <h3 style="color:#fff; margin:0 0 8px;">Noch keine Bewertung</h3>
+          <p class="muted" style="font-size:13px; max-width:360px; margin:0 auto;">Dein CAPRA-Profil wird vom Trainerteam erstellt. Schau nach dem nächsten Gespräch mit deinem Trainer wieder rein.</p>
+        </div>
+      </div>
+
+      <!-- Orbital Profil (wenn Daten vorhanden) -->
+      <div id="capra-content" class="hidden">
+
+        <!-- Orbital Card mit Radar -->
+        <div class="capra-orbital-card" style="position:relative; background:rgba(13,10,36,0.92); border:1px solid rgba(168,85,247,0.22); border-radius:20px; padding:28px 28px 24px; margin-bottom:16px; overflow:hidden;">
+          <!-- Aurora-Hintergrund -->
+          <div style="position:absolute; inset:0; pointer-events:none; overflow:hidden; border-radius:20px;">
+            <div style="position:absolute; width:400px; height:400px; background:radial-gradient(circle, rgba(168,85,247,0.13) 0%, transparent 70%); top:-100px; left:-80px; animation:g-drift1 14s ease-in-out infinite alternate;"></div>
+            <div style="position:absolute; width:300px; height:300px; background:radial-gradient(circle, rgba(109,40,217,0.09) 0%, transparent 70%); bottom:-60px; right:-60px; animation:g-drift2 18s ease-in-out infinite alternate;"></div>
+          </div>
+
+          <div style="position:relative; z-index:1; display:flex; gap:28px; align-items:flex-start; flex-wrap:wrap;">
+
+            <!-- Radar Chart -->
+            <div style="flex-shrink:0;">
+              <svg id="capra-radar" width="200" height="200" viewBox="0 0 200 200" aria-label="CAPRA Radar-Chart"></svg>
+            </div>
+
+            <!-- Dimensionen -->
+            <div style="flex:1; min-width:240px;">
+              <div id="capra-dims" style="display:flex; flex-direction:column; gap:10px;"></div>
+              <!-- Gesamtscore -->
+              <div style="margin-top:16px; padding:12px 16px; background:rgba(168,85,247,0.1); border:1px solid rgba(168,85,247,0.22); border-radius:12px; display:flex; align-items:center; gap:14px;">
+                <div>
+                  <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:rgba(168,85,247,0.65); margin-bottom:2px;">CAPRA Score</div>
+                  <div style="font-size:28px; font-weight:800; color:#f0e8ff;" id="capra-total">—</div>
+                </div>
+                <div style="flex:1; font-size:12px; color:var(--text-3); line-height:1.55;" id="capra-verdict"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trainer Auswertung (kein trainer_notiz — das bleibt intern) -->
+        <div class="card" style="margin-bottom:12px;" id="capra-coaching-card">
+          <p style="font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:rgba(168,85,247,0.6); margin-bottom:8px;">Was bedeutet das für mich?</p>
+          <div id="capra-coaching-text" style="font-size:13.5px; color:var(--text-2); line-height:1.7;"></div>
+        </div>
+
+        <!-- Tipps je nach schwächster Dimension -->
+        <div class="card" id="capra-focus-card">
+          <p style="font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:rgba(168,85,247,0.6); margin-bottom:8px;">🎯 Mein Fokus-Bereich</p>
+          <div id="capra-focus-text" style="font-size:13.5px; color:var(--text-2); line-height:1.7;"></div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
   <div id="view-hilfe" class="hidden" style="padding-top:20px; padding-bottom:40px;">
     <div class="card" style="max-width:820px; margin:0 auto;">
       <p class="eyebrow">Nachschlagewerk</p>
@@ -2259,7 +2397,7 @@ function fmtDT(ts){
 }
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
 function only(id){
-  var v=["view-setup","view-login","view-closed","view-modules","view-learn","view-quiz","view-result","view-rang","view-skills","view-staff","view-register","view-schach","view-ziel","view-spiele","view-dashboard-player","view-hilfe","view-ernaehrung"];
+  var v=["view-setup","view-login","view-closed","view-modules","view-learn","view-quiz","view-result","view-rang","view-skills","view-staff","view-register","view-schach","view-ziel","view-spiele","view-dashboard-player","view-hilfe","view-ernaehrung","view-capra"];
   for(var i=0;i<v.length;i++) hide(v[i]);
   show(id);
 }
@@ -2694,7 +2832,7 @@ function openSkillsOnly(){
 function showPlayerTab(t){
   scrollToTop();
   playerTab=t;
-  ["dashboard","lernen","skills","schach","rang","ziel","spiele","ernaehrung","hilfe"].forEach(function(k){
+  ["dashboard","lernen","skills","schach","rang","ziel","capra","spiele","ernaehrung","hilfe"].forEach(function(k){
     var btn = el("tab-"+k);
     if(btn){ btn.classList.toggle("active", k===t); }
   });
@@ -2727,6 +2865,10 @@ function showPlayerTab(t){
   } else if(t==="ernaehrung") {
     only("view-ernaehrung"); show("app-head"); show("player-nav");
     loadPlayerStats();
+  } else if(t==="capra") {
+    only("view-capra"); show("app-head"); show("player-nav");
+    loadPlayerStats();
+    CAPRA.loadPlayer();
   } else if(t==="hilfe") {
     only("view-hilfe"); show("app-head"); show("player-nav");
     loadPlayerStats();
@@ -3543,7 +3685,7 @@ function loadStaffDashboard(){
 function showStaffTab(t){
   scrollToTop();
   staffTab = t;
-  ["dashboard","kader","skills","rang","frei","zeit","runden","log","vor","spieler","consent","anfragen","inhalte","jonglier","ziel","spiele","reflex","archiv"].forEach(function(k){
+  ["dashboard","kader","skills","rang","frei","zeit","runden","log","vor","spieler","consent","anfragen","inhalte","jonglier","capra","ziel","spiele","reflex","archiv"].forEach(function(k){
     var btn = el("stab-"+k);
     if(btn){ btn.classList.toggle("active", k===t); }
     var c = el("staff-"+k); if(c) c.classList.toggle("hidden", k!==t);
@@ -3575,6 +3717,7 @@ function showStaffTab(t){
   if(t==="anfragen") loadSupportRequests();
   if(t==="inhalte") CE.load();
   if(t==="jonglier") loadJrStaffForm();
+  if(t==="capra") CAPRA.staffInit();
   if(t==="ziel") Ziel.staffInit();
   if(t==="spiele") Spielplan.staffInit();
   if(t==="reflex") Reflex.staffInit();
@@ -8394,6 +8537,280 @@ var Reflex = (function(){
     staffToggleDetail: staffToggleDetail,
     staffReset: staffReset,
     exportBulkPdf: exportBulkPdf
+  };
+})();
+
+/* ══════════════════════════════════════════════════════════════
+   🧠 CAPRA — Charakterprofil-System
+   C = Charakter · A = Ausstrahlung · P = Persönlichkeit
+   R = Resilienz · A = Auftreten
+   Trainer bewertet, Spieler sieht Radar + Score (ohne Notiz)
+   ══════════════════════════════════════════════════════════════ */
+var CAPRA = (function(){
+
+  var DIMS = [
+    { key:'charakter',      label:'Charakter',      short:'C', color:'#a855f7', desc:'Verantwortung, Ehrlichkeit, Teamgeist' },
+    { key:'ausstrahlung',   label:'Ausstrahlung',   short:'A', color:'#818cf8', desc:'Präsenz und Wirkung im Team' },
+    { key:'persoenlichkeit',label:'Persönlichkeit', short:'P', color:'#22c97a', desc:'Führungsqualitäten, Eigeninitiative' },
+    { key:'resilienz',      label:'Resilienz',      short:'R', color:'#f59e0b', desc:'Umgang mit Rückschlägen und Druck' },
+    { key:'auftreten',      label:'Auftreten',      short:'A₂',color:'#00f0ff', desc:'Körpersprache und Selbstpräsentation' }
+  ];
+
+  // ── Radar SVG zeichnen ──────────────────────────────────────
+  function drawRadar(svgId, vals) {
+    var svg = el(svgId);
+    if (!svg) return;
+    var cx = 100, cy = 100, R = 78, n = 5;
+    var pts = DIMS.map(function(_, i) {
+      var a = (Math.PI * 2 * i / n) - Math.PI / 2;
+      return { x: cx + R * Math.cos(a), y: cy + R * Math.sin(a) };
+    });
+    // Grid (3 Ringe)
+    var grid = '';
+    [0.33, 0.66, 1].forEach(function(f) {
+      var gPts = pts.map(function(p) {
+        return (cx + (p.x - cx) * f) + ',' + (cy + (p.y - cy) * f);
+      }).join(' ');
+      grid += '<polygon points="' + gPts + '" fill="none" stroke="rgba(168,85,247,0.15)" stroke-width="0.8"/>';
+    });
+    // Achsen
+    var axes = pts.map(function(p) {
+      return '<line x1="' + cx + '" y1="' + cy + '" x2="' + p.x + '" y2="' + p.y + '" stroke="rgba(168,85,247,0.12)" stroke-width="0.8"/>';
+    }).join('');
+    // Datenpunkt-Polygon
+    var dataPts = pts.map(function(p, i) {
+      var v = Math.max(0, Math.min(10, vals[i] || 0)) / 10;
+      return (cx + (p.x - cx) * v) + ',' + (cy + (p.y - cy) * v);
+    }).join(' ');
+    var dataShape = '<polygon points="' + dataPts + '" fill="rgba(168,85,247,0.22)" stroke="#a855f7" stroke-width="2" stroke-linejoin="round"/>';
+    // Datenpunkte (Dots)
+    var dots = pts.map(function(p, i) {
+      var v = Math.max(0, Math.min(10, vals[i] || 0)) / 10;
+      var dx = cx + (p.x - cx) * v;
+      var dy = cy + (p.y - cy) * v;
+      return '<circle cx="' + dx + '" cy="' + dy + '" r="3.5" fill="' + DIMS[i].color + '"/>';
+    }).join('');
+    // Achsenbeschriftung
+    var labels = pts.map(function(p, i) {
+      var lx = cx + (p.x - cx) * 1.2;
+      var ly = cy + (p.y - cy) * 1.2;
+      return '<text x="' + lx + '" y="' + ly + '" text-anchor="middle" dominant-baseline="central" fill="rgba(240,232,255,0.75)" font-size="11" font-weight="700" font-family="Sora,sans-serif">' + DIMS[i].short + '</text>';
+    }).join('');
+    // Mittelpunkt
+    var center = '<circle cx="' + cx + '" cy="' + cy + '" r="4" fill="rgba(168,85,247,0.45)"/>';
+    svg.innerHTML = grid + axes + dataShape + dots + labels + center;
+  }
+
+  // ── Dimensions-Kacheln (Spieler-Ansicht) ───────────────────
+  function renderDims(containerId, data) {
+    var box = el(containerId);
+    if (!box) return;
+    var html = '';
+    DIMS.forEach(function(d) {
+      var v = parseFloat(data[d.key]) || 0;
+      var pct = (v / 10 * 100).toFixed(0);
+      html += '<div style="display:flex;align-items:center;gap:12px;">';
+      html += '<div style="width:32px;height:32px;border-radius:9px;background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.22);display:flex;align-items:center;justify-content:center;flex-shrink:0;">';
+      html += '<span style="font-size:12px;font-weight:800;color:' + d.color + ';">' + d.short + '</span></div>';
+      html += '<div style="flex:1;min-width:0;">';
+      html += '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">';
+      html += '<span style="font-size:12px;font-weight:700;color:var(--text-2);">' + d.label + '</span>';
+      html += '<span style="font-size:13px;font-weight:800;color:#f0e8ff;">' + v.toFixed(1) + '</span></div>';
+      html += '<div style="height:4px;border-radius:99px;background:rgba(168,85,247,0.12);">';
+      html += '<div style="height:100%;width:' + pct + '%;border-radius:99px;background:linear-gradient(90deg,' + d.color + '88,' + d.color + ');transition:width .6s cubic-bezier(0.16,1,0.3,1);"></div></div>';
+      html += '<span style="font-size:10.5px;color:var(--text-3);">' + d.desc + '</span>';
+      html += '</div></div>';
+    });
+    box.innerHTML = html;
+  }
+
+  // ── Slider-Rendering (Staff-Formular) ──────────────────────
+  function renderSliders(containerId) {
+    var box = el(containerId);
+    if (!box) return;
+    var html = '';
+    DIMS.forEach(function(d) {
+      html += '<div>';
+      html += '<div style="display:flex;justify-content:space-between;margin-bottom:6px;">';
+      html += '<label style="font-size:12px;font-weight:700;color:var(--text-2);">';
+      html += '<span style="color:' + d.color + ';font-weight:800;">' + d.short + '</span> ' + d.label;
+      html += ' <span style="font-size:11px;color:var(--text-3);">— ' + d.desc + '</span></label>';
+      html += '<span id="capra-val-' + d.key + '" style="font-size:15px;font-weight:800;color:#f0e8ff;min-width:32px;text-align:right;">5.0</span></div>';
+      html += '<input type="range" id="capra-slider-' + d.key + '" min="0" max="10" step="0.5" value="5"';
+      html += ' oninput="(function(el,id){var v=parseFloat(el.value);var disp=document.getElementById(id);if(disp)disp.textContent=v.toFixed(1);CAPRA._previewRadar();})(this,\'capra-val-' + d.key + '\')"';
+      html += ' style="width:100%;" />';
+      html += '</div>';
+    });
+    box.innerHTML = html;
+  }
+
+  // ── Radar-Vorschau im Staff-Form (live) ────────────────────
+  function _previewRadar() {
+    var staffSvgId = 'capra-radar-staff';
+    if (!el(staffSvgId)) return;
+    var vals = DIMS.map(function(d) {
+      var s = el('capra-slider-' + d.key);
+      return s ? parseFloat(s.value) : 5;
+    });
+    el('capra-staff-preview') && el('capra-staff-preview').classList.remove('hidden');
+    drawRadar(staffSvgId, vals);
+  }
+
+  // ── Verdikt-Text generieren ────────────────────────────────
+  function _makeVerdict(data) {
+    var vals = DIMS.map(function(d) { return parseFloat(data[d.key]) || 0; });
+    var total = vals.reduce(function(a, b) { return a + b; }, 0) / vals.length;
+    var minIdx = vals.indexOf(Math.min.apply(null, vals));
+    var maxIdx = vals.indexOf(Math.max.apply(null, vals));
+    var verdikt = '';
+    if (total >= 8) verdikt = '🌟 Aussergewöhnliches Gesamtprofil — du bist in allen Bereichen stark.';
+    else if (total >= 6.5) verdikt = '💪 Gutes Profil mit klaren Stärken. Weiter so!';
+    else if (total >= 5) verdikt = '📈 Solide Basis — mit gezieltem Fokus noch viel Potenzial.';
+    else verdikt = '🌱 Frühe Phase — jeder startet irgendwo. Dein Einsatz zählt!';
+    return {
+      total: total.toFixed(1),
+      verdikt: verdikt,
+      coaching: 'Deine stärkste Dimension ist <b style="color:#f0e8ff;">' + DIMS[maxIdx].label + '</b>. ' +
+        'Das ist dein natürliches Kapital im Team — nutze es bewusst.',
+      focus: '<b style="color:#f0e8ff;">' + DIMS[minIdx].label + '</b> ist dein Wachstumsbereich. ' +
+        DIMS[minIdx].desc + ' — sprich das mit deinem Trainer an und setze dir ein konkretes Ziel dafür.'
+    };
+  }
+
+  // ── Spieler: eigenes Profil laden ─────────────────────────
+  function loadPlayer() {
+    var empty = el('capra-empty');
+    var content = el('capra-content');
+    if (!empty || !content) return;
+    empty.classList.add('hidden');
+    content.classList.add('hidden');
+
+    // Lade-Spinner in capra-dims zeigen
+    var dimsBox = el('capra-dims');
+    if (dimsBox) dimsBox.innerHTML = '<div class="spinner" style="margin:20px auto;"></div>';
+
+    sb.rpc('get_my_capra').then(function(r) {
+      var rows = r.data || [];
+      if (!rows.length || r.error) {
+        empty.classList.remove('hidden');
+        return;
+      }
+      var d = rows[0];
+      var res = _makeVerdict(d);
+
+      // Saison
+      var seasonLabel = el('capra-season-label');
+      if (seasonLabel) seasonLabel.textContent = 'Saison ' + (d.season || '2024/25');
+
+      // Radar
+      var vals = DIMS.map(function(dim) { return parseFloat(d[dim.key]) || 0; });
+      drawRadar('capra-radar', vals);
+
+      // Dimensions-Kacheln
+      renderDims('capra-dims', d);
+
+      // Score + Verdikt
+      var totalEl = el('capra-total');
+      var verdiktEl = el('capra-verdict');
+      if (totalEl) totalEl.textContent = res.total + ' / 10';
+      if (verdiktEl) verdiktEl.innerHTML = res.verdikt;
+
+      // Coaching
+      var coachEl = el('capra-coaching-text');
+      if (coachEl) coachEl.innerHTML = res.coaching;
+      var focusEl = el('capra-focus-text');
+      if (focusEl) focusEl.innerHTML = res.focus;
+
+      content.classList.remove('hidden');
+    }).catch(function() {
+      empty.classList.remove('hidden');
+    });
+  }
+
+  // ── Staff: Formular initialisieren ────────────────────────
+  function staffInit() {
+    renderSliders('capra-staff-sliders');
+    // Spielerliste laden
+    sb.from('profiles').select('id,display_name').eq('role','spieler').eq('is_active',true).order('display_name').then(function(r) {
+      var sel = el('capra-player-select');
+      if (!sel) return;
+      sel.innerHTML = '<option value="">— Spieler wählen —</option>';
+      (r.data || []).forEach(function(p) {
+        sel.innerHTML += '<option value="' + p.id + '">' + esc(p.display_name) + '</option>';
+      });
+    });
+    // Vorschau initial zeichnen
+    _previewRadar();
+  }
+
+  // ── Mini-Toast ─────────────────────────────────────────────
+  function _toast(msg, type) {
+    var t = document.createElement('div');
+    t.textContent = msg;
+    var color = type === 'success' ? 'rgba(34,201,122,0.5)' : type === 'error' ? 'rgba(255,68,136,0.5)' : 'rgba(168,85,247,0.4)';
+    t.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--bg-card);border:1px solid ' + color + ';color:#fff;padding:10px 18px;border-radius:var(--r-md);z-index:10001;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.5);pointer-events:none;';
+    document.body.appendChild(t);
+    setTimeout(function() { if(t.parentNode) t.parentNode.removeChild(t); }, 3000);
+  }
+
+  // ── Staff: bestehende Bewertung laden ─────────────────────
+  function staffLoad() {
+    var pid = el('capra-player-select') && el('capra-player-select').value;
+    var season = el('capra-season-select') && el('capra-season-select').value;
+    if (!pid) { _toast('Bitte Spieler auswählen', 'error'); return; }
+    sb.rpc('get_player_capra', { p_player_id: pid }).then(function(r) {
+      var rows = (r.data || []).filter(function(x) { return x.season === season; });
+      if (!rows.length) { _toast('Noch keine Bewertung für diese Saison', 'info'); return; }
+      var d = rows[0];
+      DIMS.forEach(function(dim) {
+        var s = el('capra-slider-' + dim.key);
+        var v = el('capra-val-' + dim.key);
+        if (s) { s.value = parseFloat(d[dim.key]) || 5; }
+        if (v) { v.textContent = (parseFloat(d[dim.key]) || 5).toFixed(1); }
+      });
+      var notiz = el('capra-notiz');
+      if (notiz) notiz.value = d.trainer_notiz || '';
+      var fin = el('capra-finalize-cb');
+      if (fin) fin.checked = !!d.finalized;
+      _previewRadar();
+      _toast('Bewertung geladen', 'success');
+    });
+  }
+
+  // ── Staff: Bewertung speichern ─────────────────────────────
+  function staffSave() {
+    var pid = el('capra-player-select') && el('capra-player-select').value;
+    var season = el('capra-season-select') && el('capra-season-select').value;
+    if (!pid) { _toast('Bitte Spieler auswählen', 'error'); return; }
+    var params = {
+      p_player_id: pid,
+      p_season: season,
+      p_trainer_notiz: (el('capra-notiz') && el('capra-notiz').value) || null,
+      p_finalized: !!(el('capra-finalize-cb') && el('capra-finalize-cb').checked)
+    };
+    DIMS.forEach(function(d) {
+      var s = el('capra-slider-' + d.key);
+      params['p_' + d.key] = s ? parseFloat(s.value) : 5;
+    });
+    var msg = el('capra-staff-msg');
+    if (msg) { msg.textContent = '⏳ Speichert…'; msg.style.color = 'var(--text-3)'; msg.classList.remove('hidden'); }
+    sb.rpc('upsert_capra_assessment', params).then(function(r) {
+      if (r.error) {
+        if (msg) { msg.textContent = '⚠️ Fehler: ' + r.error.message; msg.style.color = 'var(--bad)'; }
+        return;
+      }
+      if (msg) { msg.textContent = '✅ Gespeichert!'; msg.style.color = 'var(--good)'; }
+      _toast('CAPRA gespeichert', 'success');
+      setTimeout(function() { if(msg) msg.classList.add('hidden'); }, 3000);
+    });
+  }
+
+  return {
+    loadPlayer: loadPlayer,
+    staffInit: staffInit,
+    staffLoad: staffLoad,
+    staffSave: staffSave,
+    _previewRadar: _previewRadar
   };
 })();
 
