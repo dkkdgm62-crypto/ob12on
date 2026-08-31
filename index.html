@@ -2063,89 +2063,91 @@ footer {
 
   <!-- ============ HILFE / LEXIKON (SPIELER) ============ -->
   <!-- ═══ CAPRA — Charakterprofil ═══════════════════════════════════ -->
-  <div id="view-capra" class="hidden" style="padding-top:20px; padding-bottom:48px;">
-    <div style="max-width:820px; margin:0 auto; padding:0 var(--sp-5);">
+  <div id="view-capra" class="hidden" style="padding-top:24px; padding-bottom:60px;">
+    <div style="max-width:980px; margin:0 auto; padding:0 var(--sp-5);">
 
       <!-- Header -->
-      <div style="margin-bottom:24px;">
-        <p style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:rgba(168,85,247,0.65); margin-bottom:6px;">Mein Profil · FE12</p>
-        <h2 style="font-size:26px; font-weight:800; color:#f0e8ff; margin:0 0 4px;" id="capra-player-title">Charakterprofil</h2>
-        <p style="font-size:12.5px; color:var(--text-3);" id="capra-season-label">Saison 2024/25</p>
+      <div style="margin-bottom:28px;">
+        <p style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:rgba(168,85,247,0.65); margin-bottom:8px;">Mein Profil · FE12</p>
+        <h2 style="font-size:32px; font-weight:800; color:#f0e8ff; margin:0 0 6px;" id="capra-player-title">Charakterprofil</h2>
+        <p style="font-size:14px; color:var(--text-3);" id="capra-season-label">Saison 2024/25</p>
       </div>
 
       <!-- Kein Profil vorhanden -->
       <div id="capra-empty" class="hidden">
-        <div class="card" style="text-align:center; padding:40px 24px;">
-          <div style="font-size:42px; margin-bottom:12px;">🧠</div>
-          <h3 style="color:#fff; margin:0 0 8px;">Noch keine Bewertung</h3>
-          <p class="muted" style="font-size:13px; max-width:360px; margin:0 auto;">Dein CAPRA-Profil wird vom Trainerteam erstellt. Schau nach dem nächsten Gespräch mit deinem Trainer wieder rein.</p>
+        <div class="card" style="text-align:center; padding:60px 24px;">
+          <div style="font-size:56px; margin-bottom:16px;">🧠</div>
+          <h3 style="color:#fff; font-size:20px; margin:0 0 10px;">Noch keine Bewertung</h3>
+          <p class="muted" style="font-size:14px; max-width:400px; margin:0 auto; line-height:1.7;">Dein CAPRA-Profil wird vom Trainerteam erstellt. Schau nach dem nächsten Gespräch mit deinem Trainer wieder rein.</p>
         </div>
       </div>
 
-      <!-- Orbital Profil (wenn Daten vorhanden) -->
+      <!-- Profil (wenn Daten vorhanden) -->
       <div id="capra-content" class="hidden">
 
-        <!-- Orbital Card mit Radar -->
-        <div class="capra-orbital-card" style="position:relative; background:rgba(13,10,36,0.92); border:1px solid rgba(168,85,247,0.22); border-radius:20px; padding:28px 28px 24px; margin-bottom:16px; overflow:hidden;">
-          <!-- Aurora-Hintergrund -->
+        <!-- ① SCORE-BANNER oben — gross & klar -->
+        <div id="capra-score-banner" style="position:relative; background:rgba(13,10,36,0.95); border:1px solid rgba(168,85,247,0.28); border-radius:20px; padding:32px 36px; margin-bottom:20px; overflow:hidden;">
           <div style="position:absolute; inset:0; pointer-events:none; overflow:hidden; border-radius:20px;">
-            <div style="position:absolute; width:400px; height:400px; background:radial-gradient(circle, rgba(168,85,247,0.13) 0%, transparent 70%); top:-100px; left:-80px; animation:g-drift1 14s ease-in-out infinite alternate;"></div>
-            <div style="position:absolute; width:300px; height:300px; background:radial-gradient(circle, rgba(109,40,217,0.09) 0%, transparent 70%); bottom:-60px; right:-60px; animation:g-drift2 18s ease-in-out infinite alternate;"></div>
+            <div style="position:absolute; width:500px; height:500px; background:radial-gradient(circle, rgba(168,85,247,0.12) 0%, transparent 70%); top:-150px; left:-100px; animation:g-drift1 14s ease-in-out infinite alternate;"></div>
+            <div style="position:absolute; width:400px; height:400px; background:radial-gradient(circle, rgba(109,40,217,0.08) 0%, transparent 70%); bottom:-80px; right:-80px; animation:g-drift2 18s ease-in-out infinite alternate;"></div>
           </div>
-
-          <div style="position:relative; z-index:1; display:flex; gap:28px; align-items:flex-start; flex-wrap:wrap;">
-
-            <!-- Radar Chart -->
-            <div style="flex-shrink:0;">
-              <svg id="capra-radar" width="200" height="200" viewBox="0 0 200 200" aria-label="CAPRA Radar-Chart"></svg>
+          <div style="position:relative; z-index:1;">
+            <p style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:rgba(168,85,247,0.6); margin-bottom:10px;">CAPRA Score</p>
+            <div style="display:flex; align-items:baseline; gap:12px; margin-bottom:12px;">
+              <span style="font-size:64px; font-weight:800; color:#f0e8ff; line-height:1;" id="capra-total">—</span>
+              <span style="font-size:22px; color:var(--text-3); font-weight:600;">/ 10</span>
             </div>
+            <div style="font-size:16px; color:var(--text-2); line-height:1.6;" id="capra-verdict"></div>
+          </div>
+        </div>
 
-            <!-- Dimensionen -->
-            <div style="flex:1; min-width:240px;">
-              <div id="capra-dims" style="display:flex; flex-direction:column; gap:10px;"></div>
-              <!-- Gesamtscore -->
-              <div style="margin-top:16px; padding:12px 16px; background:rgba(168,85,247,0.1); border:1px solid rgba(168,85,247,0.22); border-radius:12px; display:flex; align-items:center; gap:14px;">
-                <div>
-                  <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:rgba(168,85,247,0.65); margin-bottom:2px;">CAPRA Score</div>
-                  <div style="font-size:28px; font-weight:800; color:#f0e8ff;" id="capra-total">—</div>
-                </div>
-                <div style="flex:1; font-size:12px; color:var(--text-3); line-height:1.55;" id="capra-verdict"></div>
-              </div>
+        <!-- ② RADAR + PROFIL-TYP nebeneinander -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+
+          <!-- Radar -->
+          <div style="position:relative; background:rgba(13,10,36,0.92); border:1px solid rgba(168,85,247,0.18); border-radius:18px; padding:24px; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+            <div style="position:absolute; inset:0; pointer-events:none; background:radial-gradient(circle at 50% 50%, rgba(168,85,247,0.08) 0%, transparent 65%);"></div>
+            <svg id="capra-radar" width="320" height="320" viewBox="0 0 200 200" aria-label="CAPRA Radar-Chart" style="position:relative; z-index:1;"></svg>
+          </div>
+
+          <!-- Profil-Typ + Coaching -->
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <!-- Profil-Typ -->
+            <div id="capra-profil-banner" class="hidden" style="flex:0 0 auto; padding:22px 24px; border-radius:16px; background:linear-gradient(135deg,rgba(168,85,247,0.2),rgba(109,40,217,0.14)); border:1px solid rgba(168,85,247,0.35);">
+              <div id="capra-profil-icon" style="font-size:44px; margin-bottom:8px; line-height:1;"></div>
+              <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.12em; color:rgba(168,85,247,0.7); margin-bottom:6px;">Dein Spieler-Typ</div>
+              <div id="capra-profil-label" style="font-size:22px; font-weight:800; color:#f0e8ff; margin-bottom:4px;"></div>
+              <div id="capra-profil-desc" style="font-size:13px; color:var(--text-3); line-height:1.5;"></div>
+            </div>
+            <!-- Was bedeutet das -->
+            <div class="card" style="flex:1;" id="capra-coaching-card">
+              <p style="font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:rgba(168,85,247,0.6); margin-bottom:10px;">Was bedeutet das für mich?</p>
+              <div id="capra-coaching-text" style="font-size:15px; color:var(--text-1); line-height:1.75;"></div>
             </div>
           </div>
         </div>
 
-        <!-- Trainer Auswertung (kein trainer_notiz — das bleibt intern) -->
-        <div class="card" style="margin-bottom:12px;" id="capra-coaching-card">
-          <p style="font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:rgba(168,85,247,0.6); margin-bottom:8px;">Was bedeutet das für mich?</p>
-          <div id="capra-coaching-text" style="font-size:13.5px; color:var(--text-2); line-height:1.7;"></div>
+        <!-- ③ DIMENSIONEN — volle Breite, gross -->
+        <div style="background:rgba(13,10,36,0.85); border:1px solid rgba(168,85,247,0.18); border-radius:18px; padding:28px 32px; margin-bottom:20px;">
+          <p style="font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:rgba(168,85,247,0.6); margin-bottom:20px;">Deine 5 Dimensionen</p>
+          <div id="capra-dims" style="display:flex; flex-direction:column; gap:20px;"></div>
         </div>
 
-        <!-- Profil-Typ Banner -->
-        <div id="capra-profil-banner" class="hidden" style="margin-bottom:12px; padding:16px 20px; border-radius:14px; background:linear-gradient(135deg,rgba(168,85,247,0.18),rgba(109,40,217,0.12)); border:1px solid rgba(168,85,247,0.3); display:flex; align-items:center; gap:14px;">
-          <div id="capra-profil-icon" style="font-size:32px; flex-shrink:0;"></div>
-          <div>
-            <div style="font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.12em; color:rgba(168,85,247,0.7); margin-bottom:3px;">Dein Spieler-Typ</div>
-            <div id="capra-profil-label" style="font-size:18px; font-weight:800; color:#f0e8ff;"></div>
-            <div id="capra-profil-desc" style="font-size:12px; color:var(--text-3); margin-top:2px;"></div>
+        <!-- ④ STÄRKEN + NÄCHSTER SCHRITT nebeneinander -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+          <div class="card" id="capra-staerken-card">
+            <p style="font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:rgba(34,201,122,0.8); margin-bottom:12px;">✅ Deine Stärken</p>
+            <div id="capra-staerken-text" style="font-size:15px; color:var(--text-1); line-height:1.8;"></div>
+          </div>
+          <div class="card" id="capra-focus-card">
+            <p style="font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:rgba(168,85,247,0.6); margin-bottom:12px;">🎯 Dein nächster Schritt</p>
+            <div id="capra-focus-text" style="font-size:15px; color:var(--text-1); line-height:1.8;"></div>
           </div>
         </div>
 
-        <!-- Stärken (vom Trainer) -->
-        <div class="card" id="capra-staerken-card" style="margin-bottom:12px;">
-          <p style="font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:rgba(34,201,122,0.8); margin-bottom:8px;">✅ Deine Stärken</p>
-          <div id="capra-staerken-text" style="font-size:13.5px; color:var(--text-2); line-height:1.75;"></div>
-        </div>
-
-        <!-- Nächster Schritt / Entwicklung -->
-        <div class="card" id="capra-focus-card">
-          <p style="font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:rgba(168,85,247,0.6); margin-bottom:8px;">🎯 Dein nächster Schritt</p>
-          <div id="capra-focus-text" style="font-size:13.5px; color:var(--text-2); line-height:1.75;"></div>
-        </div>
-
-        <!-- PDF Spielerprofil -->
-        <div style="margin-top:16px; text-align:center;">
-          <button class="btn btn-ghost" onclick="CAPRA.exportSpielerPDF()" style="font-size:13px;">📄 Mein Profil als PDF</button>
+        <!-- ⑤ PDF Button -->
+        <div style="text-align:center;">
+          <button class="btn btn-ghost" onclick="CAPRA.exportSpielerPDF()" style="font-size:14px; padding:12px 28px;">📄 Mein Profil als PDF</button>
         </div>
 
       </div>
@@ -8748,18 +8750,20 @@ var CAPRA = (function(){
       var v = parseFloat(data[d.key])||0;
       var pct = (v/10*100).toFixed(0);
       var stufeTxt = _stufenText(d, v);
-      html += '<div style="display:flex;align-items:flex-start;gap:12px;">';
-      html += '<div style="width:32px;height:32px;border-radius:9px;background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.22);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">';
-      html += '<span style="font-size:11px;font-weight:800;color:'+d.color+';">'+d.short+'</span></div>';
+      html += '<div style="display:flex;align-items:center;gap:18px;padding-bottom:20px;border-bottom:1px solid rgba(168,85,247,0.1);">';
+      html += '<div style="width:56px;height:56px;border-radius:16px;background:rgba(168,85,247,0.1);border:1.5px solid rgba(168,85,247,0.28);display:flex;align-items:center;justify-content:center;flex-shrink:0;">';
+      html += '<span style="font-size:16px;font-weight:800;color:'+d.color+';">'+d.short+'</span></div>';
       html += '<div style="flex:1;min-width:0;">';
-      html += '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">';
-      html += '<span style="font-size:12px;font-weight:700;color:var(--text-2);">'+d.label+'</span>';
-      html += '<span style="font-size:13px;font-weight:800;color:#f0e8ff;">'+v.toFixed(1)+'</span></div>';
-      html += '<div style="height:4px;border-radius:99px;background:rgba(168,85,247,0.12);">';
-      html += '<div style="height:100%;width:'+pct+'%;border-radius:99px;background:linear-gradient(90deg,'+d.color+'88,'+d.color+');transition:width .6s cubic-bezier(0.16,1,0.3,1);"></div></div>';
-      html += '<span style="font-size:10.5px;color:var(--text-3);line-height:1.5;">'+stufeTxt+'</span>';
+      html += '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">';
+      html += '<span style="font-size:17px;font-weight:700;color:#f0e8ff;">'+d.label+'</span>';
+      html += '<span style="font-size:22px;font-weight:800;color:'+d.color+';min-width:48px;text-align:right;">'+v.toFixed(1)+'</span></div>';
+      html += '<div style="height:8px;border-radius:99px;background:rgba(255,255,255,0.06);margin-bottom:8px;">';
+      html += '<div style="height:100%;width:'+pct+'%;border-radius:99px;background:linear-gradient(90deg,'+d.color+'44,'+d.color+');transition:width .7s cubic-bezier(0.16,1,0.3,1);"></div></div>';
+      html += '<span style="font-size:13.5px;color:var(--text-2);line-height:1.65;font-style:italic;">'+stufeTxt+'</span>';
       html += '</div></div>';
     });
+    // Letztes Border entfernen
+    html = html.replace(/border-bottom:1px solid rgba\(168,85,247,0\.1\);">\s*$/, '">');
     box.innerHTML = html;
   }
 
