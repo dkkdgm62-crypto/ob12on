@@ -6024,6 +6024,8 @@ function saveEditPlayer(playerId) {
    ♟  SCHACH-ARENA — Vollständige Schach-Engine + Canvas UI
    Korrekte Implementierung: Schach-Abwehr, Rochade, En Passant
    ════════════════════════════════════════════════════════════ */
+/* GLOBAL: von SC (Chess-Engine) UND CHAL (Challenges) gemeinsam genutzt */
+var selectedTimeMode='10';
 var SC = (function(){
 
 /* ── Konstanten ─────────────────────────────────────────── */
@@ -6418,7 +6420,7 @@ function finalizeMPGame(winnerColorLetter, reason){
 }
 var timerW=600, timerB=600, timerInt=null;
 var moveLog=[];
-var selectedTimeMode='10';
+/* selectedTimeMode ist GLOBAL deklariert (vor SC-IIFE) — hier KEIN var, damit CHAL darauf zugreifen kann */
 
 var COL_LIGHT='#e8d5ff', COL_DARK='#7c3aed';
 var COL_SEL='rgba(255,220,50,0.75)', COL_HINT='rgba(50,255,150,0.45)', COL_CHECK='rgba(255,60,60,0.55)';
@@ -10292,6 +10294,9 @@ function playerOpenMessage(msgId) {
   var box = document.createElement('div');
   box.className = 'msg-expanded';
   box.style.cssText = 'margin-top:12px;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;';
+  // WICHTIG: Klicks im Antwort-Bereich dürfen NICHT zum Karten-Toggle hochblubbern
+  // (sonst schliesst sich das Textfeld beim Reinklicken). Schliessen = auf Karten-Kopf klicken.
+  box.addEventListener('click', function(e){ e.stopPropagation(); });
 
   // Antworten laden
   box.innerHTML = '<div class="spinner" style="width:20px;height:20px;"></div>';
@@ -10495,13 +10500,20 @@ function updateNachrichtenBadge() {
   }).catch(function(){});
 }
 
-// Beim Login: Badge laden
-var _origAfterLogin = typeof afterLogin === 'function' ? afterLogin : null;
+// Beim Login: Badge laden + Live-Polling für Benachrichtigungen
+var _nachrichtenBadgeInterval = null;
 document.addEventListener('DOMContentLoaded', function(){
   // Badge nach kurzer Verzögerung laden (wenn User eingeloggt)
   setTimeout(function(){
     if(typeof ME !== 'undefined' && ME && ME.id) updateNachrichtenBadge();
   }, 2000);
+  // Live-Benachrichtigung: Badge alle 15s aktualisieren.
+  // WICHTIG: aktualisiert NUR das Badge (Zähler), lädt NICHT die Nachrichtenliste neu —
+  // sonst würde ein offenes Antwort-Textfeld beim Tippen zerstört.
+  if(_nachrichtenBadgeInterval) clearInterval(_nachrichtenBadgeInterval);
+  _nachrichtenBadgeInterval = setInterval(function(){
+    if(typeof ME !== 'undefined' && ME && ME.id) updateNachrichtenBadge();
+  }, 15000);
 });
 
 </script>
