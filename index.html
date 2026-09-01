@@ -2274,26 +2274,32 @@ footer {
     </div>
   </div>
 
+    <!-- NACHRICHTEN VIEW (muss innerhalb sidebar-main bleiben!) -->
+    <div id="view-nachrichten" class="hidden" style="padding-bottom:40px;">
+      <p class="eyebrow">Direktnachrichten</p>
+      <h2 style="color:#fff;margin:4px 0 20px;">💬 Nachrichten</h2>
+
+      <!-- Neue Nachricht senden -->
+      <div class="card" style="margin-bottom:20px;padding:18px 20px;">
+        <h3 style="color:#fff;font-size:14px;margin:0 0 14px;font-family:'Sora',sans-serif;">✉️ Neue Nachricht senden</h3>
+        <select id="player-msg-receiver" style="width:100%;padding:10px 12px;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.14);border-radius:8px;color:#fff;font-size:13px;margin-bottom:10px;box-sizing:border-box;appearance:none;">
+          <option value="">— Empfänger auswählen —</option>
+        </select>
+        <input id="player-msg-betreff" type="text" placeholder="Betreff" style="width:100%;padding:10px 12px;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.14);border-radius:8px;color:#fff;font-size:13px;margin-bottom:10px;box-sizing:border-box;">
+        <textarea id="player-msg-inhalt" rows="4" placeholder="Nachricht schreiben…" style="width:100%;padding:10px 12px;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.14);border-radius:8px;color:#fff;font-size:13px;resize:vertical;box-sizing:border-box;font-family:inherit;line-height:1.5;"></textarea>
+        <div style="margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <button onclick="playerSendMessage()" style="padding:10px 22px;background:var(--accent);border:none;border-radius:8px;color:#000;font-weight:700;font-size:13px;cursor:pointer;letter-spacing:0.3px;">📤 Senden</button>
+          <span id="player-msg-send-status" style="font-size:12px;color:var(--accent);"></span>
+        </div>
+      </div>
+
+      <!-- Nachrichten Liste -->
+      <h3 style="color:#fff;font-size:14px;margin-bottom:12px;font-family:'Sora',sans-serif;">📬 Meine Nachrichten</h3>
+      <div id="nachrichten-player-body"><div class="spinner"></div></div>
+    </div>
+
     </div><!-- /sidebar-main -->
   </div><!-- /player-shell -->
-
-  <!-- LERNBLOCK (LEHRSTOFF) -->
-  <div id="view-nachrichten" class="hidden" style="padding-top:20px; padding-bottom:60px;">
-    <!-- Spieler: Neue Nachricht senden -->
-    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:16px;margin-bottom:20px;">
-      <h3 style="color:#fff;font-size:14px;margin-bottom:12px;">✉️ Neue Nachricht senden</h3>
-      <select id="player-msg-receiver" style="width:100%;padding:10px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;margin-bottom:10px;box-sizing:border-box;">
-        <option value="">— Empfänger auswählen —</option>
-      </select>
-      <input id="player-msg-betreff" type="text" placeholder="Betreff" style="width:100%;padding:10px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;margin-bottom:10px;box-sizing:border-box;">
-      <textarea id="player-msg-inhalt" rows="4" placeholder="Nachricht…" style="width:100%;padding:10px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;resize:vertical;box-sizing:border-box;font-family:inherit;"></textarea>
-      <div style="margin-top:10px;display:flex;align-items:center;gap:12px;">
-        <button onclick="playerSendMessage()" style="padding:10px 20px;background:var(--accent);border:none;border-radius:8px;color:#000;font-weight:700;cursor:pointer;">📤 Senden</button>
-        <span id="player-msg-send-status" style="font-size:13px;color:var(--accent);"></span>
-      </div>
-    </div>
-    <div id="nachrichten-player-body"><div class="spinner"></div></div>
-  </div>
 
     <div id="view-learn" class="hidden">
     <button class="btn-ghost" style="padding:8px 14px; font-size:13px; margin-bottom:16px" onclick="exitQuiz()">‹ Zurück zur Übersicht</button>
@@ -10179,12 +10185,13 @@ function loadPlayerMessages() {
   if(!box) return;
   box.innerHTML = '<div class="spinner"></div>';
   sb.rpc('get_player_messages', {p_type: 'all'}).then(function(r){
+    if(r.error){ box.innerHTML='<p class="muted" style="text-align:center;padding:24px 0;">⚠️ Nachrichten konnten nicht geladen werden.</p>'; return; }
     var msgs = r.data || [];
     if(!msgs.length) {
       box.innerHTML = '<div class="card" style="text-align:center;padding:32px 16px;"><p style="color:var(--text-2);">💬 Noch keine Nachrichten</p></div>';
       return;
     }
-    var html = '<h2 style="color:#fff;margin-bottom:16px;">💬 Meine Nachrichten</h2>';
+    var html = '';
     // Ungelesene zuerst
     msgs.sort(function(a,b){ return (a.gelesen===b.gelesen)?0:(a.gelesen?1:-1); });
     msgs.forEach(function(m){
@@ -10207,11 +10214,9 @@ function loadPlayerMessages() {
     box.innerHTML = html;
     // Ungelesene markieren
     msgs.filter(function(m){ return m.receiver_id===ME.id && !m.gelesen; }).forEach(function(m){
-      sb.rpc('mark_message_read', {p_message_id: m.id}).catch(function(){});
+      sb.rpc('mark_message_read', {p_message_id: m.id}).then(function(){});
     });
     updatePlayerNachrichtenBadge(0);
-  }).catch(function(e){
-    box.innerHTML = '<p style="color:#ff9080;">Fehler beim Laden: '+esc(String(e))+'</p>';
   });
 }
 
@@ -10273,7 +10278,7 @@ function playerReplyMessage(parentId) {
     if(statusEl) statusEl.textContent = '✓ Gesendet!';
     // Antworten neu laden
     setTimeout(function(){ playerOpenMessage(parentId); playerOpenMessage(parentId); }, 400);
-  }).catch(function(e){ if(statusEl) statusEl.textContent='❌ Fehler'; });
+  });
 }
 
 // Badge für Spieler aktualisieren
@@ -10356,13 +10361,12 @@ function staffLoadMessagePlayers() {
   var sel = el('msg-receiver');
   if(!sel) return;
   sb.rpc('get_recipients_for_messenger').then(function(r){
+    if(r.error){ sel.innerHTML = '<option value="">Fehler beim Laden</option>'; return; }
     var players = r.data || [];
     sel.innerHTML = '<option value="">— Spieler auswählen —</option>';
     players.forEach(function(p){
       sel.innerHTML += '<option value="'+p.id+'">'+esc(p.display_name)+'</option>';
     });
-  }).catch(function(){
-    sel.innerHTML = '<option value="">Fehler beim Laden</option>';
   });
 }
 
@@ -10370,14 +10374,13 @@ function playerLoadRecipients() {
   var sel = el('player-msg-receiver');
   if(!sel) return;
   sb.rpc('get_recipients_for_messenger').then(function(r){
+    if(r.error){ sel.innerHTML = '<option value="">Fehler beim Laden</option>'; return; }
     var recipients = r.data || [];
     sel.innerHTML = '<option value="">— Empfänger auswählen —</option>';
     recipients.forEach(function(p){
-      var label = esc(p.display_name) + (p.role !== 'spieler' ? ' (Trainer)' : '');
+      var label = esc(p.display_name) + (p.role !== 'spieler' ? ' 🎽 Trainer' : '');
       sel.innerHTML += '<option value="'+p.id+'">'+label+'</option>';
     });
-  }).catch(function(){
-    sel.innerHTML = '<option value="">Fehler beim Laden</option>';
   });
 }
 
@@ -10399,8 +10402,6 @@ function playerSendMessage() {
     if(el('player-msg-receiver')) el('player-msg-receiver').value = '';
     setTimeout(function(){ if(statusEl) statusEl.textContent = ''; }, 3000);
     loadPlayerMessages();
-  }).catch(function(e){
-    if(statusEl) statusEl.textContent = '❌ Fehler: '+esc(String(e));
   });
 }
 
