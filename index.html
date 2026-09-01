@@ -1155,7 +1155,8 @@ footer {
       <button id="stab-frei" class="sidebar-btn" onclick="showStaffTab('frei')"><span class="sb-icon">🔓</span>Freischaltungen</button>
       <button id="stab-consent" class="sidebar-btn" onclick="showStaffTab('consent')"><span class="sb-icon">📄</span>Einverständnis</button>
       <button id="stab-anfragen" class="sidebar-btn" onclick="showStaffTab('anfragen')"><span class="sb-icon">📬</span>Anfragen<span id="anfragen-badge" class="sidebar-badge">0</span></button>
-      <button id="stab-log" class="sidebar-btn" onclick="showStaffTab('log')"><span class="sb-icon">🟢</span>Login-Protokoll</button>
+      <button id="stab-nachrichten" class="sidebar-btn" onclick="showStaffTab('nachrichten')"><span class="sb-icon">💬</span>Nachrichten<span id="nachrichten-badge" class="sidebar-badge hidden">0</span></button>
+            <button id="stab-log" class="sidebar-btn" onclick="showStaffTab('log')"><span class="sb-icon">🟢</span>Login-Protokoll</button>
 
       <div class="sidebar-group-label">Lernprogramm</div>
       <button id="stab-vor" class="sidebar-btn" onclick="showStaffTab('vor')"><span class="sb-icon">📚</span>Module ansehen</button>
@@ -1734,7 +1735,37 @@ footer {
       <h4 style="color:#fff; font-size:14px; margin-bottom:10px;">Bisherige Archive</h4>
       <div id="archiv-list"><p class="muted" style="font-size:13px;">Lade...</p></div>
     </div>
-    </div><!-- /staff-content -->
+    <!-- Nachrichten Panel -->
+    <div id="staff-nachrichten" class="card hidden">
+      <h2 style="color:#fff; margin-bottom:4px;">💬 Nachrichten</h2>
+      <p class="muted" style="font-size:13px; margin-bottom:20px;">Direktnachrichten an Spieler senden und verwalten</p>
+
+      <!-- Neue Nachricht senden -->
+      <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:16px; margin-bottom:20px;">
+        <h3 style="color:#fff; font-size:14px; margin-bottom:12px;">✉️ Neue Nachricht senden</h3>
+        <select id="msg-receiver" style="width:100%;padding:10px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;margin-bottom:10px;box-sizing:border-box;">
+          <option value="">— Spieler auswählen —</option>
+        </select>
+        <input id="msg-betreff" type="text" placeholder="Betreff" style="width:100%;padding:10px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;margin-bottom:10px;box-sizing:border-box;">
+        <textarea id="msg-inhalt" rows="4" placeholder="Nachricht…" style="width:100%;padding:10px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;resize:vertical;box-sizing:border-box;font-family:inherit;"></textarea>
+        <div style="margin-top:10px; display:flex; align-items:center; gap:12px;">
+          <button onclick="staffSendMessage()" style="padding:10px 20px;background:var(--accent);border:none;border-radius:8px;color:#000;font-weight:700;cursor:pointer;">📤 Senden</button>
+          <span id="msg-send-status" style="font-size:13px;color:var(--accent);"></span>
+        </div>
+      </div>
+
+      <!-- Alle Nachrichten -->
+      <h3 style="color:#fff; font-size:14px; margin-bottom:12px;">📬 Alle Nachrichten</h3>
+      <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
+        <button onclick="staffLoadMessages('all')" id="msg-filter-all" style="padding:6px 14px;border-radius:20px;border:1px solid var(--accent);background:var(--accent);color:#000;font-size:12px;font-weight:700;cursor:pointer;">Alle</button>
+        <button onclick="staffLoadMessages('offen')" id="msg-filter-offen" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:#fff;font-size:12px;font-weight:700;cursor:pointer;">Offen</button>
+        <button onclick="staffLoadMessages('in_arbeit')" id="msg-filter-in_arbeit" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:#fff;font-size:12px;font-weight:700;cursor:pointer;">In Arbeit</button>
+        <button onclick="staffLoadMessages('erledigt')" id="msg-filter-erledigt" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:#fff;font-size:12px;font-weight:700;cursor:pointer;">Erledigt</button>
+      </div>
+      <div id="staff-msg-list"><div class="spinner"></div></div>
+    </div>
+
+        </div><!-- /staff-content -->
   </div><!-- /view-staff -->
 
   <!-- SPIELER: SIDEBAR-SHELL (Nav + Inhalt) -->
@@ -1757,6 +1788,7 @@ footer {
 
       <div class="sidebar-group-label">Hilfe</div>
       <button id="tab-hilfe" class="sidebar-btn" onclick="showPlayerTab('hilfe')"><span class="sb-icon">❓</span>Hilfe</button>
+      <button id="ptab-nachrichten" class="sidebar-btn" onclick="showPlayerTab('nachrichten')"><span class="sb-icon">💬</span>Nachrichten<span id="player-nachrichten-badge" style="display:none;background:#e53;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:6px;">0</span></button>
     </div>
     <div class="sidebar-main" id="player-sidebar-main">
 
@@ -2246,7 +2278,11 @@ footer {
   </div><!-- /player-shell -->
 
   <!-- LERNBLOCK (LEHRSTOFF) -->
-  <div id="view-learn" class="hidden">
+  <div id="view-nachrichten" class="hidden" style="padding-top:20px; padding-bottom:60px;">
+    <div id="nachrichten-player-body"><div class="spinner"></div></div>
+  </div>
+
+    <div id="view-learn" class="hidden">
     <button class="btn-ghost" style="padding:8px 14px; font-size:13px; margin-bottom:16px" onclick="exitQuiz()">‹ Zurück zur Übersicht</button>
     <div class="card" style="border-color: rgba(212,175,55,0.25); background: linear-gradient(135deg, #1b1d25 0%, #0f1115 100%);">
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
@@ -2515,7 +2551,7 @@ function fmtDT(ts){
 }
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
 function only(id){
-  var v=["view-setup","view-login","view-closed","view-modules","view-learn","view-quiz","view-result","view-rang","view-skills","view-staff","view-register","view-schach","view-ziel","view-spiele","view-dashboard-player","view-hilfe","view-ernaehrung"];
+  var v=["view-setup","view-login","view-closed","view-modules","view-learn","view-quiz","view-result","view-rang","view-skills","view-staff","view-register","view-schach","view-ziel","view-spiele","view-dashboard-player","view-hilfe","view-ernaehrung","view-nachrichten"];
   for(var i=0;i<v.length;i++) hide(v[i]);
   show(id);
 }
@@ -2951,7 +2987,7 @@ function showPlayerTab(t){
   scrollToTop();
   if(t==="capra") t="ziel";   // CAPRA in "Meine Entwicklung" zusammengeführt
   playerTab=t;
-  ["dashboard","lernen","skills","schach","rang","ziel","spiele","ernaehrung","hilfe"].forEach(function(k){
+  ["dashboard","lernen","skills","schach","rang","ziel","spiele","ernaehrung","hilfe","nachrichten"].forEach(function(k){
     var btn = el("tab-"+k);
     if(btn){ btn.classList.toggle("active", k===t); }
   });
@@ -2989,6 +3025,10 @@ function showPlayerTab(t){
   } else if(t==="hilfe") {
     only("view-hilfe"); show("app-head"); show("player-nav");
     loadPlayerStats();
+  } else if(t==="nachrichten") {
+    only("view-nachrichten"); show("app-head"); show("player-nav");
+    loadPlayerStats();
+    loadPlayerMessages();
   } else {
     
     only("view-rang"); show("app-head"); show("player-nav");
@@ -3655,8 +3695,11 @@ function loadPlayerDashboard(){
             {icon:'🎯', label:'Zielvereinbarung', tab:'ziel'},
             {icon:'📅', label:'Spielplan', tab:'spiele'},
             {icon:'🍎', label:'Ernährung & Erholung', tab:'ernaehrung'}
+            ,{icon:'💬', label:'Nachrichten', tab:'nachrichten', badge:true}
           ].forEach(function(t){
-            quickAccessHtml += '<div class="card" style="background:rgba(255,255,255,0.03); text-align:center; padding:14px 8px; cursor:pointer;" onclick="showPlayerTab(\''+t.tab+'\')">';
+            var badgeHtml = t.badge ? '<span id="nachrichten-tile-badge" style="display:none;background:#e53;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:700;line-height:18px;text-align:center;position:absolute;top:6px;right:6px;">0</span>' : '';
+            quickAccessHtml += '<div class="card" style="background:rgba(255,255,255,0.03); text-align:center; padding:14px 8px; cursor:pointer; position:relative;" onclick="showPlayerTab(\''+t.tab+'\')">';
+            quickAccessHtml += badgeHtml;
             quickAccessHtml += '<div style="font-size:22px; margin-bottom:6px;">'+t.icon+'</div>';
             quickAccessHtml += '<div style="font-size:11px; color:#fff; font-weight:600; line-height:1.3;">'+t.label+'</div>';
             quickAccessHtml += '</div>';
@@ -3841,7 +3884,7 @@ function showStaffTab(t){
   scrollToTop();
   if(t==="capra") t="ziel";   // CAPRA in "Entwicklungsprofile" zusammengeführt
   staffTab = t;
-  ["dashboard","kader","skills","rang","frei","zeit","runden","log","vor","spieler","consent","anfragen","inhalte","jonglier","ziel","spiele","reflex","archiv"].forEach(function(k){
+  ["dashboard","kader","skills","rang","frei","zeit","runden","log","nachrichten","vor","spieler","consent","anfragen","inhalte","jonglier","ziel","spiele","reflex","archiv"].forEach(function(k){
     var btn = el("stab-"+k);
     if(btn){ btn.classList.toggle("active", k===t); }
     var c = el("staff-"+k); if(c) c.classList.toggle("hidden", k!==t);
@@ -3851,7 +3894,7 @@ function showStaffTab(t){
     window.loginLogInterval = null;
   }
   only("view-staff"); show("app-head");
-  if(t==="dashboard"){ loadStaffDashboard(); setTimeout(loadAnfragenBadge, 800); }
+  if(t==="dashboard"){ loadStaffDashboard(); setTimeout(loadAnfragenBadge, 800); setTimeout(updateNachrichtenBadge, 1200); }
   if(t==="kader") loadKaderTable();
   if(t==="skills") loadStaffSkillsLeaderboards();
   if(t==="rang") {
@@ -3877,6 +3920,7 @@ function showStaffTab(t){
   if(t==="spiele") Spielplan.staffInit();
   if(t==="reflex") Reflex.staffInit();
   if(t==="archiv") SeasonArchiv.init();
+  if(t==="nachrichten"){ staffLoadMessagePlayers(); staffLoadMessages('all'); }
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -10049,6 +10093,212 @@ var CHATBOX = (function(){
     }
   };
 })();
+
+
+// ═══════════════════════════════════════════════════════════
+//  MESSENGER-SYSTEM — Direktnachrichten
+// ═══════════════════════════════════════════════════════════
+
+function msgStatusBadge(status) {
+  var cfg = {
+    'offen':    {bg:'rgba(239,68,68,0.2)', border:'rgba(239,68,68,0.5)', color:'#fca5a5', label:'Offen'},
+    'in_arbeit':{bg:'rgba(245,158,11,0.2)', border:'rgba(245,158,11,0.5)', color:'#fcd34d', label:'In Arbeit'},
+    'erledigt': {bg:'rgba(34,197,94,0.2)', border:'rgba(34,197,94,0.5)', color:'#86efac', label:'Erledigt'}
+  };
+  var c = cfg[status] || cfg['offen'];
+  return '<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;background:'+c.bg+';border:1px solid '+c.border+';color:'+c.color+';">'+c.label+'</span>';
+}
+
+function msgTimeAgo(dateStr) {
+  var d = new Date(dateStr);
+  var diff = Math.floor((Date.now() - d) / 1000);
+  if(diff < 60) return 'Gerade eben';
+  if(diff < 3600) return Math.floor(diff/60) + ' Min. ago';
+  if(diff < 86400) return Math.floor(diff/3600) + ' Std. ago';
+  return d.toLocaleDateString('de-CH') + ' ' + d.toLocaleTimeString('de-CH', {hour:'2-digit',minute:'2-digit'});
+}
+
+// Spieler: Inbox laden
+function loadPlayerMessages() {
+  var box = el('nachrichten-player-body');
+  if(!box) return;
+  box.innerHTML = '<div class="spinner"></div>';
+  sb.rpc('get_player_messages', {p_type: 'all'}).then(function(r){
+    var msgs = r.data || [];
+    if(!msgs.length) {
+      box.innerHTML = '<div class="card" style="text-align:center;padding:32px 16px;"><p style="color:var(--text-2);">💬 Noch keine Nachrichten</p></div>';
+      return;
+    }
+    var html = '<h2 style="color:#fff;margin-bottom:16px;">💬 Meine Nachrichten</h2>';
+    // Ungelesene zuerst
+    msgs.sort(function(a,b){ return (a.gelesen===b.gelesen)?0:(a.gelesen?1:-1); });
+    msgs.forEach(function(m){
+      var isReceived = m.receiver_id === ME.id;
+      var partner = isReceived ? m.sender_name : m.receiver_name;
+      var direction = isReceived ? '📨 Von' : '📤 An';
+      var unreadDot = (isReceived && !m.gelesen) ? '<span style="width:8px;height:8px;border-radius:50%;background:#e53;display:inline-block;margin-right:6px;"></span>' : '';
+      html += '<div id="msg-card-'+m.id+'" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,'+(m.gelesen?'0.07':'0.18')+');border-radius:12px;padding:14px 16px;margin-bottom:12px;cursor:pointer;" onclick="playerOpenMessage(\''+m.id+'\')">';
+      html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:6px;">';
+      html += '<span style="font-size:13px;font-weight:700;color:#fff;">'+unreadDot+direction+': '+esc(partner)+'</span>';
+      html += '<span style="font-size:11px;color:var(--text-2);">'+msgTimeAgo(m.created_at)+'</span>';
+      html += '</div>';
+      html += '<div style="font-weight:700;color:#fff;margin-bottom:4px;">'+esc(m.betreff)+'</div>';
+      html += '<div style="font-size:13px;color:var(--text-2);white-space:pre-wrap;max-height:60px;overflow:hidden;">'+esc(m.inhalt)+'</div>';
+      html += '<div style="margin-top:8px;">'+msgStatusBadge(m.status)+'</div>';
+      html += '</div>';
+    });
+    box.innerHTML = html;
+    // Ungelesene markieren
+    msgs.filter(function(m){ return m.receiver_id===ME.id && !m.gelesen; }).forEach(function(m){
+      sb.rpc('mark_message_read', {p_message_id: m.id}).catch(function(){});
+    });
+    updatePlayerNachrichtenBadge(0);
+  }).catch(function(e){
+    box.innerHTML = '<p style="color:#ff9080;">Fehler beim Laden: '+esc(String(e))+'</p>';
+  });
+}
+
+function playerOpenMessage(id) {
+  // Vollansicht: Card aufklappen (toggle)
+  var card = el('msg-card-'+id);
+  if(!card) return;
+  var expanded = card.querySelector('.msg-expanded');
+  if(expanded) { expanded.remove(); return; }
+  // Lade Nachricht komplett (aus DOM-Daten)
+  var inhaltDiv = card.querySelectorAll('div')[3];
+  if(inhaltDiv) inhaltDiv.style.maxHeight = 'none';
+}
+
+// Badge für Spieler aktualisieren
+function updatePlayerNachrichtenBadge(count) {
+  var badge = el('player-nachrichten-badge');
+  var tileBadge = el('nachrichten-tile-badge');
+  if(badge){ badge.style.display = count>0 ? 'inline-block':'none'; badge.textContent = count; }
+  if(tileBadge){ tileBadge.style.display = count>0 ? 'inline-block':'none'; tileBadge.textContent = count; }
+}
+
+// Staff: Nachrichten laden
+var _msgFilter = 'all';
+function staffLoadMessages(filter) {
+  _msgFilter = filter || 'all';
+  // Filter-Buttons stylen
+  ['all','offen','in_arbeit','erledigt'].forEach(function(f){
+    var btn = el('msg-filter-'+f);
+    if(!btn) return;
+    var active = f === _msgFilter;
+    btn.style.background = active ? 'var(--accent)' : 'transparent';
+    btn.style.color = active ? '#000' : '#fff';
+    btn.style.borderColor = active ? 'var(--accent)' : 'rgba(255,255,255,0.2)';
+  });
+
+  var box = el('staff-msg-list');
+  if(!box) return;
+  box.innerHTML = '<div class="spinner"></div>';
+  sb.rpc('get_player_messages', {p_type: 'all'}).then(function(r){
+    var msgs = r.data || [];
+    if(_msgFilter !== 'all') msgs = msgs.filter(function(m){ return m.status === _msgFilter; });
+    if(!msgs.length) {
+      box.innerHTML = '<p class="muted" style="font-size:13px;">Keine Nachrichten vorhanden.</p>';
+      return;
+    }
+    var html = '';
+    msgs.forEach(function(m){
+      var isStaffSender = (m.sender_id !== m.receiver_id);
+      html += '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 16px;margin-bottom:10px;">';
+      html += '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">';
+      html += '<div style="flex:1;min-width:0;">';
+      html += '<div style="font-size:12px;color:var(--text-2);margin-bottom:4px;">📨 Von: <b style="color:#fff;">'+esc(m.sender_name)+'</b> → An: <b style="color:#fff;">'+esc(m.receiver_name)+'</b> <span style="margin-left:8px;">'+msgTimeAgo(m.created_at)+'</span></div>';
+      html += '<div style="font-weight:700;color:#fff;margin-bottom:6px;">'+esc(m.betreff)+'</div>';
+      html += '<div style="font-size:13px;color:var(--text-2);white-space:pre-wrap;">'+esc(m.inhalt)+'</div>';
+      html += '</div>';
+      html += '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">';
+      html += msgStatusBadge(m.status);
+      html += '<span style="font-size:11px;color:var(--text-2);">'+(m.gelesen?'✓ Gelesen':'⏳ Ungelesen')+'</span>';
+      html += '</div>';
+      html += '</div>';
+      // Aktionen
+      html += '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">';
+      if(m.status !== 'in_arbeit') html += '<button onclick="staffMsgStatus(\''+m.id+'\',\'in_arbeit\')" style="font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid rgba(245,158,11,0.4);background:rgba(245,158,11,0.1);color:#fcd34d;cursor:pointer;">▶ In Arbeit</button>';
+      if(m.status !== 'erledigt') html += '<button onclick="staffMsgStatus(\''+m.id+'\',\'erledigt\')" style="font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid rgba(34,197,94,0.4);background:rgba(34,197,94,0.1);color:#86efac;cursor:pointer;">✓ Erledigt</button>';
+      if(m.status !== 'offen') html += '<button onclick="staffMsgStatus(\''+m.id+'\',\'offen\')" style="font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:var(--text-2);cursor:pointer;">↩ Öffnen</button>';
+      html += '<button onclick="staffMsgDelete(\''+m.id+'\')" style="font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#fca5a5;cursor:pointer;">🗑 Löschen</button>';
+      html += '</div>';
+      html += '</div>';
+    });
+    box.innerHTML = html;
+  }).catch(function(e){
+    box.innerHTML = '<p style="color:#ff9080;">Fehler: '+esc(String(e))+'</p>';
+  });
+}
+
+function staffMsgStatus(id, status) {
+  sb.rpc('update_message_status', {p_message_id: id, p_status: status}).then(function(){
+    staffLoadMessages(_msgFilter);
+  }).catch(function(e){ alert('Fehler: '+e); });
+}
+
+function staffMsgDelete(id) {
+  if(!confirm('Nachricht wirklich löschen?')) return;
+  sb.rpc('delete_player_message', {p_message_id: id}).then(function(){
+    staffLoadMessages(_msgFilter);
+  }).catch(function(e){ alert('Fehler: '+e); });
+}
+
+// Staff: Spieler-Liste für Dropdown laden
+function staffLoadMessagePlayers() {
+  var sel = el('msg-receiver');
+  if(!sel) return;
+  sb.from('profiles').select('id,full_name,role').in('role',['spieler']).order('full_name').then(function(r){
+    var players = r.data || [];
+    sel.innerHTML = '<option value="">— Spieler auswählen —</option>';
+    players.forEach(function(p){
+      sel.innerHTML += '<option value="'+p.id+'">'+esc(p.full_name)+'</option>';
+    });
+  });
+}
+
+// Staff: Nachricht senden
+function staffSendMessage() {
+  var receiverId = (el('msg-receiver')||{}).value;
+  var betreff    = (el('msg-betreff')||{}).value.trim();
+  var inhalt     = (el('msg-inhalt')||{}).value.trim();
+  var statusEl   = el('msg-send-status');
+  if(!receiverId || !inhalt) {
+    if(statusEl) statusEl.textContent = '⚠️ Spieler und Nachricht erforderlich';
+    return;
+  }
+  if(statusEl) statusEl.textContent = 'Sende…';
+  sb.rpc('send_player_message', {p_receiver_id: receiverId, p_betreff: betreff||'Neue Nachricht', p_inhalt: inhalt}).then(function(){
+    if(statusEl) statusEl.textContent = '✓ Gesendet!';
+    if(el('msg-betreff')) el('msg-betreff').value = '';
+    if(el('msg-inhalt'))  el('msg-inhalt').value  = '';
+    setTimeout(function(){ if(statusEl) statusEl.textContent = ''; }, 3000);
+    staffLoadMessages(_msgFilter);
+  }).catch(function(e){
+    if(statusEl) statusEl.textContent = '❌ Fehler: '+esc(String(e));
+  });
+}
+
+// Nachrichten-Badge im Staff-Sidebar aktualisieren
+function updateNachrichtenBadge() {
+  sb.rpc('get_unread_message_count').then(function(r){
+    var n = r.data || 0;
+    var badge = el('nachrichten-badge');
+    if(badge){ badge.textContent = n; badge.classList.toggle('hidden', n===0); }
+    // Spieler-Badge aktualisieren wenn Spieler
+    updatePlayerNachrichtenBadge(n);
+  }).catch(function(){});
+}
+
+// Beim Login: Badge laden
+var _origAfterLogin = typeof afterLogin === 'function' ? afterLogin : null;
+document.addEventListener('DOMContentLoaded', function(){
+  // Badge nach kurzer Verzögerung laden (wenn User eingeloggt)
+  setTimeout(function(){
+    if(typeof ME !== 'undefined' && ME && ME.id) updateNachrichtenBadge();
+  }, 2000);
+});
+
 </script>
 
 </body>
