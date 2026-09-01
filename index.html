@@ -1874,7 +1874,7 @@ footer {
 
   <!-- ♟ SCHACH-MODUL -->
   <div id="view-schach" class="hidden" style="padding-top:20px; padding-bottom:40px;">
-    <div class="card" style="max-width:880px; margin:0 auto;">
+    <div class="card" style="max-width:1040px; margin:0 auto;">
       <!-- Header -->
       <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:14px;">
         <div>
@@ -1883,6 +1883,12 @@ footer {
           <p class="muted" style="font-size:12px;">Spiele gegen die KI oder gegen einen Mitspieler</p>
         </div>
         <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
+          <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; align-items:center; margin-bottom:6px;">
+            <span style="font-size:11px; color:var(--text-3); align-self:center;">⏱ Zeit:</span>
+            <button id="tm-btn-10" class="btn-ghost" style="font-size:12px; padding:5px 10px; color:var(--neon-green); border-color:var(--neon-green);" onclick="SC.setTimeMode('10')">10 Min</button>
+            <button id="tm-btn-12" class="btn-ghost" style="font-size:12px; padding:5px 10px;" onclick="SC.setTimeMode('12')">12 Min</button>
+            <button id="tm-btn-free" class="btn-ghost" style="font-size:12px; padding:5px 10px;" onclick="SC.setTimeMode('free')">Frei ∞</button>
+          </div>
           <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
             <span style="font-size:11px; color:var(--text-3); align-self:center;">🤖 KI:</span>
             <button class="btn-ghost" style="font-size:12px; padding:5px 10px;" onclick="SC.startAI(1)">😊 Einfach</button>
@@ -6412,11 +6418,12 @@ function finalizeMPGame(winnerColorLetter, reason){
 }
 var timerW=600, timerB=600, timerInt=null;
 var moveLog=[];
+var selectedTimeMode='10';
 
 var COL_LIGHT='#e8d5ff', COL_DARK='#7c3aed';
 var COL_SEL='rgba(255,220,50,0.75)', COL_HINT='rgba(50,255,150,0.45)', COL_CHECK='rgba(255,60,60,0.55)';
 
-function csz(){ return Math.max(36, Math.floor(Math.min(420, window.innerWidth-56)/8)); }
+function csz(){ var maxW=window.innerWidth>960?640:window.innerWidth>600?520:400; return Math.max(36,Math.floor(Math.min(maxW,window.innerWidth-80)/8)); }
 
 function showEl(id){var e=document.getElementById(id);if(e)e.style.display='';}
 function hideEl(id){var e=document.getElementById(id);if(e)e.style.display='none';}
@@ -6643,7 +6650,18 @@ return {
     var labels={1:'😊 Einfach',3:'🤔 Mittel',6:'😤 Schwer',12:'🔥 Weltklasse',20:'👑 Legende'};
     scStatus('KI: '+(labels[depth]||'KI')+' · Du spielst ⬜ Weiss');
     showEl('sc-resign'); showEl('sc-new');
-    hideEl('sc-mp-box'); startTimer(10);
+    hideEl('sc-mp-box');
+    if(selectedTimeMode==='free'){stopTimer();hideEl('sc-timer-w');hideEl('sc-timer-b');}
+    else{startTimer(parseInt(selectedTimeMode,10)||10);}
+  },
+  setTimeMode: function(mode){
+    selectedTimeMode=mode;
+    var btns={10:'tm-btn-10',12:'tm-btn-12',free:'tm-btn-free'};
+    Object.keys(btns).forEach(function(k){
+      var b=document.getElementById(btns[k]); if(!b) return;
+      if(String(k)===String(mode)){b.style.color='var(--neon-green)';b.style.borderColor='var(--neon-green)';}
+      else{b.style.color='';b.style.borderColor='';}
+    });
   },
   startMP: function(){
     var code=prompt('Raum-Code eingeben (leer lassen = neuer Raum):');
@@ -6654,32 +6672,36 @@ return {
     else { rid='chess-'+code; role='black'; }
     this._connectRoom(rid, role, true);
   },
-  joinChallengeRoom: function(rid, role, knownOppId){
-    this._connectRoom(rid, role, false, knownOppId||null);
+  joinChallengeRoom: function(rid, role, knownOppId, timeMode){
+    this._connectRoom(rid, role, false, knownOppId||null, timeMode||selectedTimeMode);
   },
   isBusy: function(){
     return mode==='multiplayer' && !!mpChannel && !gameEnded;
   },
-  _connectRoom: function(rid, role, manual, knownOppId){
+  _connectRoom: function(rid, role, manual, knownOppId, timeMode){
     stopTimer();
     if(mpChannel){sb.removeChannel(mpChannel);mpChannel=null;}
     clearChat();
     mode='multiplayer'; roomId=rid; mpRole=role; flipped=(role==='black');
     gameEnded=false; oppId = knownOppId || null;
+    var tm = timeMode || selectedTimeMode;
+    var tmLabel = tm==='free'?'Frei ∞':tm+' Min';
     resetGame(); initCanvas();
     if(role==='white'){
       var disp=roomId.replace('chess-','');
       document.getElementById('sc-mp-info').innerHTML = manual
-        ? '<b style="font-size:20px;letter-spacing:0.2em;color:#fff">'+disp+'</b><br><span style="font-size:11px;color:var(--text-3);">Code teilen. Du spielst ⬜ Weiss.</span>'
-        : '<span style="font-size:12px;color:var(--text-3);">⚔ Herausforderung gesendet. Du spielst ⬜ Weiss.</span>';
+        ? '<b style="font-size:20px;letter-spacing:0.2em;color:#fff">'+disp+'</b><br><span style="font-size:11px;color:var(--text-3);">Code teilen. Du spielst ⬜ Weiss. · ⏱ '+tmLabel+'</span>'
+        : '<span style="font-size:12px;color:var(--text-3);">⚔ Herausforderung gesendet. Du spielst ⬜ Weiss. · ⏱ '+tmLabel+'</span>';
     } else {
       document.getElementById('sc-mp-info').innerHTML = manual
-        ? 'Verbinde mit <b>'+roomId.replace('chess-','')+'</b>...<br><span style="font-size:11px;color:var(--text-3);">Du spielst ⬛ Schwarz.</span>'
-        : '<span style="font-size:12px;color:var(--text-3);">⚔ Herausforderung angenommen. Du spielst ⬛ Schwarz.</span>';
+        ? 'Verbinde mit <b>'+roomId.replace('chess-','')+'</b>...<br><span style="font-size:11px;color:var(--text-3);">Du spielst ⬛ Schwarz. · ⏱ '+tmLabel+'</span>'
+        : '<span style="font-size:12px;color:var(--text-3);">⚔ Herausforderung angenommen. Du spielst ⬛ Schwarz. · ⏱ '+tmLabel+'</span>';
     }
     showEl('sc-mp-box'); draw();
     scStatus(mpRole==='white'?'⬜ Warte auf Gegner...':'⬛ Verbunden, warte...');
-    showEl('sc-resign'); showEl('sc-new'); startTimer(10);
+    showEl('sc-resign'); showEl('sc-new');
+    if(tm==='free'){stopTimer();hideEl('sc-timer-w');hideEl('sc-timer-b');}
+    else{startTimer(parseInt(tm,10)||10);}
 
     mpChannel=sb.channel(roomId,{config:{broadcast:{self:false}}});
     mpChannel.on('broadcast',{event:'mv'},function(pl){
@@ -6821,9 +6843,11 @@ var CHAL = (function(){
     setTimeout(function(){ t.remove(); }, 3500);
   }
 
-  function showIncomingModal(challengerId, challengerName, challengeId){
-    pendingIncoming = {id: challengeId, from: challengerId, name: challengerName};
+  function showIncomingModal(challengerId, challengerName, challengeId, timeMode){
+    var tm = timeMode || '10';
+    pendingIncoming = {id: challengeId, from: challengerId, name: challengerName, timeMode: tm};
     var ex = document.getElementById('chal-incoming'); if(ex) ex.remove();
+    var tmLabel = tm==='free'?'⏱ Kein Timer (Frei)':'⏱ '+tm+' Min';
     var ov = document.createElement('div');
     ov.id = 'chal-incoming';
     ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.78);backdrop-filter:blur(6px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;';
@@ -6831,7 +6855,8 @@ var CHAL = (function(){
       '<div style="background:var(--bg-card);border:1px solid var(--glass-border-2);border-radius:var(--r-2xl);padding:26px;max-width:360px;width:100%;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,0.7);">'
       + '<p style="font-size:32px;margin:0 0 8px;">♟️⚔️</p>'
       + '<h3 style="color:#fff;margin:0 0 6px;">Schach-Herausforderung!</h3>'
-      + '<p class="muted" style="margin:0 0 20px;font-size:14px;"><b style="color:var(--accent);">'+esc(challengerName)+'</b> fordert dich heraus.</p>'
+      + '<p class="muted" style="margin:0 0 6px;font-size:14px;"><b style="color:var(--accent);">'+esc(challengerName)+'</b> fordert dich heraus.</p>'
+      + '<p style="margin:0 0 20px;font-size:12px;color:var(--text-3);">'+tmLabel+'</p>'
       + '<div style="display:flex;gap:10px;justify-content:center;">'
       + '<button class="btn-ghost" style="padding:9px 18px;color:var(--neon-rose);border-color:var(--neon-rose);" onclick="CHAL.respond(false)">Ablehnen</button>'
       + '<button class="btn-ghost" style="padding:9px 18px;color:var(--neon-green);border-color:var(--neon-green);" onclick="CHAL.respond(true)">Annehmen</button>'
@@ -6880,7 +6905,7 @@ var CHAL = (function(){
 
       inboxCh = sb.channel('inbox-'+ME.id, {config:{broadcast:{self:false}}});
       inboxCh.on('broadcast',{event:'challenge'},function(pl){
-        showIncomingModal(pl.payload.challengerId, pl.payload.challengerName, pl.payload.challengeId);
+        showIncomingModal(pl.payload.challengerId, pl.payload.challengerName, pl.payload.challengeId, pl.payload.timeMode||'10');
       }).on('broadcast',{event:'challenge-response'},function(pl){
         if(pendingOutgoingTimer){ clearTimeout(pendingOutgoingTimer); pendingOutgoingTimer=null; }
         if(pl.payload.challengeId !== pendingOutgoingId) return;
@@ -6888,7 +6913,7 @@ var CHAL = (function(){
         if(pl.payload.accepted){
           toast('✅ Herausforderung angenommen!', 'var(--neon-green)');
           showPlayerTab('schach');
-          setTimeout(function(){ SC.joinChallengeRoom(pl.payload.roomId, 'white', pendingOutgoingOpponentId); pendingOutgoingOpponentId=null; }, 150);
+          setTimeout(function(){ SC.joinChallengeRoom(pl.payload.roomId, 'white', pendingOutgoingOpponentId, pl.payload.timeMode||selectedTimeMode); pendingOutgoingOpponentId=null; }, 150);
         } else {
           toast('❌ Herausforderung abgelehnt', 'var(--neon-rose)');
         }
@@ -6939,7 +6964,7 @@ var CHAL = (function(){
         targetCh.subscribe(function(status){
           if(status==='SUBSCRIBED'){
             targetCh.send({type:'broadcast', event:'challenge', payload:{
-              challengeId: challengeId, challengerId: ME.id, challengerName: myName()
+              challengeId: challengeId, challengerId: ME.id, challengerName: myName(), timeMode: selectedTimeMode
             }});
             setTimeout(function(){ sb.removeChannel(targetCh); }, 1500);
           }
@@ -6968,7 +6993,7 @@ var CHAL = (function(){
         inboxTarget.subscribe(function(status){
           if(status==='SUBSCRIBED'){
             inboxTarget.send({type:'broadcast', event:'challenge-response', payload:{
-              challengeId: ch.id, accepted: accept, roomId: r.data || null
+              challengeId: ch.id, accepted: accept, roomId: r.data || null, timeMode: ch.timeMode||'10'
             }});
             setTimeout(function(){ sb.removeChannel(inboxTarget); }, 1500);
           }
@@ -6976,7 +7001,7 @@ var CHAL = (function(){
         if(accept){
           toast('✅ Angenommen! Du spielst ⬛ Schwarz.', 'var(--neon-green)');
           showPlayerTab('schach');
-          setTimeout(function(){ SC.joinChallengeRoom(r.data, 'black', ch.from); }, 150);
+          setTimeout(function(){ SC.joinChallengeRoom(r.data, 'black', ch.from, ch.timeMode||'10'); }, 150);
         }
       });
     }
