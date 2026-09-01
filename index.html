@@ -6792,6 +6792,8 @@ var CHAL = (function(){
   }
   var pendingOutgoingId = null, pendingOutgoingOpponentId = null, pendingOutgoingTimer = null;
   var pendingIncoming = null, pendingIncomingTimer = null;
+  var pollInterval = null;
+  var shownPollIds = {}; // verhindert Doppel-Modal bei Poll
 
   function myName(){ return (PROFILE && PROFILE.display_name) || (ME && ME.email) || 'Spieler'; }
 
@@ -6811,10 +6813,15 @@ var CHAL = (function(){
     if(ids.length===0){ box.innerHTML = '<p class="muted" style="font-size:12px;padding:6px;">Niemand sonst online.</p>'; return; }
     var html = '';
     ids.forEach(function(id){
+      if(ME && id===ME.id) return;
       var pts = pointsCache[id];
       var ptsLabel = (pts!=null) ? (' · <span style="color:var(--gold); font-weight:700;">'+pts+' Pkt</span>') : '';
-      html += '<div style="padding:6px 8px;font-size:13px;color:var(--text-1);">🟢 '+esc(online[id].name)+ptsLabel+'</div>';
+      html += '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 8px;">'
+        + '<span style="font-size:13px;color:var(--text-1);">🟢 '+esc(online[id].name)+ptsLabel+'</span>'
+        + '<button class="btn-ghost" style="font-size:11px;padding:3px 8px;border-color:var(--accent);color:var(--accent);" onclick="CHAL.challenge(\''+id+'\');CHAL.togglePresenceDropdown();">⚔ Fordern</button>'
+        + '</div>';
     });
+    if(!html) html = '<p class="muted" style="font-size:12px;padding:6px;">Niemand sonst online.</p>';
     box.innerHTML = html;
   }
 
@@ -6873,6 +6880,25 @@ var CHAL = (function(){
     if(pendingIncomingTimer){ clearTimeout(pendingIncomingTimer); pendingIncomingTimer=null; }
   }
 
+  function pollPendingChallenge(){
+    if(!ME || pendingIncoming) return;
+    sb.from('chess_challenges')
+      .select('id, challenger_id')
+      .eq('opponent_id', ME.id)
+      .eq('status', 'pending')
+      .gte('created_at', new Date(Date.now()-28000).toISOString())
+      .order('created_at', {ascending:false})
+      .limit(1)
+      .then(function(r){
+        if(r.error || !r.data || r.data.length===0) return;
+        var ch = r.data[0];
+        if(shownPollIds[ch.id]) return; // schon gezeigt
+        shownPollIds[ch.id] = true;
+        var challengerName = (online[ch.challenger_id] && online[ch.challenger_id].name) || 'Mitspieler';
+        showIncomingModal(ch.challenger_id, challengerName, ch.id, selectedTimeMode);
+      });
+  }
+
   function outsideCloseHandler(ev){
     var box = document.getElementById('presence-dropdown');
     var pill = document.getElementById('presence-pill');
@@ -6903,8 +6929,13 @@ var CHAL = (function(){
         if(status==='SUBSCRIBED'){ presenceCh.track({name: myName(), role: PROFILE.role}); }
       });
 
-      inboxCh = sb.channel('inbox-'+ME.id, {config:{broadcast:{self:false}}});
+      shownPollIds = {};
+    if(pollInterval){ clearInterval(pollInterval); pollInterval=null; }
+    pollInterval = setInterval(pollPendingChallenge, 4000);
+
+    inboxCh = sb.channel('inbox-'+ME.id, {config:{broadcast:{self:false}}});
       inboxCh.on('broadcast',{event:'challenge'},function(pl){
+        shownPollIds[pl.payload.challengeId] = true; // Poll soll kein Doppel-Modal zeigen
         showIncomingModal(pl.payload.challengerId, pl.payload.challengerName, pl.payload.challengeId, pl.payload.timeMode||'10');
       }).on('broadcast',{event:'challenge-response'},function(pl){
         if(pendingOutgoingTimer){ clearTimeout(pendingOutgoingTimer); pendingOutgoingTimer=null; }
@@ -6920,9 +6951,10 @@ var CHAL = (function(){
       }).subscribe();
     },
     teardown: function(){
+      if(pollInterval){ clearInterval(pollInterval); pollInterval=null; }
       if(presenceCh){ sb.removeChannel(presenceCh); presenceCh=null; }
       if(inboxCh){ sb.removeChannel(inboxCh); inboxCh=null; }
-      online = {}; pendingOutgoingId=null; pendingIncoming=null;
+      online = {}; pendingOutgoingId=null; pendingIncoming=null; shownPollIds={};
       if(pendingOutgoingTimer){ clearTimeout(pendingOutgoingTimer); pendingOutgoingTimer=null; }
       var d = document.getElementById('presence-dropdown'); if(d) d.classList.add('hidden');
       closeIncomingModal();
