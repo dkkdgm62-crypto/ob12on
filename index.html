@@ -3611,16 +3611,14 @@ function loadPlayerDashboard(){
       var myPoints = myRow ? myRow.gesamt : null;
 
       var goalsPromise = recentCycle
-        ? Promise.all([
-            sb.from("dev_goals").select("*").eq("cycle_id", recentCycle.id),
-            sb.from("dev_goals_player").select("*").eq("cycle_id", recentCycle.id)
-          ])
-        : Promise.resolve([{data:[]},{data:[]}]);
+        ? sb.rpc("get_cycle_goals", {p_cycle_id: recentCycle.id})
+        : Promise.resolve({data:{trainer_goals:[],player_goals:[]}});
 
-      goalsPromise.then(function(goalResults){
+      goalsPromise.then(function(goalResult){
         try{
-          var officialGoals = (goalResults[0]||{}).data || [];
-          var playerGoals = (goalResults[1]||{}).data || [];
+          var _cgd = (goalResult && goalResult.data) || {trainer_goals:[],player_goals:[]};
+          var officialGoals = _cgd.trainer_goals || [];
+          var playerGoals = _cgd.player_goals || [];
 
           var html = '<h2 style="color:#fff; margin-bottom:4px;">Willkommen zurück, '+esc(name)+'! 👋</h2>';
           html += '<p style="font-size:13.5px; color:var(--gold); font-weight:600; margin-bottom:20px;">'+esc(randomDnaMessage())+'</p>';
@@ -7447,16 +7445,16 @@ var Ziel = (function(){
     }
     body.innerHTML = '<div class="spinner"></div>';
     Promise.all([
-      sb.from("dev_goals").select("*").eq("cycle_id", c.id),
-      sb.from("dev_goals_player").select("*").eq("cycle_id", c.id),
+      sb.rpc("get_cycle_goals", {p_cycle_id: c.id}),
       sb.from("dev_meetings").select("*").eq("cycle_id", c.id),
       sb.from("dev_comments").select("*").eq("cycle_id", c.id).order("created_at")
     ]).then(function(results){
       try{
-        var goals = results[0].data || [];
-        var goalsPlayer = results[1].data || [];
-        var meetings = results[2].data || [];
-        var comments = results[3].data || [];
+        var _cg0 = (results[0] && results[0].data) || {trainer_goals:[],player_goals:[]};
+        var goals = _cg0.trainer_goals || [];
+        var goalsPlayer = _cg0.player_goals || [];
+        var meetings = results[1].data || [];
+        var comments = results[2].data || [];
         body.innerHTML = renderCycleHtml(c, goals, goalsPlayer, meetings, comments, false);
       }catch(e){
         console.error("Zielvereinbarung-Fehler:", e);
@@ -7807,14 +7805,14 @@ var Ziel = (function(){
     }
     area.innerHTML = '<div class="spinner"></div>';
     Promise.all([
-      sb.from("dev_goals").select("*").eq("cycle_id", c.id),
-      sb.from("dev_goals_player").select("*").eq("cycle_id", c.id),
+      sb.rpc("get_cycle_goals", {p_cycle_id: c.id}),
       sb.from("dev_meetings").select("*").eq("cycle_id", c.id),
       sb.from("dev_comments").select("*").eq("cycle_id", c.id).order("created_at"),
       sb.from("dev_warnings").select("*").eq("cycle_id", c.id).order("issued_at",{ascending:false})
     ]).then(function(results){
       try{
-        var goals = results[0].data||[], goalsPlayer = results[1].data||[], meetings = results[2].data||[], comments = results[3].data||[], warnings = results[4].data||[];
+        var _cg1 = (results[0] && results[0].data) || {trainer_goals:[],player_goals:[]};
+        var goals = _cg1.trainer_goals||[], goalsPlayer = _cg1.player_goals||[], meetings = results[1].data||[], comments = results[2].data||[], warnings = results[3].data||[];
         var html = renderCycleHtml(c, goals, goalsPlayer, meetings, comments, true);
         html += '<h4 style="color:#fff; font-size:14px; margin:26px 0 10px;">🟨 Gelbe Karte</h4>';
         warnings.forEach(function(w){
@@ -7903,14 +7901,15 @@ var Ziel = (function(){
     var includeInternal = internalCb ? internalCb.checked : true;
     Promise.all([
       sb.from("dev_cycles").select("*").eq("id",cycleId).single(),
-      sb.from("dev_goals").select("*").eq("cycle_id",cycleId),
-      sb.from("dev_goals_player").select("*").eq("cycle_id",cycleId),
+      sb.rpc("get_cycle_goals", {p_cycle_id: cycleId}),
       sb.from("dev_meetings").select("*").eq("cycle_id",cycleId),
       sb.from("dev_comments").select("*").eq("cycle_id",cycleId).order("created_at"),
       sb.from("dev_warnings").select("*").eq("cycle_id",cycleId).order("issued_at",{ascending:false})
     ]).then(function(results){
-      var cycle = results[0].data, goals = results[1].data||[], goalsPlayer = results[2].data||[], meetings = results[3].data||[], warnings = results[5].data||[];
-      var comments = (results[4].data||[]).filter(function(cm){ return includeInternal || !cm.is_internal; });
+      var cycle = results[0].data;
+      var _cg2 = (results[1] && results[1].data) || {trainer_goals:[],player_goals:[]};
+      var goals = _cg2.trainer_goals||[], goalsPlayer = _cg2.player_goals||[], meetings = results[2].data||[], warnings = results[4].data||[];
+      var comments = (results[3].data||[]).filter(function(cm){ return includeInternal || !cm.is_internal; });
       if(!cycle){ alert("Zyklus nicht gefunden."); return; }
       // Spielerprofil separat laden (FK geht zu auth.users, nicht direkt zu profiles)
       sb.from("profiles").select("display_name,vorname,nachname,geburtsdatum").eq("id", cycle.player_id).single().then(function(pr){
@@ -9357,7 +9356,7 @@ var CAPRA = (function(){
       var notes  = obj.notes||[];
       // Interne Notiz: mit Checkbox abfragen
       var inclNotiz = confirm('Interne Trainer-Notizen & interne Kommentare im Gesamt-PDF mitdrucken?\n\n(«OK» = ja, «Abbrechen» = nein)');
-      _buildGespraechPDF(capra, profile, cycles, inclNotiz, notes);
+      _buildGespraechPDF(capra, profile, cycles, inclNotiz, notes, obj.capra_history||[]);
     });
   }
 
@@ -9542,7 +9541,7 @@ var CAPRA = (function(){
   }
 
   /* ── PDF B: Gesprächsmappe ──────────────────────────────────── */
-  function _buildGespraechPDF(capra, profile, cycles, inclNotiz, notes) {
+  function _buildGespraechPDF(capra, profile, cycles, inclNotiz, notes, capra_history) {
     if(!capra && (!cycles||!cycles.length) && (!notes||!notes.length)){ _toast('Keine Daten vorhanden','error'); return; }
     var doc=new window.jspdf.jsPDF();
     var GOLD=[212,175,55], MARGIN=14, PW=210, PH=297;
@@ -9692,6 +9691,23 @@ var CAPRA = (function(){
           y=doc.lastAutoTable.finalY+8;
         }
 
+        // Spieler-Ziele (eigene Einschätzung)
+        var goalsPlayer = c.goals_player||[];
+        if(goalsPlayer.length){
+          y=chk(y,16); y=secH('Spieler-Ziele (eigene Einschätzung)', y);
+          doc.autoTable({
+            startY:y, margin:{left:MARGIN,right:MARGIN},
+            head:[['Bereich','Thema','Massnahmen']],
+            body:goalsPlayer.map(function(g){
+              return [ BER[g.bereich]||g.bereich, nfc(g.thema||'—'), nfc(g.massnahmen||'—') ];
+            }),
+            styles:{fontSize:7.5,cellPadding:2.5,overflow:'linebreak',valign:'top'},
+            headStyles:{fillColor:[18,18,18],textColor:GOLD,fontStyle:'bold'},
+            columnStyles:{0:{cellWidth:24},1:{cellWidth:42},2:{cellWidth:'auto'}}
+          });
+          y=doc.lastAutoTable.finalY+8;
+        }
+
         // Gespräche / Meilensteine
         var meetings = c.meetings||[];
         if(meetings.length){
@@ -9766,6 +9782,31 @@ var CAPRA = (function(){
       });
     }
 
+    // === CAPRA Bewertungsverlauf ===
+    var histArr = capra_history || [];
+    if(histArr.length > 1){
+      doc.addPage(); y=20;
+      y=secH('CAPRA Bewertungsverlauf', y);
+      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(120,120,120);
+      doc.text('Chronologisch, neueste zuerst · nur freigeschaltete Bewertungen', MARGIN, y); y+=7;
+      function fmtTS2(ts){ if(!ts) return '—'; try{ var d=new Date(ts); var p2=function(n){return('0'+n).slice(-2);}; return p2(d.getDate())+'.'+p2(d.getMonth()+1)+'.'+d.getFullYear(); }catch(e){ return '—'; } }
+      var histHead=[['Datum','C','A','P','R','A','Ø','Typ','Status']];
+      var histBody=histArr.map(function(h){
+        var vals2=[h.charakter,h.ausstrahlung,h.persoenlichkeit,h.resilienz,h.auftreten].map(function(v){return parseFloat(v)||0;});
+        var avg2=(vals2.reduce(function(a,b){return a+b;},0)/5).toFixed(1);
+        var typ2=h.profil_typ?nfc(h.profil_typ.replace(/_/g,' ')):'—';
+        return[fmtTS2(h.saved_at),vals2[0].toFixed(1),vals2[1].toFixed(1),vals2[2].toFixed(1),vals2[3].toFixed(1),vals2[4].toFixed(1),avg2,typ2,h.finalized?'Freigegeben':'Entwurf'];
+      });
+      doc.autoTable({
+        startY:y, margin:{left:MARGIN,right:MARGIN},
+        head:histHead, body:histBody,
+        styles:{fontSize:7,cellPadding:2,halign:'center'},
+        headStyles:{fillColor:[18,18,18],textColor:GOLD,fontStyle:'bold'},
+        columnStyles:{0:{cellWidth:22,halign:'left'},7:{cellWidth:28,halign:'left'},8:{cellWidth:22}}
+      });
+      y=doc.lastAutoTable.finalY+10;
+    }
+
     // Footer
     var pgCount=doc.getNumberOfPages();
     for(var i=1;i<=pgCount;i++){
@@ -9822,7 +9863,7 @@ var CAPRA = (function(){
       var capra=obj.capra, profile=obj.profile||{}, cycles=obj.cycles||[], notes=obj.notes||[];
       if(!capra && (!cycles||!cycles.length)){ _toast('Noch keine Daten für ein PDF vorhanden','info'); return; }
       // Spieler-PDF: interne Notizen NIE mitdrucken
-      _buildGespraechPDF(capra, profile, cycles, false, notes);
+      _buildGespraechPDF(capra, profile, cycles, false, notes, obj.capra_history||[]);
     }).catch(function(){ _toast('Fehler beim Erstellen','error'); });
   }
 
@@ -10144,7 +10185,9 @@ function loadPlayerMessages() {
       html += '</div>';
       html += '<div style="font-weight:700;color:#fff;margin-bottom:4px;">'+esc(m.betreff)+'</div>';
       html += '<div style="font-size:13px;color:var(--text-2);white-space:pre-wrap;max-height:60px;overflow:hidden;">'+esc(m.inhalt)+'</div>';
-      html += '<div style="margin-top:8px;">'+msgStatusBadge(m.status)+'</div>';
+      html += '<div style="margin-top:8px;display:flex;align-items:center;gap:8px;">'+msgStatusBadge(m.status);
+      if(m.reply_count>0) html += '<span style="font-size:11px;color:var(--text-2);">💬 '+m.reply_count+' Antwort'+(m.reply_count>1?'en':'')+'</span>';
+      html += '</div>';
       html += '</div>';
     });
     box.innerHTML = html;
@@ -10158,15 +10201,65 @@ function loadPlayerMessages() {
   });
 }
 
-function playerOpenMessage(id) {
-  // Vollansicht: Card aufklappen (toggle)
-  var card = el('msg-card-'+id);
+function playerOpenMessage(msgId) {
+  // Toggle: Falls bereits geöffnet, schliessen
+  var card = el('msg-card-'+msgId);
   if(!card) return;
   var expanded = card.querySelector('.msg-expanded');
   if(expanded) { expanded.remove(); return; }
-  // Lade Nachricht komplett (aus DOM-Daten)
+
+  // Vollinhalt aufdecken
   var inhaltDiv = card.querySelectorAll('div')[3];
   if(inhaltDiv) inhaltDiv.style.maxHeight = 'none';
+
+  // Expanded-Bereich aufbauen
+  var box = document.createElement('div');
+  box.className = 'msg-expanded';
+  box.style.cssText = 'margin-top:12px;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;';
+
+  // Antworten laden
+  box.innerHTML = '<div class="spinner" style="width:20px;height:20px;"></div>';
+  card.appendChild(box);
+
+  sb.rpc('get_message_replies', {p_message_id: msgId}).then(function(r){
+    var replies = r.data || [];
+    var html2 = '';
+    if(replies.length){
+      html2 += '<div style="margin-bottom:10px;">';
+      replies.forEach(function(rep){
+        var isMine = rep.sender_id === ME.id;
+        html2 += '<div style="margin-bottom:8px;padding:8px 12px;border-radius:8px;background:'+(isMine?'rgba(212,175,55,0.08)':'rgba(255,255,255,0.04)')+';border:1px solid rgba(255,255,255,0.08);">';
+        html2 += '<div style="font-size:11px;color:var(--text-2);margin-bottom:3px;">'+esc(rep.sender_name)+' · '+msgTimeAgo(rep.created_at)+'</div>';
+        html2 += '<div style="font-size:13px;color:#fff;white-space:pre-wrap;">'+esc(rep.inhalt)+'</div>';
+        html2 += '</div>';
+      });
+      html2 += '</div>';
+    }
+
+    // Reply-Formular (nur für empfangene Nachrichten)
+    html2 += '<textarea id="reply-input-'+msgId+'" placeholder="Antwort schreiben…" rows="3" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;padding:8px;font-size:13px;resize:vertical;"></textarea>';
+    html2 += '<div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end;">';
+    html2 += '<button data-rpid="'+msgId+'" onclick="(function(b){playerReplyMessage(b.dataset.rpid);})(this)" style="background:var(--accent);color:#000;border:none;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;">💬 Antworten</button>';
+    html2 += '<span id="reply-status-'+msgId+'" style="font-size:11px;color:var(--text-2);align-self:center;"></span>';
+    html2 += '</div>';
+    box.innerHTML = html2;
+  }).catch(function(){
+    box.innerHTML = '<p style="font-size:12px;color:var(--text-2);">Antworten konnten nicht geladen werden.</p>';
+  });
+}
+
+function playerReplyMessage(parentId) {
+  var ta = el('reply-input-'+parentId);
+  var statusEl = el('reply-status-'+parentId);
+  if(!ta || !ta.value.trim()){ if(statusEl) statusEl.textContent='⚠️ Bitte Text eingeben'; return; }
+  if(statusEl) statusEl.textContent = 'Sendet…';
+  sb.rpc('reply_player_message', {p_parent_id: parentId, p_inhalt: ta.value.trim()}).then(function(r){
+    if(r.error){ if(statusEl) statusEl.textContent='❌ '+esc(r.error.message); return; }
+    ta.value = '';
+    if(statusEl) statusEl.textContent = '✓ Gesendet!';
+    // Antworten neu laden
+    setTimeout(function(){ playerOpenMessage(parentId); playerOpenMessage(parentId); }, 400);
+  }).catch(function(e){ if(statusEl) statusEl.textContent='❌ Fehler'; });
 }
 
 // Badge für Spieler aktualisieren
