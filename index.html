@@ -2831,6 +2831,7 @@ function afterLogin(){
     
     CHAL.init(); // Presence für alle Rollen starten (Online-Tracking)
     if(typeof CHATBOX!=='undefined') CHATBOX.init(); // Team-Chat starten
+    if(typeof updateNachrichtenBadge==='function'){ _lastMsgCount = -1; updateNachrichtenBadge(); } // Nachrichten-Badge sofort laden
     var archivBtn = el("stab-archiv");
     if(archivBtn){ if(PROFILE.role==="leiter") archivBtn.classList.remove("hidden"); else archivBtn.classList.add("hidden"); }
 
@@ -10377,8 +10378,8 @@ function staffLoadMessages(filter) {
     }
     var html = '';
     msgs.forEach(function(m){
-      var isStaffSender = (m.sender_id !== m.receiver_id);
-      html += '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 16px;margin-bottom:10px;">';
+      var unreadBorder = (m.receiver_id===ME.id && !m.gelesen) ? '0.35' : '0.1';
+      html += '<div id="staff-msg-card-'+m.id+'" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,'+unreadBorder+');border-radius:12px;padding:14px 16px;margin-bottom:10px;">';
       html += '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">';
       html += '<div style="flex:1;min-width:0;">';
       html += '<div style="font-size:12px;color:var(--text-2);margin-bottom:4px;">📨 Von: <b style="color:#fff;">'+esc(m.sender_name)+'</b> → An: <b style="color:#fff;">'+esc(m.receiver_name)+'</b> <span style="margin-left:8px;">'+msgTimeAgo(m.created_at)+'</span></div>';
@@ -10392,6 +10393,8 @@ function staffLoadMessages(filter) {
       html += '</div>';
       // Aktionen
       html += '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">';
+      var replyLabel = (m.reply_count>0) ? ('💬 Thread ('+m.reply_count+')') : '💬 Antworten';
+      html += '<button onclick="staffToggleThread(\''+m.id+'\')" style="font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid var(--accent);background:var(--accent-10);color:var(--accent);cursor:pointer;font-weight:700;">'+replyLabel+'</button>';
       if(m.status !== 'in_arbeit') html += '<button onclick="staffMsgStatus(\''+m.id+'\',\'in_arbeit\')" style="font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid rgba(245,158,11,0.4);background:rgba(245,158,11,0.1);color:#fcd34d;cursor:pointer;">▶ In Arbeit</button>';
       if(m.status !== 'erledigt') html += '<button onclick="staffMsgStatus(\''+m.id+'\',\'erledigt\')" style="font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid rgba(34,197,94,0.4);background:rgba(34,197,94,0.1);color:#86efac;cursor:pointer;">✓ Erledigt</button>';
       if(m.status !== 'offen') html += '<button onclick="staffMsgStatus(\''+m.id+'\',\'offen\')" style="font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:var(--text-2);cursor:pointer;">↩ Öffnen</button>';
@@ -10400,6 +10403,11 @@ function staffLoadMessages(filter) {
       html += '</div>';
     });
     box.innerHTML = html;
+    // Ungelesene, die AN mich gingen, als gelesen markieren (Staff sieht sie ja jetzt)
+    msgs.filter(function(m){ return m.receiver_id===ME.id && !m.gelesen; }).forEach(function(m){
+      sb.rpc('mark_message_read', {p_message_id: m.id}).then(function(){});
+    });
+    setTimeout(updateNachrichtenBadge, 600);
   }).catch(function(e){
     box.innerHTML = '<p style="color:#ff9080;">Fehler: '+esc(String(e))+'</p>';
   });
@@ -10416,6 +10424,58 @@ function staffMsgDelete(id) {
   sb.rpc('delete_player_message', {p_message_id: id}).then(function(){
     staffLoadMessages(_msgFilter);
   }).catch(function(e){ alert('Fehler: '+e); });
+}
+
+// Staff: Thread einer Nachricht auf-/zuklappen (Antworten anzeigen + antworten)
+function staffToggleThread(msgId) {
+  var card = el('staff-msg-card-'+msgId);
+  if(!card) return;
+  var ex = card.querySelector('.staff-msg-thread');
+  if(ex){ ex.remove(); return; }
+  var box = document.createElement('div');
+  box.className = 'staff-msg-thread';
+  box.style.cssText = 'margin-top:12px;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;';
+  box.innerHTML = '<div class="spinner" style="width:20px;height:20px;"></div>';
+  card.appendChild(box);
+  sb.rpc('get_message_replies', {p_message_id: msgId}).then(function(r){
+    if(r.error){ box.innerHTML = '<p style="font-size:12px;color:#ff9080;">Antworten konnten nicht geladen werden.</p>'; return; }
+    var replies = r.data || [];
+    var h = '';
+    if(replies.length){
+      h += '<div style="margin-bottom:10px;display:flex;flex-direction:column;gap:8px;">';
+      replies.forEach(function(rep){
+        var isMine = rep.sender_id === ME.id;
+        h += '<div style="padding:8px 12px;border-radius:8px;background:'+(isMine?'rgba(212,175,55,0.08)':'rgba(255,255,255,0.04)')+';border:1px solid rgba(255,255,255,0.08);">';
+        h += '<div style="font-size:11px;color:var(--text-2);margin-bottom:3px;">'+esc(rep.sender_name)+' · '+msgTimeAgo(rep.created_at)+'</div>';
+        h += '<div style="font-size:13px;color:#fff;white-space:pre-wrap;">'+esc(rep.inhalt)+'</div>';
+        h += '</div>';
+      });
+      h += '</div>';
+    } else {
+      h += '<p style="font-size:12px;color:var(--text-2);margin-bottom:10px;">Noch keine Antworten.</p>';
+    }
+    h += '<textarea id="staff-reply-'+msgId+'" placeholder="Antwort schreiben…" rows="3" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;padding:8px;font-size:13px;resize:vertical;"></textarea>';
+    h += '<div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end;align-items:center;">';
+    h += '<span id="staff-reply-status-'+msgId+'" style="font-size:11px;color:var(--text-2);"></span>';
+    h += '<button onclick="staffReplyMessage(\''+msgId+'\')" style="background:var(--accent);color:#000;border:none;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;">💬 Antworten</button>';
+    h += '</div>';
+    box.innerHTML = h;
+  });
+}
+
+// Staff: auf eine Nachricht antworten
+function staffReplyMessage(parentId) {
+  var ta = el('staff-reply-'+parentId);
+  var statusEl = el('staff-reply-status-'+parentId);
+  if(!ta || !ta.value.trim()){ if(statusEl) statusEl.textContent='⚠️ Bitte Text eingeben'; return; }
+  if(statusEl) statusEl.textContent = 'Sendet…';
+  sb.rpc('reply_player_message', {p_parent_id: parentId, p_inhalt: ta.value.trim()}).then(function(r){
+    if(r.error){ if(statusEl) statusEl.textContent='❌ '+esc(r.error.message); return; }
+    ta.value = '';
+    if(statusEl) statusEl.textContent = '✓ Gesendet!';
+    // Thread neu laden (zu + wieder auf)
+    setTimeout(function(){ staffToggleThread(parentId); staffToggleThread(parentId); }, 400);
+  });
 }
 
 // Staff: Spieler-Liste für Dropdown laden
@@ -10489,15 +10549,35 @@ function staffSendMessage() {
   });
 }
 
-// Nachrichten-Badge im Staff-Sidebar aktualisieren
+// Nachrichten-Badge (Staff + Spieler) aktualisieren + Toast bei neuer Nachricht
+var _lastMsgCount = -1;
 function updateNachrichtenBadge() {
+  if(!(typeof ME !== 'undefined' && ME && ME.id)) return;
   sb.rpc('get_unread_message_count').then(function(r){
+    if(r.error) return;
     var n = r.data || 0;
     var badge = el('nachrichten-badge');
     if(badge){ badge.textContent = n; badge.classList.toggle('hidden', n===0); }
-    // Spieler-Badge aktualisieren wenn Spieler
+    // Spieler-Badge + Dashboard-Kachel
     updatePlayerNachrichtenBadge(n);
+    // Toast NUR wenn Anzahl gestiegen ist (echte neue Nachricht), nicht beim ersten Laden
+    if(_lastMsgCount >= 0 && n > _lastMsgCount){
+      msgNotifyToast('💬 Neue Nachricht! ('+n+' ungelesen)');
+    }
+    _lastMsgCount = n;
   }).catch(function(){});
+}
+
+// Sichtbares Popup oben — anklickbar → öffnet Nachrichten-Tab
+function msgNotifyToast(text){
+  var ex = document.getElementById('msg-notify-toast'); if(ex) ex.remove();
+  var t = document.createElement('div');
+  t.id = 'msg-notify-toast';
+  t.textContent = text;
+  t.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#7c3aed;color:#fff;padding:12px 22px;border-radius:12px;z-index:100000;font-size:14px;font-weight:700;box-shadow:0 8px 28px rgba(0,0,0,0.55);cursor:pointer;';
+  t.onclick = function(){ t.remove(); if(typeof isStaff==='function' && isStaff()){ showStaffTab('nachrichten'); } else { showPlayerTab('nachrichten'); } };
+  document.body.appendChild(t);
+  setTimeout(function(){ if(t.parentNode) t.remove(); }, 6000);
 }
 
 // Beim Login: Badge laden + Live-Polling für Benachrichtigungen
@@ -10507,13 +10587,13 @@ document.addEventListener('DOMContentLoaded', function(){
   setTimeout(function(){
     if(typeof ME !== 'undefined' && ME && ME.id) updateNachrichtenBadge();
   }, 2000);
-  // Live-Benachrichtigung: Badge alle 15s aktualisieren.
-  // WICHTIG: aktualisiert NUR das Badge (Zähler), lädt NICHT die Nachrichtenliste neu —
+  // Live-Benachrichtigung: Badge alle 10s aktualisieren + Toast bei neuer Nachricht.
+  // WICHTIG: aktualisiert NUR das Badge/Toast, lädt NICHT die Nachrichtenliste neu —
   // sonst würde ein offenes Antwort-Textfeld beim Tippen zerstört.
   if(_nachrichtenBadgeInterval) clearInterval(_nachrichtenBadgeInterval);
   _nachrichtenBadgeInterval = setInterval(function(){
     if(typeof ME !== 'undefined' && ME && ME.id) updateNachrichtenBadge();
-  }, 15000);
+  }, 10000);
 });
 
 </script>
