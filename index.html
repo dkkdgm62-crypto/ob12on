@@ -1146,6 +1146,7 @@ footer {
 
       <div class="sidebar-group-label">Akademie</div>
       <button id="stab-dashboard" class="sidebar-btn active" onclick="showStaffTab('dashboard')"><span class="sb-icon">🏟</span>Cockpit</button>
+      <button id="stab-nachrichten" class="sidebar-btn" onclick="showStaffTab('nachrichten')"><span class="sb-icon">💬</span>Nachrichten<span id="nachrichten-badge" class="sidebar-badge hidden">0</span></button>
       <button id="stab-kader" class="sidebar-btn" onclick="showStaffTab('kader')"><span class="sb-icon">👥</span>Kader & Fortschritt</button>
       <button id="stab-skills" class="sidebar-btn" onclick="showStaffTab('skills')"><span class="sb-icon">⚡</span>Skill-Leaderboards</button>
       <button id="stab-rang" class="sidebar-btn" onclick="showStaffTab('rang')"><span class="sb-icon">🏆</span>Modul-Rangliste</button>
@@ -1155,7 +1156,6 @@ footer {
       <button id="stab-frei" class="sidebar-btn" onclick="showStaffTab('frei')"><span class="sb-icon">🔓</span>Freischaltungen</button>
       <button id="stab-consent" class="sidebar-btn" onclick="showStaffTab('consent')"><span class="sb-icon">📄</span>Einverständnis</button>
       <button id="stab-anfragen" class="sidebar-btn" onclick="showStaffTab('anfragen')"><span class="sb-icon">📬</span>Anfragen<span id="anfragen-badge" class="sidebar-badge">0</span></button>
-      <button id="stab-nachrichten" class="sidebar-btn" onclick="showStaffTab('nachrichten')"><span class="sb-icon">💬</span>Nachrichten<span id="nachrichten-badge" class="sidebar-badge hidden">0</span></button>
             <button id="stab-log" class="sidebar-btn" onclick="showStaffTab('log')"><span class="sb-icon">🟢</span>Login-Protokoll</button>
 
       <div class="sidebar-group-label">Lernprogramm</div>
@@ -1774,6 +1774,7 @@ footer {
       <button class="sidebar-toggle-btn" onclick="toggleSidebarPosition()" title="Seite wechseln">⇄ Seite wechseln</button>
       <div class="sidebar-group-label">Übersicht</div>
       <button id="tab-dashboard" class="sidebar-btn active" onclick="showPlayerTab('dashboard')"><span class="sb-icon">🏠</span>Dashboard</button>
+      <button id="ptab-nachrichten" class="sidebar-btn" onclick="showPlayerTab('nachrichten')"><span class="sb-icon">💬</span>Nachrichten<span id="player-nachrichten-badge" style="display:none;background:#e53;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:6px;">0</span></button>
       <button id="tab-rang" class="sidebar-btn" onclick="showPlayerTab('rang')"><span class="sb-icon">🏆</span>Rangliste</button>
 
       <div class="sidebar-group-label">Training</div>
@@ -1788,7 +1789,6 @@ footer {
 
       <div class="sidebar-group-label">Hilfe</div>
       <button id="tab-hilfe" class="sidebar-btn" onclick="showPlayerTab('hilfe')"><span class="sb-icon">❓</span>Hilfe</button>
-      <button id="ptab-nachrichten" class="sidebar-btn" onclick="showPlayerTab('nachrichten')"><span class="sb-icon">💬</span>Nachrichten<span id="player-nachrichten-badge" style="display:none;background:#e53;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:6px;">0</span></button>
     </div>
     <div class="sidebar-main" id="player-sidebar-main">
 
@@ -2279,6 +2279,19 @@ footer {
 
   <!-- LERNBLOCK (LEHRSTOFF) -->
   <div id="view-nachrichten" class="hidden" style="padding-top:20px; padding-bottom:60px;">
+    <!-- Spieler: Neue Nachricht senden -->
+    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:16px;margin-bottom:20px;">
+      <h3 style="color:#fff;font-size:14px;margin-bottom:12px;">✉️ Neue Nachricht senden</h3>
+      <select id="player-msg-receiver" style="width:100%;padding:10px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;margin-bottom:10px;box-sizing:border-box;">
+        <option value="">— Empfänger auswählen —</option>
+      </select>
+      <input id="player-msg-betreff" type="text" placeholder="Betreff" style="width:100%;padding:10px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;margin-bottom:10px;box-sizing:border-box;">
+      <textarea id="player-msg-inhalt" rows="4" placeholder="Nachricht…" style="width:100%;padding:10px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;resize:vertical;box-sizing:border-box;font-family:inherit;"></textarea>
+      <div style="margin-top:10px;display:flex;align-items:center;gap:12px;">
+        <button onclick="playerSendMessage()" style="padding:10px 20px;background:var(--accent);border:none;border-radius:8px;color:#000;font-weight:700;cursor:pointer;">📤 Senden</button>
+        <span id="player-msg-send-status" style="font-size:13px;color:var(--accent);"></span>
+      </div>
+    </div>
     <div id="nachrichten-player-body"><div class="spinner"></div></div>
   </div>
 
@@ -3028,6 +3041,7 @@ function showPlayerTab(t){
   } else if(t==="nachrichten") {
     only("view-nachrichten"); show("app-head"); show("player-nav");
     loadPlayerStats();
+    playerLoadRecipients();
     loadPlayerMessages();
   } else {
     
@@ -10341,12 +10355,52 @@ function staffMsgDelete(id) {
 function staffLoadMessagePlayers() {
   var sel = el('msg-receiver');
   if(!sel) return;
-  sb.from('profiles').select('id,full_name,role').in('role',['spieler']).order('full_name').then(function(r){
+  sb.rpc('get_recipients_for_messenger').then(function(r){
     var players = r.data || [];
     sel.innerHTML = '<option value="">— Spieler auswählen —</option>';
     players.forEach(function(p){
-      sel.innerHTML += '<option value="'+p.id+'">'+esc(p.full_name)+'</option>';
+      sel.innerHTML += '<option value="'+p.id+'">'+esc(p.display_name)+'</option>';
     });
+  }).catch(function(){
+    sel.innerHTML = '<option value="">Fehler beim Laden</option>';
+  });
+}
+
+function playerLoadRecipients() {
+  var sel = el('player-msg-receiver');
+  if(!sel) return;
+  sb.rpc('get_recipients_for_messenger').then(function(r){
+    var recipients = r.data || [];
+    sel.innerHTML = '<option value="">— Empfänger auswählen —</option>';
+    recipients.forEach(function(p){
+      var label = esc(p.display_name) + (p.role !== 'spieler' ? ' (Trainer)' : '');
+      sel.innerHTML += '<option value="'+p.id+'">'+label+'</option>';
+    });
+  }).catch(function(){
+    sel.innerHTML = '<option value="">Fehler beim Laden</option>';
+  });
+}
+
+function playerSendMessage() {
+  var receiverId = (el('player-msg-receiver')||{}).value;
+  var betreff    = (el('player-msg-betreff')||{}).value.trim();
+  var inhalt     = (el('player-msg-inhalt')||{}).value.trim();
+  var statusEl   = el('player-msg-send-status');
+  if(!receiverId || !inhalt) {
+    if(statusEl) statusEl.textContent = '⚠️ Empfänger und Nachricht erforderlich';
+    return;
+  }
+  if(statusEl) statusEl.textContent = 'Sende…';
+  sb.rpc('send_player_message', {p_receiver_id: receiverId, p_betreff: betreff||'Neue Nachricht', p_inhalt: inhalt}).then(function(r){
+    if(r.error){ if(statusEl) statusEl.textContent='❌ '+esc(r.error.message); return; }
+    if(statusEl) statusEl.textContent = '✓ Gesendet!';
+    if(el('player-msg-betreff')) el('player-msg-betreff').value = '';
+    if(el('player-msg-inhalt'))  el('player-msg-inhalt').value  = '';
+    if(el('player-msg-receiver')) el('player-msg-receiver').value = '';
+    setTimeout(function(){ if(statusEl) statusEl.textContent = ''; }, 3000);
+    loadPlayerMessages();
+  }).catch(function(e){
+    if(statusEl) statusEl.textContent = '❌ Fehler: '+esc(String(e));
   });
 }
 
