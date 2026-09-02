@@ -952,6 +952,45 @@ footer {
 .g-grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: var(--sp-4); }
 .g-divider { height: 1px; background: var(--glass-border); margin: var(--sp-4) 0; }
 .g-stack   { display: flex; flex-direction: column; gap: var(--sp-3); }
+
+/* ═══ Contained Polish (Schach · Herausforderung · Messenger · Notifications) ═══ */
+@keyframes ob-pop { 0%{opacity:0; transform:translateY(10px) scale(.94);} 100%{opacity:1; transform:translateY(0) scale(1);} }
+@keyframes ob-fade { from{opacity:0;} to{opacity:1;} }
+@keyframes ob-slidedown { 0%{opacity:0; transform:translateX(-50%) translateY(-14px);} 100%{opacity:1; transform:translateX(-50%) translateY(0);} }
+@keyframes ob-pulse-ring { 0%{box-shadow:0 0 0 0 rgba(var(--accent-rgb),0.45);} 70%{box-shadow:0 0 0 10px rgba(var(--accent-rgb),0);} 100%{box-shadow:0 0 0 0 rgba(var(--accent-rgb),0);} }
+
+/* Eingehende Herausforderung: sanfter Auftritt + Puls */
+#chal-incoming { animation: ob-fade .18s ease-out; }
+#chal-incoming > div { animation: ob-pop .3s cubic-bezier(0.16,1,0.3,1); }
+#chal-incoming .ob-vs { font-size:34px; animation: ob-pulse-ring 1.6s ease-out infinite; border-radius:50%; display:inline-block; padding:6px; }
+
+/* Benachrichtigungs-Toast: gleitet von oben rein */
+#msg-notify-toast { animation: ob-slidedown .32s cubic-bezier(0.16,1,0.3,1); }
+#msg-notify-toast:hover { filter: brightness(1.08); transform: translateX(-50%) translateY(1px); }
+
+/* Herausforderungs-Buttons (⚔ Fordern) + Spieler-Zeilen */
+#chal-online-list .btn-ghost:hover, #chal-all-list .btn-ghost:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 0 14px rgba(var(--accent-rgb),0.35) !important;
+  background: var(--accent-10) !important;
+}
+#chal-all-list > div, #chal-online-list > div { transition: border-color var(--dur-base) var(--ease-out), background var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out); }
+#chal-all-list > div:hover, #chal-online-list > div:hover { border-color: var(--glass-border-2) !important; transform: translateX(2px); }
+#chal-all-card .eyebrow, #chal-online-card .eyebrow { color: var(--accent); }
+
+/* Schachbrett: dezenter Rahmen-Glow für einen edleren Look */
+#sc-canvas {
+  box-shadow: 0 10px 40px rgba(0,0,0,0.45), 0 0 0 1px var(--glass-border-2), 0 0 26px rgba(var(--accent-rgb),0.12);
+  transition: box-shadow var(--dur-base) var(--ease-out);
+}
+#sc-canvas:hover { box-shadow: 0 12px 48px rgba(0,0,0,0.5), 0 0 0 1px var(--accent-28), 0 0 34px rgba(var(--accent-rgb),0.2); }
+
+/* Staff-Nachrichten-Thread: sanftes Aufklappen */
+.staff-msg-thread { animation: ob-pop .26s cubic-bezier(0.16,1,0.3,1); }
+
+/* Online-Puls-Punkt in Listen etwas lebendiger */
+#presence-pill { transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out); }
+#presence-pill:hover { transform: translateY(-1px); box-shadow: 0 0 16px rgba(var(--accent-rgb),0.3); }
 </style>
 </head>
 <body>
@@ -1922,6 +1961,12 @@ footer {
             <p class="eyebrow" style="margin-bottom:6px;">👥 Online-Spieler</p>
             <div id="chal-online-list" style="display:flex; flex-direction:column; gap:6px; max-height:170px; overflow-y:auto;">
               <p class="muted" style="font-size:12px;">Niemand sonst online...</p>
+            </div>
+          </div>
+          <div class="card g-card-sm" id="chal-all-card">
+            <p class="eyebrow" style="margin-bottom:6px;">⚔ Alle Spieler herausfordern</p>
+            <div id="chal-all-list" style="display:flex; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto;">
+              <p class="muted" style="font-size:12px;">Lade Spieler…</p>
             </div>
           </div>
           <div class="card g-card-sm" style="max-height:300px; overflow-y:auto;">
@@ -6797,8 +6842,47 @@ var CHAL = (function(){
   var pendingIncoming = null, pendingIncomingTimer = null;
   var pollInterval = null;
   var shownPollIds = {}; // verhindert Doppel-Modal bei Poll
+  var allPlayers = []; // {id, name} aller aktiven Spieler (für "Alle herausfordern")
+  var visHooked = false;
+
+  function refreshAllPlayers(cb){
+    if(!isStaff()){ if(cb) cb(); return; } // nur Staff darf get_all_players nutzen
+    sb.rpc('get_all_players').then(function(r){
+      if(!r.error && r.data){
+        allPlayers = (r.data||[]).filter(function(p){
+          // Nur registrierte, aktive Spieler (player_id != null), nicht man selbst
+          return p.player_id && p.is_active !== false && (!ME || p.player_id !== ME.id);
+        }).map(function(p){
+          return { id: p.player_id, name: p.display_name || p.email || 'Spieler' };
+        });
+      }
+      if(cb) cb();
+    });
+  }
+
+  function renderAllPlayers(){
+    var card = document.getElementById('chal-all-card');
+    if(card) card.style.display = isStaff() ? '' : 'none';
+    if(!isStaff()) return; // Panel nur für Staff (schützt Spieler-E-Mails/Invite-Codes)
+    var list = document.getElementById('chal-all-list');
+    if(!list) return;
+    if(!allPlayers.length){ list.innerHTML = '<p class="muted" style="font-size:12px;">Keine anderen Spieler gefunden.</p>'; return; }
+    var html = '';
+    allPlayers.forEach(function(p){
+      var on = !!online[p.id];
+      var dot = on ? '🟢' : '<span style="color:var(--text-3);">⚪</span>';
+      var pts = pointsCache[p.id];
+      var ptsLabel = (pts!=null) ? (' · <span style="color:var(--gold); font-weight:700;">'+pts+' Pkt</span>') : '';
+      html += '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--glass-bg-2);border:1px solid var(--glass-border);border-radius:var(--r-md);padding:6px 10px;">'
+        + '<span style="font-size:13px;color:var(--text-1);">'+dot+' '+esc(p.name)+ptsLabel+(on?'':'<span style="color:var(--text-3);font-size:11px;"> · offline</span>')+'</span>'
+        + '<button class="btn-ghost" style="font-size:11px;padding:4px 8px;border-color:var(--accent);color:var(--accent);" onclick="CHAL.challengeAny(\''+p.id+'\')">⚔ Fordern</button>'
+        + '</div>';
+    });
+    list.innerHTML = html;
+  }
 
   function myName(){ return (PROFILE && PROFILE.display_name) || (ME && ME.email) || 'Spieler'; }
+  function isStaff(){ return !!(PROFILE && (PROFILE.role==='leiter' || PROFILE.role==='trainer')); }
 
   function renderPill(){
     var n = Object.keys(online).length;
@@ -6863,7 +6947,7 @@ var CHAL = (function(){
     ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.78);backdrop-filter:blur(6px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;';
     ov.innerHTML =
       '<div style="background:var(--bg-card);border:1px solid var(--glass-border-2);border-radius:var(--r-2xl);padding:26px;max-width:360px;width:100%;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,0.7);">'
-      + '<p style="font-size:32px;margin:0 0 8px;">♟️⚔️</p>'
+      + '<p style="margin:0 0 8px;"><span class="ob-vs">♟️⚔️</span></p>'
       + '<h3 style="color:#fff;margin:0 0 6px;">Schach-Herausforderung!</h3>'
       + '<p class="muted" style="margin:0 0 6px;font-size:14px;"><b style="color:var(--accent);">'+esc(challengerName)+'</b> fordert dich heraus.</p>'
       + '<p style="margin:0 0 20px;font-size:12px;color:var(--text-3);">'+tmLabel+'</p>'
@@ -6886,10 +6970,10 @@ var CHAL = (function(){
   function pollPendingChallenge(){
     if(!ME || pendingIncoming) return;
     sb.from('chess_challenges')
-      .select('id, challenger_id')
+      .select('id, challenger_id, time_mode')
       .eq('opponent_id', ME.id)
       .eq('status', 'pending')
-      .gte('created_at', new Date(Date.now()-28000).toISOString())
+      .gte('created_at', new Date(Date.now()-120000).toISOString())
       .order('created_at', {ascending:false})
       .limit(1)
       .then(function(r){
@@ -6898,7 +6982,7 @@ var CHAL = (function(){
         if(shownPollIds[ch.id]) return; // schon gezeigt
         shownPollIds[ch.id] = true;
         var challengerName = (online[ch.challenger_id] && online[ch.challenger_id].name) || 'Mitspieler';
-        showIncomingModal(ch.challenger_id, challengerName, ch.id, selectedTimeMode);
+        showIncomingModal(ch.challenger_id, challengerName, ch.id, ch.time_mode || '10');
       });
   }
 
@@ -6909,6 +6993,42 @@ var CHAL = (function(){
     if(box.contains(ev.target) || (pill && pill.contains(ev.target))) return;
     box.classList.add('hidden');
     document.removeEventListener('click', outsideCloseHandler, true);
+  }
+
+  // Gemeinsame Herausforderungs-Logik (online ODER offline). Zustellung: Broadcast (sofort, falls online) + DB-Poll (Fallback).
+  function sendChallenge(opponentId, opponentName, isOnline){
+    if(typeof SC!=='undefined' && SC.isBusy && SC.isBusy()){
+      toast('⚠️ Du spielst bereits eine Partie — erst beenden.', 'var(--neon-rose)');
+      return;
+    }
+    if(pendingOutgoingId){
+      toast('⏳ Es läuft schon eine offene Anfrage — bitte warten.', 'var(--text-3)');
+      return;
+    }
+    var tm = selectedTimeMode;
+    sb.rpc('create_chess_challenge', {p_opponent: opponentId, p_time_mode: tm}).then(function(r){
+      if(r.error){ toast('⚠️ '+(r.error.message||'Anfrage fehlgeschlagen'), 'var(--neon-rose)'); return; }
+      var challengeId = r.data;
+      pendingOutgoingId = challengeId; pendingOutgoingOpponentId = opponentId;
+      var targetCh = sb.channel('inbox-'+opponentId, {config:{broadcast:{self:false}}});
+      targetCh.subscribe(function(status){
+        if(status==='SUBSCRIBED'){
+          targetCh.send({type:'broadcast', event:'challenge', payload:{
+            challengeId: challengeId, challengerId: ME.id, challengerName: myName(), timeMode: tm
+          }});
+          setTimeout(function(){ sb.removeChannel(targetCh); }, 1500);
+        }
+      });
+      toast(isOnline ? ('📨 Anfrage an '+opponentName+' gesendet…')
+                     : ('📨 Anfrage an '+opponentName+' gesendet – wird zugestellt sobald online.'), 'var(--accent)');
+      pendingOutgoingTimer = setTimeout(function(){
+        if(pendingOutgoingId===challengeId){
+          sb.rpc('cancel_chess_challenge',{p_challenge_id:challengeId});
+          pendingOutgoingId=null; pendingOutgoingOpponentId=null;
+          toast('⌛ Keine Antwort von '+opponentName, 'var(--text-3)');
+        }
+      }, 30000);
+    });
   }
 
   return {
@@ -6925,16 +7045,22 @@ var CHAL = (function(){
         Object.keys(state).forEach(function(id){
           if(state[id] && state[id][0]) online[id] = {name: state[id][0].name, role: state[id][0].role};
         });
-        renderPill(); renderDropdown(); renderOnlineList();
+        renderPill(); renderDropdown(); renderOnlineList(); renderAllPlayers();
         if(typeof CHATBOX!=='undefined'&&CHATBOX.refreshOnline) CHATBOX.refreshOnline();
-        refreshPointsCache(function(){ renderDropdown(); renderOnlineList(); });
+        refreshPointsCache(function(){ renderDropdown(); renderOnlineList(); renderAllPlayers(); });
       }).subscribe(function(status){
         if(status==='SUBSCRIBED'){ presenceCh.track({name: myName(), role: PROFILE.role}); }
       });
 
       shownPollIds = {};
+      refreshAllPlayers(renderAllPlayers);
     if(pollInterval){ clearInterval(pollInterval); pollInterval=null; }
     pollInterval = setInterval(pollPendingChallenge, 4000);
+    pollPendingChallenge(); // sofort prüfen (z.B. Herausforderung während man offline war)
+    if(!visHooked){
+      visHooked = true;
+      document.addEventListener('visibilitychange', function(){ if(!document.hidden) pollPendingChallenge(); });
+    }
 
     inboxCh = sb.channel('inbox-'+ME.id, {config:{broadcast:{self:false}}});
       inboxCh.on('broadcast',{event:'challenge'},function(pl){
@@ -6984,35 +7110,17 @@ var CHAL = (function(){
         }, 0);
       }
     },
+    // Herausforderung an einen ONLINE-Spieler (Presence-Liste)
     challenge: function(opponentId){
       if(!online[opponentId]) return;
-      if(typeof SC!=='undefined' && SC.isBusy && SC.isBusy()){
-        toast('⚠️ Du spielst bereits eine Partie — erst beenden.', 'var(--neon-rose)');
-        return;
-      }
-      var opponentName = online[opponentId].name;
-      sb.rpc('create_chess_challenge', {p_opponent: opponentId}).then(function(r){
-        if(r.error){ toast('⚠️ '+(r.error.message||'Anfrage fehlgeschlagen'), 'var(--neon-rose)'); return; }
-        var challengeId = r.data;
-        pendingOutgoingId = challengeId; pendingOutgoingOpponentId = opponentId;
-        var targetCh = sb.channel('inbox-'+opponentId, {config:{broadcast:{self:false}}});
-        targetCh.subscribe(function(status){
-          if(status==='SUBSCRIBED'){
-            targetCh.send({type:'broadcast', event:'challenge', payload:{
-              challengeId: challengeId, challengerId: ME.id, challengerName: myName(), timeMode: selectedTimeMode
-            }});
-            setTimeout(function(){ sb.removeChannel(targetCh); }, 1500);
-          }
-        });
-        toast('📨 Anfrage an '+opponentName+' gesendet...', 'var(--accent)');
-        pendingOutgoingTimer = setTimeout(function(){
-          if(pendingOutgoingId===challengeId){
-            sb.rpc('cancel_chess_challenge',{p_challenge_id:challengeId});
-            pendingOutgoingId=null;
-            toast('⌛ Keine Antwort von '+opponentName, 'var(--text-3)');
-          }
-        }, 30000);
-      });
+      sendChallenge(opponentId, online[opponentId].name, true);
+    },
+    // Herausforderung an EINEN BELIEBIGEN Spieler (auch offline) — z.B. Superadmin Dogus
+    challengeAny: function(opponentId){
+      if(!opponentId) return;
+      var name = (online[opponentId] && online[opponentId].name);
+      if(!name){ for(var i=0;i<allPlayers.length;i++){ if(allPlayers[i].id===opponentId){ name=allPlayers[i].name; break; } } }
+      sendChallenge(opponentId, name||'Spieler', false);
     },
     respond: function(accept){
       if(!pendingIncoming) return;
