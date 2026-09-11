@@ -2885,6 +2885,11 @@ function afterLogin(){
   });
 }
 function isStaff(){return PROFILE && (PROFILE.role==="trainer"||PROFILE.role==="leiter");}
+/* Zentrale Frontend-Wahrheit: darf der Spieler jetzt lernen? */
+function canLearn(){
+  if(typeof isStaff==="function" && isStaff()) return true;
+  return !!(ACCESS && (ACCESS.always_open || ACCESS.window_open || ACCESS.open));
+}
 
 function refreshAccess(initial){
   sb.rpc("get_access_state").then(function(r){
@@ -3058,6 +3063,8 @@ function showPlayerTab(t){
   scrollToTop();
   if(t==="capra") t="ziel";   // CAPRA in "Meine Entwicklung" zusammengeführt
   playerTab=t;
+  var lernBtn = el("tab-lernen");
+  if(lernBtn){ lernBtn.classList.toggle("hidden", !canLearn()); }
   ["dashboard","lernen","skills","schach","rang","ziel","spiele","ernaehrung","hilfe","nachrichten"].forEach(function(k){
     var btn = el("tab-"+k);
     if(btn){ btn.classList.toggle("active", k===t); }
@@ -3067,7 +3074,18 @@ function showPlayerTab(t){
     loadPlayerStats();
     loadPlayerDashboard();
   } else if(t==="lernen"){
-    
+    if(!canLearn()){
+      var wbL = el("warn-banner");
+      if(wbL){
+        wbL.classList.remove("hidden");
+        wbL.style.background = "rgba(212,175,55,0.1)";
+        wbL.style.borderColor = "var(--gold)";
+        wbL.style.color = "#f3d47a";
+        wbL.innerHTML = "🔒 Die Lernplattform ist gerade geschlossen. Lernen ist nur Dienstag & Sonntag im Zeitfenster möglich.";
+      }
+      showPlayerTab("dashboard");
+      return;
+    }
     only("view-modules"); show("app-head"); show("player-nav");
     loadPlayerStats();
     loadModules();
@@ -3621,6 +3639,7 @@ function dashboardZieleHtml(officialGoals, playerGoals){
 }
 
 function dashboardLernenHtml(modules, myPoints){
+  if(!canLearn()) return '';
   if(!modules || modules.length===0) return '';
   var openModules = modules.filter(function(m){ return m.offen; });
   var passedOpen = openModules.filter(function(m){ return m.passed; }).length;
@@ -3758,7 +3777,6 @@ function loadPlayerDashboard(){
           var quickAccessHtml = '<h3 style="color:#fff; font-size:13px; margin-bottom:10px; font-weight:700;">Schnellzugriff</h3>';
           quickAccessHtml += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(140px,1fr)); gap:10px;">';
           [
-            {icon:'📖', label:'Lernen', tab:'lernen'},
             {icon:'🎯', label:'Skill-Challenges', tab:'skills'},
             {icon:'♟', label:'Schach', tab:'schach'},
             {icon:'🏆', label:'Rangliste', tab:'rang'},
@@ -3766,7 +3784,8 @@ function loadPlayerDashboard(){
             {icon:'📅', label:'Spielplan', tab:'spiele'},
             {icon:'🍎', label:'Ernährung & Erholung', tab:'ernaehrung'}
             ,{icon:'💬', label:'Nachrichten', tab:'nachrichten', badge:true}
-          ].forEach(function(t){
+          ].concat(canLearn() ? [{icon:'📖', label:'Lernen', tab:'lernen'}] : [])
+           .forEach(function(t){
             var badgeHtml = t.badge ? '<span id="nachrichten-tile-badge" style="display:none;background:#e53;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:700;line-height:18px;text-align:center;position:absolute;top:6px;right:6px;">0</span>' : '';
             quickAccessHtml += '<div class="card" style="background:rgba(255,255,255,0.03); text-align:center; padding:14px 8px; cursor:pointer; position:relative;" onclick="showPlayerTab(\''+t.tab+'\')">';
             quickAccessHtml += badgeHtml;
@@ -4666,7 +4685,7 @@ var currentKaderSortAsc = true;
 function loadKaderTable() {
   el("staff-kader-tbody").innerHTML = '<tr><td colspan="7"><div class="spinner"></div></td></tr>';
   
-  sb.from("profiles").select("id, display_name, geb, fuss, player_nr, skills, vorname, nachname, geburtsdatum").eq("role", "spieler").then(function(pRes) {
+  sb.rpc("staff_get_players_full").then(function(pRes) {
     var profiles = pRes.data || [];
     
     sb.rpc("get_leaderboard", { p_round_nr: ACCESS.current_round }).then(function(lRes) {
@@ -4768,7 +4787,7 @@ function sortKader(colIdx) {
 
 function filterKaderTable() {
   var q = el("kader-search").value.toLowerCase();
-  sb.from("profiles").select("id, display_name, geb, fuss, player_nr, skills, vorname, nachname, geburtsdatum").eq("role", "spieler").then(function(pRes) {
+  sb.rpc("staff_get_players_full").then(function(pRes) {
     var profiles = pRes.data || [];
     profiles = profiles.filter(function(p) {
       return (p.display_name || "").toLowerCase().indexOf(q) > -1 || (p.player_nr || "").indexOf(q) > -1;
@@ -5551,9 +5570,7 @@ function loadLockedAccounts(){
   var box = el("locked-accounts-box");
   if(!box) return;
   box.innerHTML = "";
-  sb.from("profiles").select("id,display_name,account_disabled,login_locked_until,failed_login_attempts,disabled_reason")
-    .eq("role","spieler")
-    .or("account_disabled.eq.true,login_locked_until.gt." + new Date().toISOString())
+  sb.rpc("staff_get_locked_accounts")
     .then(function(r){
       var rows = r.data || [];
       if(r.error || rows.length===0) return;
@@ -7917,7 +7934,7 @@ var Ziel = (function(){
   function staffInit(){
     state.isStaff = true;
     loadOverview();
-    sb.from("profiles").select("id,display_name,vorname,nachname").eq("role","spieler").order("display_name").then(function(r){
+    sb.rpc("staff_get_players_full").then(function(r){
       var opts = '<option value="">– auswählen –</option>';
       (r.data||[]).forEach(function(p){ opts += '<option value="'+p.id+'">'+esc(p.display_name)+'</option>'; });
       el("ziel-staff-player").innerHTML = opts;
@@ -8100,8 +8117,8 @@ var Ziel = (function(){
       var comments = (results[3].data||[]).filter(function(cm){ return includeInternal || !cm.is_internal; });
       if(!cycle){ alert("Zyklus nicht gefunden."); return; }
       // Spielerprofil separat laden (FK geht zu auth.users, nicht direkt zu profiles)
-      sb.from("profiles").select("display_name,vorname,nachname,geburtsdatum").eq("id", cycle.player_id).single().then(function(pr){
-        cycle._profile = pr.data || {};
+      sb.rpc("staff_get_players_full", { p_player_id: cycle.player_id }).then(function(pr){
+        cycle._profile = ((pr.data)||[])[0] || {};
         buildDevPdf(cycle, goals, goalsPlayer, meetings, comments, warnings);
       }).catch(function(){ buildDevPdf(cycle, goals, goalsPlayer, meetings, comments, warnings); });
     });
@@ -9564,8 +9581,8 @@ var CAPRA = (function(){
         profil_typ: (profilBox&&profilBox.dataset.selected)||''
       };
       DIMS.forEach(function(d){ var s=el('capra-slider-'+d.key); data[d.key]=s?parseFloat(s.value):5; });
-      sb.from('profiles').select('display_name,vorname,nachname,geburtsdatum').eq('id',pid).single().then(function(r){
-        cb(data, r.data||{});
+      sb.rpc('staff_get_players_full', { p_player_id: pid }).then(function(r){
+        cb(data, ((r.data)||[])[0] || {});
       });
     } else {
       // Spieler-Kontext: aus get_my_capra
@@ -9573,9 +9590,8 @@ var CAPRA = (function(){
         var rows=r.data||[];
         if(!rows.length){ _toast('Kein Profil vorhanden','error'); return; }
         var d=rows[0];
-        var myid = (typeof ME !== 'undefined' && ME && ME.id) ? ME.id : '';
-        sb.from('profiles').select('display_name,vorname,nachname,geburtsdatum').eq('id',myid).single().then(function(pr){
-          cb(d, pr.data||{});
+        sb.rpc('get_my_person_data').then(function(pr){
+          cb(d, ((pr.data)||[])[0] || {});
         }).catch(function(){ cb(d,{}); });
       });
     }
