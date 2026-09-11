@@ -2669,7 +2669,7 @@ window.addEventListener("load", function(){
       ME=r.data.session.user;
       // Session-Restore: neue session_id erzeugen und Login loggen
       window.OB12_SESSION_ID = 'sid_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
-      sb.rpc("log_login_event",{p_event:"login", p_session_id: window.OB12_SESSION_ID});
+      sb.rpc("log_login_event",{p_event:"login", p_session_id: window.OB12_SESSION_ID}).then(function(){}, function(){});
       afterLogin();
     }
     else { hideAllChrome(); only("view-login"); initPrivacyBanner(); }
@@ -2732,9 +2732,9 @@ function doLogin(){
         return loginErr("Login fehlgeschlagen. Bitte Zugangsdaten prüfen.");
       }
       ME=r.data.user;
-      sb.rpc("reset_login_attempts");
+      sb.rpc("reset_login_attempts").then(function(){}, function(){});
       window.OB12_SESSION_ID = 'sid_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
-      sb.rpc("log_login_event",{p_event:"login", p_session_id: window.OB12_SESSION_ID});
+      sb.rpc("log_login_event",{p_event:"login", p_session_id: window.OB12_SESSION_ID}).then(function(){}, function(){});
       afterLogin();
     });
   });
@@ -2780,11 +2780,77 @@ function submitContactForm(){
   });
 }
 
+/* ══ Sitzungs-Waechter: Ein-Geraete-Regel + Inaktivitaets-Logout ══ */
+var SESSION_GUARD = {
+  pollTimer: null,
+  idleTimer: null,
+  IDLE_MS: 15 * 60 * 1000,   // 15 Minuten ohne Aktivitaet
+  POLL_MS: 30 * 1000,        // alle 30 Sekunden pruefen
+  _bound: false,
+
+  start: function(){
+    this.stop();
+    var self = this;
+    var sid = window.OB12_SESSION_ID;
+    if(!sid) return;
+
+    // Dieses Geraet als aktives registrieren
+    sb.rpc("claim_session", { p_session_id: sid }).then(function(){}, function(){});
+
+    // Regelmaessig pruefen, ob diese Sitzung noch gilt
+    this.pollTimer = setInterval(function(){
+      var cur = window.OB12_SESSION_ID;
+      if(!cur){ self.stop(); return; }
+      sb.rpc("session_still_valid", { p_session_id: cur }).then(function(r){
+        if(r && !r.error && r.data === false){
+          self.stop();
+          SESSION_GUARD.forceLogout("Du wurdest abgemeldet, weil dein Konto auf einem anderen Geraet angemeldet wurde.");
+        }
+      }, function(){});
+    }, this.POLL_MS);
+
+    this.resetIdle();
+    if(!this._bound){
+      this._bound = true;
+      var reset = function(){ SESSION_GUARD.resetIdle(); };
+      ["click","keydown","touchstart","scroll","mousemove"].forEach(function(ev){
+        document.addEventListener(ev, reset, { passive: true });
+      });
+      // Beim Schliessen des Browsers Sitzung freigeben
+      window.addEventListener("pagehide", function(){
+        var cur = window.OB12_SESSION_ID;
+        if(cur) sb.rpc("release_session", { p_session_id: cur }).then(function(){}, function(){});
+      });
+    }
+  },
+
+  resetIdle: function(){
+    if(this.idleTimer) clearTimeout(this.idleTimer);
+    if(!window.OB12_SESSION_ID) return;
+    this.idleTimer = setTimeout(function(){
+      SESSION_GUARD.forceLogout("Du wurdest nach 15 Minuten ohne Aktivitaet automatisch abgemeldet.");
+    }, this.IDLE_MS);
+  },
+
+  stop: function(){
+    if(this.pollTimer){ clearInterval(this.pollTimer); this.pollTimer = null; }
+    if(this.idleTimer){ clearTimeout(this.idleTimer); this.idleTimer = null; }
+  },
+
+  forceLogout: function(msg){
+    this.stop();
+    try { doLogout(); } catch(e){ try { sb.auth.signOut(); } catch(e2){} }
+    setTimeout(function(){ try { loginErr(msg); } catch(e){} }, 350);
+  }
+};
+
 function doLogout(){
   if (window.loginLogInterval) { clearInterval(window.loginLogInterval); window.loginLogInterval = null; }
   var done=function(){CHAL.teardown();if(typeof SC!=='undefined'&&SC.leaveRoom)SC.leaveRoom();ME=null;PROFILE=null;stopClock();hideAllChrome();if(el("in-pass"))el("in-pass").value="";only("view-login");initPrivacyBanner();};
   var _sid = window.OB12_SESSION_ID || null;
   window.OB12_SESSION_ID = null;
+  try { SESSION_GUARD.stop(); } catch(e){}
+  if(_sid) sb.rpc("release_session",{p_session_id:_sid}).then(function(){}, function(){});
   sb.rpc("log_login_event",{p_event:"logout", p_session_id: _sid}).then(function(){sb.auth.signOut().then(done);}, function(){sb.auth.signOut().then(done);});
 }
 
@@ -2861,6 +2927,7 @@ function afterLogin(){
       loginErr("Dein Zugang wurde deaktiviert. Bitte wende dich an deinen Trainer.");
       return;
     }
+    try { SESSION_GUARD.start(); } catch(e){}
     updatePlayerHeaderName();
     el("head-role").textContent = PROFILE.role==="spieler" ? "Spieler/in" : (PROFILE.role==="leiter"?"Leiter-Trainer":"Trainer");
     
@@ -5356,7 +5423,7 @@ function loadLoginLog(quiet){
 
   sb.rpc("get_login_log_staff", {p_limit: 200}).then(function(r){
     // Auto-trim nach dem Laden
-    try { sb.rpc("trim_login_log_per_user"); } catch(e){}
+    try { sb.rpc("trim_login_log_per_user").then(function(){}, function(){}); } catch(e){}
 
     var rows = r.data || [];
 
@@ -5550,7 +5617,7 @@ function doRegister() {
         // URL säubern (?invite=... entfernen) damit Reload sauber ist
         try { history.replaceState(null, "", location.pathname); } catch(e) {}
         window.OB12_SESSION_ID = 'sid_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
-        sb.rpc("log_login_event", {p_event: "login", p_session_id: window.OB12_SESSION_ID});
+        sb.rpc("log_login_event", {p_event: "login", p_session_id: window.OB12_SESSION_ID}).then(function(){}, function(){});
         hideAllChrome();
         afterLogin();
       });
