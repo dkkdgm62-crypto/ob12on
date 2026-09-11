@@ -2728,7 +2728,7 @@ function doLogin(){
     }
     sb.auth.signInWithPassword({email:email,password:p}).then(function(r){
       if(r.error){
-        sb.rpc("record_failed_login", {p_email: email});
+        sb.rpc("record_failed_login", {p_email: email}).then(function(){}, function(){});
         return loginErr("Login fehlgeschlagen. Bitte Zugangsdaten prüfen.");
       }
       ME=r.data.user;
