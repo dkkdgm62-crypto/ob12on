@@ -10312,6 +10312,11 @@ function playerOpenMessage(msgId) {
 
   sb.rpc('get_message_replies', {p_message_id: msgId}).then(function(r){
     var replies = r.data || [];
+    // Fix: Antworten wurden bisher nie als gelesen markiert (nur die
+    // Elternnachricht). Beim Aufklappen des Threads alles mit-erledigen.
+    sb.rpc('mark_thread_read', {p_parent_id: msgId}).then(function(){
+      if(typeof updateNachrichtenBadge === 'function') updateNachrichtenBadge();
+    });
     var html2 = '';
     if(replies.length){
       html2 += '<div style="margin-bottom:10px;">';
@@ -10446,6 +10451,11 @@ function staffToggleThread(msgId) {
   card.appendChild(box);
   sb.rpc('get_message_replies', {p_message_id: msgId}).then(function(r){
     if(r.error){ box.innerHTML = '<p style="font-size:12px;color:#ff9080;">Antworten konnten nicht geladen werden.</p>'; return; }
+    // Fix: Antworten wurden bisher nie als gelesen markiert (nur die
+    // Elternnachricht). Beim Aufklappen des Threads alles mit-erledigen.
+    sb.rpc('mark_thread_read', {p_parent_id: msgId}).then(function(){
+      if(typeof updateNachrichtenBadge === 'function') updateNachrichtenBadge();
+    });
     var replies = r.data || [];
     var h = '';
     if(replies.length){
