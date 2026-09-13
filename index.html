@@ -5530,6 +5530,7 @@ function loadStaffModules(){
   el("staff-vor").innerHTML='<div class="spinner"></div>';
   sb.rpc("get_module_status").then(function(r){
     var mods=r.data||[];
+    MODULES = mods; // Fix: startModule() liest aus MODULES, wurde hier bisher nie befuellt
     var h='<p class="eyebrow">Vorschau</p><h3 style="margin:8px 0 16px; color:#fff;">Alle Module ansehen / testen</h3><div class="grid">';
     mods.forEach(function(m){
       var isExpired = m.expires_at ? new Date(m.expires_at) < new Date() : false;
