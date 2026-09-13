@@ -2784,7 +2784,7 @@ function submitContactForm(){
 var SESSION_GUARD = {
   pollTimer: null,
   idleTimer: null,
-  IDLE_MS: 15 * 60 * 1000,   // 15 Minuten ohne Aktivitaet
+  IDLE_MS: 45 * 60 * 1000,   // 45 Minuten ohne Aktivitaet (war 15 -- verhindert unnoetige Login-Stuerme bei 2h Training)
   POLL_MS: 30 * 1000,        // alle 30 Sekunden pruefen
   _bound: false,
 
