@@ -2720,7 +2720,8 @@ function doLogin(){
     var status = chk.data || {allowed:true};
     if(status.allowed === false){
       if(status.reason === "disabled"){
-        return loginErr("🔒 Dieses Konto wurde aus Sicherheitsgründen gesperrt (zu viele fehlgeschlagene Versuche). Bitte wende dich an deinen Trainer oder nutze das Kontaktformular ganz unten auf dieser Seite.");
+        var why = status.message || "Dieses Konto wurde vom Trainerteam gesperrt.";
+        return loginErr("🔒 " + why + " Bitte wende dich an deinen Trainer oder nutze das Kontaktformular ganz unten auf dieser Seite.");
       }
       var untilTxt = "";
       if(status.until){ try{ untilTxt = " Erneuter Versuch möglich ab " + new Date(status.until).toLocaleTimeString("de-CH",{hour:"2-digit",minute:"2-digit"}) + " Uhr."; }catch(e){} }
@@ -2740,6 +2741,16 @@ function doLogin(){
   });
 }
 function loginErr(m){var e=el("login-err");if(!e)return;e.textContent=m;e.classList.remove("hidden");}
+/* Zugang verweigern: Sitzung beenden und zurueck zum Login-Bildschirm */
+function gateReject(msg){
+  try { SESSION_GUARD.stop(); } catch(e){}
+  window.OB12_SESSION_ID = null;
+  try { sb.auth.signOut(); } catch(e){}
+  ME = null; PROFILE = null;
+  try { hideAllChrome(); } catch(e){}
+  try { only("view-login"); } catch(e){}
+  loginErr(msg);
+}
 function scrollToLogin(){
   var a = el("login-card-anchor");
   if(a) a.scrollIntoView({behavior:"smooth", block:"center"});
@@ -2801,10 +2812,16 @@ var SESSION_GUARD = {
     this.pollTimer = setInterval(function(){
       var cur = window.OB12_SESSION_ID;
       if(!cur){ self.stop(); return; }
-      sb.rpc("session_still_valid", { p_session_id: cur }).then(function(r){
-        if(r && !r.error && r.data === false){
+      sb.rpc("my_gate_state", { p_session_id: cur }).then(function(r){
+        if(!r || r.error || !r.data) return;
+        var g = r.data;
+        if(g.ok === false){
           self.stop();
-          SESSION_GUARD.forceLogout("Du wurdest abgemeldet, weil dein Konto auf einem anderen Geraet angemeldet wurde.");
+          SESSION_GUARD.forceLogout(
+            g.code === "disabled"
+              ? (g.message || "Dein Zugang wurde vom Trainerteam gesperrt. Bitte wende dich an deinen Trainer.")
+              : "Du wurdest abgemeldet, weil dein Konto auf einem anderen Geraet angemeldet wurde."
+          );
         }
       }, function(){});
     }, this.POLL_MS);
@@ -2828,7 +2845,7 @@ var SESSION_GUARD = {
     if(this.idleTimer) clearTimeout(this.idleTimer);
     if(!window.OB12_SESSION_ID) return;
     this.idleTimer = setTimeout(function(){
-      SESSION_GUARD.forceLogout("Du wurdest nach 15 Minuten ohne Aktivitaet automatisch abgemeldet.");
+      SESSION_GUARD.forceLogout("Du wurdest nach 45 Minuten ohne Aktivitaet automatisch abgemeldet.");
     }, this.IDLE_MS);
   },
 
@@ -2919,14 +2936,19 @@ function afterLogin(){
     PROFILE.skills = PROFILE.skills || {};
     applySidebarPosition(PROFILE.sidebar_position || "left");
 
-    // Deaktivierte Spieler sofort rauswerfen
-    if (PROFILE.is_active === false && PROFILE.role === "spieler") {
-      sb.auth.signOut();
-      ME = null; PROFILE = null;
-      hideAllChrome(); only("view-login");
-      loginErr("Dein Zugang wurde deaktiviert. Bitte wende dich an deinen Trainer.");
-      return;
+    // Schranke 1: lokal bekannter Stand -- sofortige Reaktion
+    if (PROFILE.is_active === false && PROFILE.role !== "leiter" && PROFILE.role !== "trainer") {
+      return gateReject("Dein Zugang wurde vom Trainerteam gesperrt. Bitte wende dich an deinen Trainer.");
     }
+    // Schranke 2: Server entscheidet endgueltig. Faengt auch die Faelle ab,
+    // in denen die Profil-Abfrage oben fehlschlug (frueher: Login ging durch)
+    // sowie gesperrte Trainer-Konten.
+    sb.rpc("my_gate_state").then(function(g){
+      var gate = (g && !g.error && g.data) ? g.data : null;
+      if (gate && gate.ok === false && gate.code !== "displaced") {
+        gateReject(gate.message || "Dein Zugang wurde gesperrt. Bitte wende dich an deinen Trainer.");
+      }
+    }, function(){});
     try { SESSION_GUARD.start(); } catch(e){}
     updatePlayerHeaderName();
     el("head-role").textContent = PROFILE.role==="spieler" ? "Spieler/in" : (PROFILE.role==="leiter"?"Leiter-Trainer":"Trainer");
