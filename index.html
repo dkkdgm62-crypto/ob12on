@@ -2605,11 +2605,37 @@ function esc(s){var d=document.createElement("div");d.textContent=(s==null?"":s)
    Grund: manche Geraete/Tastaturen liefern Umlaute in zerlegter Form
    (z.B. "u" + Kombinations-Trema statt "ü"). jsPDF's Standard-Schriftart
    (Helvetica/WinAnsi) kennt nur die zusammengesetzte Form - bei zerlegtem
-   Text faellt das Trema/der Umlaut sonst lautlos weg (z.B. "Prüfung" -> "Prufung"). */
+   Text faellt das Trema/der Umlaut sonst lautlos weg (z.B. "Prüfung" -> "Prufung").
+   Entfernt zusaetzlich Emoji/Haekchen/Pfeile & Co: jsPDFs Standardschriften
+   (Helvetica etc.) kennen nur WinAnsi/Latin-1 (0x20-0x7E + 0xA0-0xFF) plus eine
+   handvoll Windows-1252-Sonderzeichen - alles ausserhalb wird zu Zeichenmuell
+   wie "Ø=ßâ" (empirisch mit echtem jsPDF verifiziert, nicht geraten).
+   VERBINDLICH fuer alle PDF-Bausteine (Selbstreflexion, Zielvereinbarung, CAPRA/
+   Entwicklungsprofil, Skills/Rangliste) - aktuelle wie kuenftige: JEDER Text, der
+   mit doc.text()/autoTable() ins PDF geschrieben wird, MUSS zuerst durch nfc()
+   laufen - egal ob festes Label oder freier Text von Spielern/Trainern. */
+var _PDF_SAFE_EXTRA = "\u20AC\u201A\u0192\u201E\u2026\u2020\u2021\u02C6\u2030\u0160\u2039\u0152\u017D\u2018\u2019\u201C\u201D\u2022\u2013\u2014\u02DC\u2122\u0161\u203A\u0153\u017E\u0178";
+var _PDF_SAFE_SET = null;
+function _pdfSafeSet(){
+  if(_PDF_SAFE_SET) return _PDF_SAFE_SET;
+  _PDF_SAFE_SET = {};
+  for (var i=0;i<_PDF_SAFE_EXTRA.length;i++) _PDF_SAFE_SET[_PDF_SAFE_EXTRA.charCodeAt(i)] = true;
+  return _PDF_SAFE_SET;
+}
 function nfc(s){
   if(s==null) return "";
   s = String(s);
-  return (typeof s.normalize === "function") ? s.normalize("NFC") : s;
+  if (typeof s.normalize === "function") s = s.normalize("NFC");
+  var safe = _pdfSafeSet(), out = "";
+  for (var i=0;i<s.length;i++){
+    var code = s.charCodeAt(i);
+    if (code===0x0A || code===0x0D || code===0x09){ out += s[i]; continue; }
+    if (code>=0x20 && code<=0x7E){ out += s[i]; continue; }
+    if (code>=0xA0 && code<=0xFF){ out += s[i]; continue; }
+    if (safe[code]){ out += s[i]; continue; }
+    // alles andere (Emoji, Haekchen, Pfeile, Variationsselektoren...) faellt weg
+  }
+  return out.replace(/[ \t]{2,}/g, " ").trim();
 }
 function fmtDT(ts){
   if(!ts) return '–';
@@ -8348,7 +8374,7 @@ var Ziel = (function(){
       var erledigt = m.status==='erledigt';
       y = checkBreak(y, 6);
       doc.setFont("helvetica","bold");
-      doc.text((erledigt?"\u2713 ":"\u2022 "), MARGIN, y);
+      doc.text((erledigt?"[OK] ":"\u2022 "), MARGIN, y);
       doc.setFont("helvetica","normal");
       var line = label+": "+(erledigt?'erledigt':'offen')+(m.geplant_datum?(" (Termin: "+fmtD(m.geplant_datum)+")"):"");
       doc.text(line, MARGIN+5, y); y += 5;
@@ -9036,7 +9062,7 @@ var Reflex = (function(){
     var first = true;
 
     function checkBreak(y, needed){
-      if(y + needed > PAGE_H - 22){ doc.addPage(); return 20; }
+      if(y + needed > PAGE_H - 17){ doc.addPage(); return 20; }
       return y;
     }
     function sectionHeader(title, y){
@@ -9047,7 +9073,7 @@ var Reflex = (function(){
       doc.setDrawColor(GOLD[0],GOLD[1],GOLD[2]);
       doc.setLineWidth(0.4);
       doc.line(MARGIN, y+2, PAGE_W-MARGIN, y+2);
-      return y + 8;
+      return y + 7;
     }
 
     entries.forEach(function(e){
@@ -9100,18 +9126,18 @@ var Reflex = (function(){
           y = checkBreak(y, 6);
           var v = (e.refl.answers||{})[q.key];
           var lbl = v ? (SCALE.find(function(s){return s.v===v;})||{}).label : "-";
-          doc.text("\u2022 "+nfc(q.label)+": "+(v?(v+"/3 ("+nfc(lbl)+")"):"-"), MARGIN, y); y+=6;
+          doc.text("\u2022 "+nfc(q.label)+": "+(v?(v+"/3 ("+nfc(lbl)+")"):"-"), MARGIN, y); y+=5.3;
         });
         section.texts.forEach(function(t){
           y = checkBreak(y, 8);
           var vText = (e.refl.texts||{})[t.key];
-          doc.setFont("helvetica","bold"); doc.text(nfc(t.label)+":", MARGIN, y); y+=5;
+          doc.setFont("helvetica","bold"); doc.text(nfc(t.label)+":", MARGIN, y); y+=4.5;
           doc.setFont("helvetica","normal");
           var split = doc.splitTextToSize(nfc(vText)||"-", 180);
-          y = checkBreak(y, split.length*5);
-          doc.text(split, MARGIN, y); y += split.length*5 + 3;
+          y = checkBreak(y, split.length*4.6);
+          doc.text(split, MARGIN, y); y += split.length*4.6 + 2;
         });
-        y += 3;
+        y += 1.5;
       });
     });
     // Fusszeile mit Entwickler-Credit auf jeder Seite
